@@ -21,6 +21,9 @@ ghc-options:
 dependencies:
 - base >= 4.7 && < 5
 - fin
+- generic-lens
+- lens
+- row-types
 - superrecord
 - tagged
 - text

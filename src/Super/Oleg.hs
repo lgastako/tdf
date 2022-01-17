@@ -1,4 +1,3 @@
-{-# LANGUAGE EmptyCase             #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE FlexibleContexts      #-}

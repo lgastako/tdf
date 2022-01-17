@@ -30,6 +30,10 @@ library
       Classy.DataFrame
       Classy.DataFrame.Vector
       Pandas.DataFrame
+      RT.DataFrame
+      RT.DataFrame.Play
+      RT.Examples
+      RT.Examples.CSV
       Super.DataFrame
       Super.Examples
       Super.Examples.TP
@@ -42,6 +46,9 @@ library
   build-depends:
       base >=4.7 && <5
     , fin
+    , generic-lens
+    , lens
+    , row-types
     , superrecord
     , tagged
     , text

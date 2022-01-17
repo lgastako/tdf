@@ -116,7 +116,7 @@ relabel :: ( KnownSymbol l
         -> Rec lts
         -> Rec _
 --      -> Rec '[l := SuperRecord.RecTy l lts]
-relabel label x = label := (get label x) & rnil
+relabel label x = label := get label x & rnil
 
 columnWith :: ( KnownSymbol label
               , KnownNat (RecSize a)
@@ -142,7 +142,7 @@ relabel' :: ( KnownSymbol l
 relabel' label x = label := get label x & rnil
 
 fromList :: (Enum idx, Num idx) => [Rec a] -> DataFrame idx a
-fromList recs = construct opts { optData = Vector.fromList recs }
+fromList = fromVector . Vector.fromList
 
 -- TODO: change from 'value' to '0' ? maybe, maybe not... weird stuff.
 fromScalarList :: forall idx a. (Enum idx, Num idx)
@@ -214,11 +214,10 @@ renderStrings headers rows = unlines $
     pad n s = replicate (length s - n) ' ' ++ s
 
     maxWidths :: [Int]
-    maxWidths = id
-      . fmap maximum
-      . transpose
-      . fmap (fmap length)
-      $ allStrings
+    maxWidths = fmap maximum
+              . transpose
+              . fmap (fmap length)
+              $ allStrings
 
     lineWith :: (Char, Char, Char, Char) -> String
     lineWith (left, _mid, _break, _right) = left:rest
