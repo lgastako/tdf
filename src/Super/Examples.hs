@@ -78,7 +78,10 @@ df3 :: DataFrame NameFields
 df3 = DF.column #name df1
 
 df4 :: DataFrame AgeFields
-df4 = DF.columnWith show #age df1
+df4 = DF.columnWith f #age df1
+  where
+    f :: AgeRec -> AgeRec
+    f = id -- undefined -- show
 
 df5 :: DataFrame AgeFields
 df5 = DF.map (DF.relabel' #age) df1

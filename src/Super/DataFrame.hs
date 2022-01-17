@@ -15,6 +15,7 @@ module Super.DataFrame
   , columnWith
   , displayWith
   , drop
+  , empty
   , foldr
   , fromList
   , map
@@ -23,6 +24,8 @@ module Super.DataFrame
   , relabel'
   , renderWith
   , take
+  , toList
+  , toVector
   , vector
   ) where
 
@@ -56,6 +59,10 @@ import GHC.TypeLits
 newtype DataFrame a = DataFrame (Vector (Rec a))
 
 deriving instance RecEq a a => Eq (DataFrame a)
+
+-- construct :: Options -> DataFrame a
+-- construct = undefined
+-- -- https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame
 
 column :: ( KnownSymbol label
           , KnownNat (RecSize a)
@@ -177,3 +184,12 @@ renderStrings headers rows = unlines $
 
 vector :: DataFrame a -> Vector (Rec a)
 vector (DataFrame v) = v
+
+empty :: DataFrame '[]
+empty = DataFrame Vector.empty
+
+toVector :: DataFrame a -> Vector (Rec a)
+toVector (DataFrame v) = v
+
+toList :: DataFrame a -> [Rec a]
+toList = Vector.toList . toVector
