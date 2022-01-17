@@ -65,25 +65,25 @@ person2 =
 greet :: Has "name" r String => Rec r -> String
 greet = ("Hello " ++) . get #name
 
-df1 :: DataFrame PersonFields
+df1 :: DataFrame Int PersonFields
 df1 = DF.fromList
   [ person
   , person2
   ]
 
-df2 :: DataFrame NameFields
+df2 :: DataFrame Int NameFields
 df2 = DF.map justName df1
 
-df3 :: DataFrame NameFields
+df3 :: DataFrame Int NameFields
 df3 = DF.column #name df1
 
-df4 :: DataFrame AgeFields
+df4 :: DataFrame Int AgeFields
 df4 = DF.columnWith f #age df1
   where
     f :: AgeRec -> AgeRec
     f = id -- undefined -- show
 
-df5 :: DataFrame AgeFields
+df5 :: DataFrame Int AgeFields
 df5 = DF.map (DF.relabel' #age) df1
 -- df5 = DF.column #age df1
 -- df5 = DF.map (get #age) df1
@@ -107,6 +107,9 @@ toStrings rp =
 
 toStrings' :: Rec NameFields -> [String]
 toStrings' rp = [ get #name rp ]
+
+indexTest :: Bool
+indexTest = DF.index df1 == [0, 1]
 
 r :: IO ()
 r = putStr rendered

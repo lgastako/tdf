@@ -4,6 +4,8 @@
 {-# LANGUAGE KindSignatures                  #-}
 {-# LANGUAGE OverloadedLabels                #-}
 {-# LANGUAGE PartialTypeSignatures           #-}
+{-# LANGUAGE RecordWildCards                 #-}
+{-# LANGUAGE ScopedTypeVariables             #-}
 {-# LANGUAGE StandaloneDeriving              #-}
 {-# LANGUAGE TypeOperators                   #-}
 {-# LANGUAGE UndecidableInstances            #-}
@@ -11,15 +13,21 @@
 
 module Super.DataFrame
   ( DataFrame
+  , Options
   , column
   , columnWith
+  , construct
   , displayWith
   , drop
   , empty
   , foldr
   , fromList
+  , fromScalarList
+  , fromVector
+  , index
   , map
   , onVec
+  , opts
   , relabel
   , relabel'
   , renderWith
@@ -39,8 +47,10 @@ import           Prelude                 hiding ( drop
 import           Data.List                      ( intercalate
                                                 , transpose
                                                 )
+import qualified Data.List            as List
 import           Data.Vector                    ( Vector )
 import qualified Data.Vector          as Vector
+import           GHC.TypeLits
 import           SuperRecord                    ( Rec
                                                 , RecEq
                                                 , RecSize
@@ -52,25 +62,40 @@ import           SuperRecord                    ( Rec
                                                 , rnil
                                                 )
 
---import qualified SuperRecord
-import GHC.TypeLits
--- import           GHC.OverloadedLabels           ( IsLabel )
 
-newtype DataFrame a = DataFrame (Vector (Rec a))
+data DataFrame idx a = DataFrame
+  { dfIndexes :: [idx]
+  , dfData    :: Vector (Rec a)
+  }
 
-deriving instance RecEq a a => Eq (DataFrame a)
+deriving instance (RecEq a a, Eq idx) => Eq (DataFrame idx a)
 
--- construct :: Options -> DataFrame a
--- construct = undefined
--- -- https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame
+data Options idx a = Options
+  { optIndexes :: [idx]
+  , optData    :: Vector (Rec a)
+  }
+
+opts :: (Enum idx, Num idx) => Options idx a
+opts = Options
+  { optIndexes = [0..]
+  , optData    = Vector.empty
+  }
+
+construct :: Options idx a -> DataFrame idx a
+construct Options {..} = DataFrame optIndexes optData
+-- https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame
+
+-- | The index (row labels) of the DataFrame.
+index :: DataFrame idx a -> [idx]
+index DataFrame {..} = List.take (Vector.length dfData) dfIndexes
 
 column :: ( KnownSymbol label
           , KnownNat (RecSize a)
           , KnownNat ((RecSize a - RecTyIdxH 0 label a) - 1)
           )
        => FldProxy label
-       -> DataFrame a
-       -> DataFrame _
+       -> DataFrame idx a
+       -> DataFrame idx _
 --     -> DataFrame '[label := SuperRecord.RecTy label a]
 column label = map (relabel label)
 
@@ -91,8 +116,8 @@ columnWith :: ( KnownSymbol label
              -> Rec _
               )
            -> FldProxy label
-           -> DataFrame a
-           -> DataFrame _
+           -> DataFrame idx a
+           -> DataFrame idx _
 --         -> DataFrame '[label := SuperRecord.RecTy label a]
 columnWith g label = map (g <$> relabel' label)
 
@@ -106,29 +131,43 @@ relabel' :: ( KnownSymbol l
 --       -> Rec '[l := SuperRecord.RecTy l lts]
 relabel' label x = label := get label x & rnil
 
-fromList :: [Rec a] -> DataFrame a
-fromList = DataFrame . Vector.fromList
+fromList :: (Enum idx, Num idx) => [Rec a] -> DataFrame idx a
+fromList recs = construct opts { optData = Vector.fromList recs }
 
-drop :: Int -> DataFrame a -> DataFrame a
-drop n (DataFrame v) = DataFrame (Vector.drop n v)
+-- TODO: change from 'value' to '0' ? maybe, maybe not... weird stuff.
+fromScalarList :: forall idx a. (Enum idx, Num idx)
+               => [a]
+               -> DataFrame idx '["value" := a]
+fromScalarList = fromList . List.map (\x -> #value := x & rnil)
 
-take :: Int -> DataFrame a -> DataFrame a
+fromVector :: (Enum idx, Num idx) => Vector (Rec a) -> DataFrame idx a
+fromVector recs = construct opts { optData = recs }
+
+drop :: Int -> DataFrame idx a -> DataFrame idx a
+drop n (DataFrame idxs v) = DataFrame idxs' v'
+  where
+    idxs' = List.drop n idxs
+    v'    = Vector.drop n v
+
+take :: Int -> DataFrame idx a -> DataFrame idx a
 take n = onVec (Vector.take n)
 
-onVec :: (Vector (Rec a) -> Vector (Rec b)) -> DataFrame a -> DataFrame b
-onVec f (DataFrame v) = DataFrame (f v)
+onVec :: (Vector (Rec a) -> Vector (Rec b))
+      -> DataFrame idx a
+      -> DataFrame idx b
+onVec f (DataFrame idx v) = DataFrame idx (f v)
 
-map :: (Rec a -> Rec b) -> DataFrame a -> DataFrame b
+map :: (Rec a -> Rec b) -> DataFrame idx a -> DataFrame idx b
 map f = onVec (Vector.map f)
 
-foldr :: (Rec a -> b -> b) -> b -> DataFrame a -> b
-foldr f z (DataFrame v) = Prelude.foldr f z v
+foldr :: (Rec a -> b -> b) -> b -> DataFrame idx a -> b
+foldr f z (DataFrame _idx v) = Prelude.foldr f z v
 
-displayWith :: (Rec a -> [String]) -> DataFrame a -> IO ()
+displayWith :: (Rec a -> [String]) -> DataFrame idx a -> IO ()
 displayWith f = putStr . renderWith f
 
-renderWith :: (Rec a -> [String]) -> DataFrame a -> String
-renderWith f (DataFrame v) = renderStrings headers rows
+renderWith :: (Rec a -> [String]) -> DataFrame idx a -> String
+renderWith f (DataFrame _idx v) = renderStrings headers rows
   where
     headers :: [String]
     headers = ["TODO", "fix", "column", "names"]
@@ -182,14 +221,14 @@ renderStrings headers rows = unlines $
     rowStrings :: [[String]]
     rowStrings = Vector.toList rows
 
-vector :: DataFrame a -> Vector (Rec a)
-vector (DataFrame v) = v
+vector :: DataFrame idx a -> Vector (Rec a)
+vector (DataFrame _idx v) = v
 
-empty :: DataFrame '[]
-empty = DataFrame Vector.empty
+empty :: DataFrame idx '[]
+empty = DataFrame [] Vector.empty
 
-toVector :: DataFrame a -> Vector (Rec a)
-toVector (DataFrame v) = v
+toVector :: DataFrame idx a -> Vector (Rec a)
+toVector (DataFrame _idx v) = v
 
-toList :: DataFrame a -> [Rec a]
+toList :: DataFrame idx a -> [Rec a]
 toList = Vector.toList . toVector

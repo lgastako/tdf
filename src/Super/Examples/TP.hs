@@ -40,7 +40,7 @@ exampleList1 =
   , mkStudent 1004 "Vin"    88.30
   ]
 
-exampleDf :: DataFrame StudentFields
+exampleDf :: DataFrame Int StudentFields
 exampleDf = DF.fromList exampleList1
 
 -- ================================================================
@@ -58,7 +58,7 @@ exampleDf = DF.fromList exampleList1
 
 -- Haskell equivalent:
 
-example1Df :: DataFrame '[]
+example1Df :: DataFrame idx '[]
 example1Df = DF.empty
 
 example1Vec :: Vector (Rec '[])
@@ -92,7 +92,9 @@ example1Vec = DF.toVector example1Df
 
 -- Haskell:
 
--- >>> df = DF.fromList [1..5]
--- >>> DF.toVector df
--- TODO
+example2Df :: DataFrame Int '["value" := Int]
+example2Df = DF.fromScalarList [1..5]
 
+-- >>> λ> DF.toVector example2Df
+-- [[("value","1")],[("value","2")],[("value","3")],[("value","4")],[("value","5")]]
+-- TODO

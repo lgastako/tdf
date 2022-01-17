@@ -19,6 +19,9 @@ create-env:
 install-pandas:
 	$(PIP) install pandas
 
+haddock:
+	stack haddock
+
 watch:
 	stack build --fast --file-watch
 
