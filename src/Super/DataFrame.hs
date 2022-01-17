@@ -15,6 +15,7 @@ module Super.DataFrame
   ( DataFrame
   , Options
   , column
+  , columns
   , columnWith
   , construct
   , displayWith
@@ -88,6 +89,15 @@ construct Options {..} = DataFrame optIndexes optData
 -- | The index (row labels) of the DataFrame.
 index :: DataFrame idx a -> [idx]
 index DataFrame {..} = List.take (Vector.length dfData) dfIndexes
+
+columns :: DataFrame idx a -> [String]
+columns = error "columns"
+
+_names :: [label := value] -> [String]
+_names = fmap name
+
+name :: label := value -> String
+name (label := _value) = symbolVal label
 
 column :: ( KnownSymbol label
           , KnownNat (RecSize a)
