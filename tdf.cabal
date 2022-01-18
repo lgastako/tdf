@@ -38,6 +38,7 @@ library
       Super.Examples
       Super.Examples.TP
       Super.Oleg
+      TDF.Types.RangeIndex
   other-modules:
       Paths_tdf
   hs-source-dirs:
@@ -53,6 +54,36 @@ library
     , row-types
     , superrecord
     , tagged
+    , text
+    , vec
+    , vector
+  default-language: Haskell2010
+
+test-suite tdf-test
+  type: exitcode-stdio-1.0
+  main-is: Driver.hs
+  other-modules:
+      RangeIndexTest
+      Paths_tdf
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , deepseq
+    , fin
+    , generic-lens
+    , ghc-datasize
+    , lens
+    , row-types
+    , superrecord
+    , tagged
+    , tasty
+    , tasty-discover
+    , tasty-hedgehog
+    , tasty-hspec
+    , tasty-quickcheck
+    , tdf
     , text
     , vec
     , vector

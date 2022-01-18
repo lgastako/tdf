@@ -111,6 +111,12 @@ reindex dfIndexes' DataFrame {..} = DataFrame dfIndexes' dfData
 columns :: forall idx a. (Forall a ToField) => DataFrame idx a -> [String]
 columns _ = Rec.labels @a @ToField
 
+-- TODO: dtypes
+-- TODO: select_dtypes
+
+-- values / to_numpy replaced by toVector
+
+
 data Verbosity
   = Quiet
   | Verbose
@@ -144,6 +150,8 @@ infoVerbose df = unlines
   , "more soon (verbose)"
   ]
 
+-- TODO: this is poorly named, especially since we're probably about to implement
+--       our own "real" RangeIndex type.
 rangeIndex :: DataFrame idx a -> RangeIndex idx
 rangeIndex df = ( length idxs
                 , case idxs of

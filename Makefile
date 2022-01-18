@@ -22,7 +22,13 @@ install-pandas:
 haddock:
 	stack haddock
 
+test:
+	stack test --fast --file-watch
+
 watch:
 	stack build --fast --file-watch
 
+t: test
 w: watch
+
+.PHONY: test
