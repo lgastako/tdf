@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedLabels #-}
 
-module DataFrameTest where
+module RT.DataFrameTest where
 
 import           Test.Tasty.Hspec
 
