@@ -70,6 +70,13 @@ df1 = DF.fromList
   , person2
   ]
 
+df1' :: DataFrame Int PersonFields
+df1' = DF.reindex [0, 1] df1
+
+-- λ> DF.memSize df1'
+-- 1096
+-- Yeesh that's a lot of overhead for [{name:Alex,age:23},{name:Dave,age:45}]
+
 df2 :: DataFrame Int NameFields
 df2 = DF.map justName df1
 

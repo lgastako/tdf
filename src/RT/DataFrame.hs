@@ -22,6 +22,7 @@ module RT.DataFrame
   , info
   , map
   , memSize
+  , reindex
   , renderWith
   ) where
 
@@ -34,6 +35,9 @@ import           Prelude               hiding   ( map )
 --                                                 )
 import           Control.DeepSeq                ( ($!!)
                                                 , NFData
+                                                )
+import           Control.Monad.IO.Class         ( MonadIO
+                                                , liftIO
                                                 )
 import qualified Data.List            as List
 import           Data.Row                       ( type (.==)
@@ -99,6 +103,11 @@ construct Options {..} = DataFrame optIndexes optData
 index :: DataFrame idx a -> [idx]
 index DataFrame {..} = List.take (Vector.length dfData) dfIndexes
 
+-- TODO: questionable to expose? at least with this interface... doing it for
+--       now for Examples.hs
+reindex :: [idx'] -> DataFrame idx a -> DataFrame idx' a
+reindex dfIndexes' DataFrame {..} = DataFrame dfIndexes' dfData
+
 columns :: forall idx a. (Forall a ToField) => DataFrame idx a -> [String]
 columns _ = Rec.labels @a @ToField
 
@@ -152,8 +161,8 @@ showRangeIndex (n, Just (f, l)) = "Range index: " <> show n <> " entries, "
                                <> show f <> " to " <> show l
 
 -- TODO truncate indexes on construction so this doesn't infintie loop
-memSize :: (Forall a NFData, NFData idx) => DataFrame idx a -> IO Word
-memSize = (Data.recursiveSize $!!)
+memSize :: (Forall a NFData, MonadIO m, NFData idx) => DataFrame idx a -> m Word
+memSize = (liftIO . Data.recursiveSize $!!)
 
 colIndex :: Forall a ToField => DataFrame idx a -> ColIndex
 colIndex df = ( length cols
