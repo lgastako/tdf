@@ -45,8 +45,10 @@ library
   ghc-options: -Wall
   build-depends:
       base >=4.7 && <5
+    , deepseq
     , fin
     , generic-lens
+    , ghc-datasize
     , lens
     , row-types
     , superrecord

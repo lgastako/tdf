@@ -1,23 +1,27 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE OverloadedLabels      #-}
-{-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE StandaloneDeriving    #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE OverloadedLabels    #-}
+{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving  #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module RT.DataFrame
   ( DataFrame
   , Options
   , ToField( toField )
+  , Verbosity(..)
   , columns
   , fromList
   , fromScalarList
   , fromVector
   , index
+  , info
   , map
+  , memSize
   , renderWith
   ) where
 
@@ -26,7 +30,11 @@ import           Prelude               hiding   ( map )
 -- import           Control.Lens                   ( Getter
 --                                                 -- , Getting
 --                                                 , view
+
 --                                                 )
+import           Control.DeepSeq                ( ($!!)
+                                                , NFData
+                                                )
 import qualified Data.List            as List
 import           Data.Row                       ( type (.==)
                                                 , (.==)
@@ -38,12 +46,16 @@ import qualified Data.Text            as T
 import           Data.Vector                    ( Vector )
 import qualified Data.Vector          as Vector
 import           Data.Generics.Labels           ()
-import qualified Data.Row.Records             as Rec
+import qualified Data.Row.Records     as Rec
+import           GHC.Generics                   ( Generic )
+import qualified GHC.DataSize         as Data
 
 data DataFrame idx a = DataFrame
   { dfIndexes :: [idx]
   , dfData    :: Vector (Rec a)
-  }
+  } deriving (Generic)
+
+instance (Forall a NFData, NFData idx) => NFData (DataFrame idx a)
 
 deriving instance ( Forall a Show
                   , Show idx
@@ -89,6 +101,75 @@ index DataFrame {..} = List.take (Vector.length dfData) dfIndexes
 
 columns :: forall idx a. (Forall a ToField) => DataFrame idx a -> [String]
 columns _ = Rec.labels @a @ToField
+
+data Verbosity
+  = Quiet
+  | Verbose
+  deriving (Bounded, Enum, Generic, Eq, Ord, Show)
+
+type RangeIndex idx = (Int, Maybe (idx, idx))
+
+type ColIndex = (Int, Maybe (String, String))
+
+-- TODO use "Renderable" or something instead of Show for the idxs
+
+info :: (Forall a ToField, Show idx)
+     => Verbosity
+     -> DataFrame idx a
+     -> String
+info verbosity = case verbosity of
+  Quiet   -> infoQuiet
+  Verbose -> infoVerbose
+
+infoQuiet :: (Forall a ToField, Show idx)
+          => DataFrame idx a
+          -> String
+infoQuiet df = unlines
+  [ showRangeIndex (rangeIndex df)
+  , showColIndex (colIndex df)
+  ]
+
+infoVerbose :: Show idx => DataFrame idx a -> String
+infoVerbose df = unlines
+  [ showRangeIndex (rangeIndex df) ++ "\nmore soon\n"
+  , "more soon (verbose)"
+  ]
+
+rangeIndex :: DataFrame idx a -> RangeIndex idx
+rangeIndex df = ( length idxs
+                , case idxs of
+                    []    -> Nothing
+                    (f:xs) -> case reverse xs of
+                                [] -> Nothing
+                                (l:_) -> Just (f, l)
+                )
+  where
+    idxs = index df
+
+showRangeIndex :: Show idx => RangeIndex idx -> String
+showRangeIndex (n, Nothing)     = "Range index: " <> show n <> " entries."
+showRangeIndex (n, Just (f, l)) = "Range index: " <> show n <> " entries, "
+                               <> show f <> " to " <> show l
+
+-- TODO truncate indexes on construction so this doesn't infintie loop
+memSize :: (Forall a NFData, NFData idx) => DataFrame idx a -> IO Word
+memSize = (Data.recursiveSize $!!)
+
+colIndex :: Forall a ToField => DataFrame idx a -> ColIndex
+colIndex df = ( length cols
+              , case cols of
+                  []    -> Nothing
+                  (f:xs) -> case reverse xs of
+                              [] -> Nothing
+                              (l:_) -> Just (f, l)
+              )
+  where
+    cols = columns df
+
+showColIndex :: ColIndex -> String
+showColIndex (n, Nothing)     = "Columns: " <> show n <> " entries."
+showColIndex (n, Just (f, l)) = "Columns: " <> show n <> " entries, "
+                             <> show f <> " to " <> show l
 
 fromList :: (Enum idx, Num idx) => [Rec a] -> DataFrame idx a
 fromList = fromVector . Vector.fromList

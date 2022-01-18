@@ -361,4 +361,11 @@ packages:
       sha256: f7a85efb9277edc3d613003d1ec89f2302dc42674932d705cf2438a76ea5edd0
   original:
     hackage: invariant-0.5.3@sha256:e430340b5f4248159f9fd217c506946887b4ff8f2c7a3819c3d4f06bcb195e6a,3323
+- completed:
+    hackage: ghc-datasize-0.2.2@sha256:3c2afb582a1cf0702c2ccdb0465dad090695e397179848b78b24cc24f02351bd,1140
+    pantry-tree:
+      size: 216
+      sha256: f4993b300a3c23c9b7efef2f21aee737ce0570e20e958f10bb732e076255971b
+  original:
+    hackage: ghc-datasize-0.2.2@sha256:3c2afb582a1cf0702c2ccdb0465dad090695e397179848b78b24cc24f02351bd,1140
 snapshots: []

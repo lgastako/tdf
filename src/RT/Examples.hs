@@ -27,7 +27,7 @@ import qualified RT.DataFrame as DF
 
 type PersonFields =
   (  "name" .== String
-  .+ "age" .== Int
+  .+ "age"  .== Int
   )
 
 type Person = Rec PersonFields
