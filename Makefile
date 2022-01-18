@@ -22,12 +22,16 @@ install-pandas:
 haddock:
 	stack haddock
 
+hlint:
+	hlint ./src
+
 test:
 	stack test --fast --file-watch
 
 watch:
 	stack build --fast --file-watch
 
+hl: hlint
 t: test
 w: watch
 

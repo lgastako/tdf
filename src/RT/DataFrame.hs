@@ -350,7 +350,7 @@ isEmpty df
 
 empty :: DataFrame () Empty
 empty = construct $ Options
-  { optIndexes = ([] :: [()])
+  { optIndexes = [] :: [()]
   , optData = Vector.empty
   }
 

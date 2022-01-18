@@ -38,6 +38,7 @@ library
       Super.Examples
       Super.Examples.TP
       Super.Oleg
+      TDF.RecOfVectors
       TDF.Types.RangeIndex
   other-modules:
       Paths_tdf
