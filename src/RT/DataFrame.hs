@@ -386,6 +386,8 @@ tail_ = tail 5
 at :: Eq idx => idx -> Getter (Rec a) b -> DataFrame idx a -> Maybe b
 at idx accessor df = view accessor <$> lookup idx df
 
+-- TODO: iat -- maybe?
+
 -- TODO this obviously needs to be SOOO much better
 lookup :: Eq idx => idx -> DataFrame idx a -> Maybe (Rec a)
 lookup k DataFrame {..} = fmap snd . Vector.find ((== k) . fst) $ indexed
