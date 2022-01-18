@@ -7,22 +7,23 @@
 
 module RT.Examples where
 
-import           Prelude        hiding ( drop
-                                       , take
-                                       )
+import           Prelude               hiding ( drop
+                                              , take
+                                              )
 
-import           Control.Lens          ( (^.)
-                                       , view
-                                       )
-import           Data.Generics.Labels  ()
-import           Data.Generics.Product.Fields  ( HasField' )
-import           Data.Row              ( type (.+)
-                                       , type (.==)
-                                       , (.+)
-                                       , (.==)
-                                       , Rec
-                                       )
-import           RT.DataFrame          ( DataFrame )
+import           Control.Lens                 ( (^.)
+                                              , view
+                                              )
+import           Data.Generics.Labels         ()
+import           Data.Generics.Product.Fields ( HasField' )
+import           Data.Row                     ( type (.+)
+                                              , type (.==)
+                                              ,      (.+)
+                                              ,      (.==)
+                                              , Rec
+                                              )
+import qualified Data.Vector  as Vector
+import           RT.DataFrame                 ( DataFrame )
 import qualified RT.DataFrame as DF
 
 type PersonFields =
@@ -77,6 +78,9 @@ df1' = DF.reindex [0, 1] df1
 -- 1096
 -- Yeesh that's a lot of overhead for [{name:Alex,age:23},{name:Dave,age:45}]
 
+df1'' :: DataFrame Int (PersonFields .+ "foo" .== String)
+df1'' = DF.map (\x -> x .+ #foo .== ("bar" ::String)) df1'
+
 df2 :: DataFrame Int NameFields
 df2 = DF.map justName df1
 
@@ -96,6 +100,28 @@ df2 = DF.map justName df1
 -- df5 = DF.map (DF.relabel' #age) df1
 -- -- df5 = DF.column #age df1
 -- -- df5 = DF.map (get #age) df1
+
+animals :: DataFrame Int ("animal" .== String)
+animals = DF.construct o
+  where
+    o = DF.opts
+      { DF.optData = Vector.fromList . map mkRec $ animalNames
+      , DF.optIndexes = [0 .. length animalNames :: Int]
+      }
+
+    mkRec a = #animal .== a
+
+    animalNames =
+      [ "alligator"
+      , "bee"
+      , "falcon"
+      , "lion"
+      , "monkey"
+      , "parrot"
+      , "shark"
+      , "whale"
+      , "zebra"
+      ]
 
 rendered :: String
 rendered = unlines

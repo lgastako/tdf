@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE FlexibleContexts    #-}
@@ -11,30 +12,50 @@
 
 module RT.DataFrame
   ( DataFrame
-  , Options
+  , Options( optData
+           , optIndexes
+           )
   , ToField( toField )
   , Verbosity(..)
+  , at
   , columns
+  , construct
+  , empty
   , fromList
   , fromScalarList
   , fromVector
+  , head
+  , head_
   , index
   , info
+  , isEmpty
   , map
   , memSize
+  , ncols
+  , ndims
+  , nrows
+  , opts
   , reindex
   , renderWith
+  , shape
+  , size
+  , tail
+  , tail_
+  , toList
+  , toVector
   ) where
 
-import           Prelude               hiding   ( map )
+import           Prelude               hiding   ( head
+                                                , lookup
+                                                , map
+                                                , tail
+                                                )
 
--- import           Control.Lens                   ( Getter
---                                                 -- , Getting
---                                                 , view
-
---                                                 )
 import           Control.DeepSeq                ( ($!!)
                                                 , NFData
+                                                )
+import           Control.Lens                   ( Getter
+                                                , view
                                                 )
 import           Control.Monad.IO.Class         ( MonadIO
                                                 , liftIO
@@ -42,6 +63,7 @@ import           Control.Monad.IO.Class         ( MonadIO
 import qualified Data.List            as List
 import           Data.Row                       ( type (.==)
                                                 , (.==)
+                                                , Empty
                                                 , Forall
                                                 , Rec
                                                 )
@@ -89,15 +111,24 @@ instance ToField Int where
 instance ToField String where
   toField = T.pack
 
-opts :: (Enum idx, Num idx) => Options idx a
+data Verbosity
+  = Quiet
+  | Verbose
+  deriving (Bounded, Enum, Generic, Eq, Ord, Show)
+
+-- TODO find better name for this so as to not conflict with "real" RangeIndex
+type RangeIndex idx = (Int, Maybe (idx, idx))
+type ColIndex       = (Int, Maybe (String, String))
+
+opts :: Options Int a
 opts = Options
   { optIndexes = [0..]
   , optData    = Vector.empty
   }
 
+-- https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame
 construct :: Options idx a -> DataFrame idx a
 construct Options {..} = DataFrame optIndexes optData
--- https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame
 
 -- | The index (row labels) of the DataFrame.
 index :: DataFrame idx a -> [idx]
@@ -114,17 +145,26 @@ columns _ = Rec.labels @a @ToField
 -- TODO: dtypes
 -- TODO: select_dtypes
 
--- values / to_numpy replaced by toVector
 
+-- TODO: axes ?
+-- data Axes
+-- axes :: DataFrame idx a -> Axes
+-- axes = error "axes not implemented"
 
-data Verbosity
-  = Quiet
-  | Verbose
-  deriving (Bounded, Enum, Generic, Eq, Ord, Show)
+-- TODO: Can we do away with the `Forall a ToField` stuff by substituting
+-- a contcreate ToField function from row-types?
 
-type RangeIndex idx = (Int, Maybe (idx, idx))
+ncols :: Forall a ToField => DataFrame idx a -> Int
+ncols = length . columns
 
-type ColIndex = (Int, Maybe (String, String))
+-- I think this is right?
+ndims :: Forall a ToField => DataFrame idx a -> Int
+ndims df
+  | length (columns df) <= 1 = 1
+  | otherwise                = 2
+
+nrows :: DataFrame idx a -> Int
+nrows DataFrame {..} = Vector.length dfData
 
 -- TODO use "Renderable" or something instead of Show for the idxs
 
@@ -188,16 +228,17 @@ showColIndex (n, Nothing)     = "Columns: " <> show n <> " entries."
 showColIndex (n, Just (f, l)) = "Columns: " <> show n <> " entries, "
                              <> show f <> " to " <> show l
 
-fromList :: (Enum idx, Num idx) => [Rec a] -> DataFrame idx a
+fromList :: [Rec a] -> DataFrame Int a
 fromList = fromVector . Vector.fromList
 
-fromScalarList :: forall idx a. (Enum idx, Num idx)
-               => [a]
-               -> DataFrame idx ("value" .== a)
+fromScalarList :: [a] -> DataFrame Int ("value" .== a)
 fromScalarList = fromList . List.map (\x -> #value .== x)
 
-fromVector :: (Enum idx, Num idx) => Vector (Rec a) -> DataFrame idx a
-fromVector recs = construct opts { optData = recs }
+fromVector :: Vector (Rec a) -> DataFrame Int a
+fromVector recs = construct opts
+  { optData    = recs
+  , optIndexes = [0.. Vector.length recs]
+  }
 
 onVec :: (Vector (Rec a) -> Vector (Rec b))
       -> DataFrame idx a
@@ -286,3 +327,68 @@ renderStrings headers rows = unlines $
 
     rowStrings :: [[String]]
     rowStrings = Vector.toList rows
+
+shape :: Forall a ToField => DataFrame idx a -> (Int, Int)
+shape = (,) <$> nrows <*> ncols
+
+size :: Forall a ToField => DataFrame idx a -> Int
+size = (*) <$> ncols <*> nrows
+
+toList :: DataFrame idx a -> [Rec a]
+toList = Vector.toList . toVector
+
+-- values replaced by toVector
+-- to_numpy replaced by toVector
+toVector :: DataFrame idx a -> Vector (Rec a)
+toVector DataFrame {..} = dfData
+
+isEmpty :: Forall a ToField => DataFrame idx a -> Bool
+isEmpty df
+  | ncols df == 0 = True
+  | nrows df == 0 = True
+  | otherwise     = False
+
+empty :: DataFrame () Empty
+empty = construct $ Options
+  { optIndexes = ([] :: [()])
+  , optData = Vector.empty
+  }
+
+head :: Int -> DataFrame idx a -> DataFrame idx a
+head n df@DataFrame {..} = DataFrame
+  { dfIndexes = List.take   m dfIndexes
+  , dfData    = Vector.take m dfData
+  }
+  where
+    m | n > 0     = n
+      | otherwise = nrows df + n
+
+head_ :: DataFrame idx a -> DataFrame idx a
+head_ = head 5
+
+tail :: Int -> DataFrame idx a -> DataFrame idx a
+tail n df@DataFrame {..} = DataFrame
+  { dfIndexes = List.drop   m dfIndexes
+  , dfData    = Vector.drop m dfData
+  }
+  where
+    m | n >= 0    = nrows df - n
+      | otherwise = negate n
+
+tail_ :: DataFrame idx a -> DataFrame idx a
+tail_ = tail 5
+
+-- TODO: bool
+
+-- TODO we should really at least eliminate the `Forall a ToField` constraint
+-- on things that are just getting the column count -- should be able to get
+-- that without rendering them.
+at :: Eq idx => idx -> Getter (Rec a) b -> DataFrame idx a -> Maybe b
+at idx accessor df = view accessor <$> lookup idx df
+
+-- TODO this obviously needs to be SOOO much better
+lookup :: Eq idx => idx -> DataFrame idx a -> Maybe (Rec a)
+lookup k DataFrame {..} = fmap snd . Vector.find ((== k) . fst) $ indexed
+  where
+    indexed = Vector.zip (Vector.fromList dfIndexes) dfData
+
