@@ -1,8 +1,9 @@
-{-# LANGUAGE KindSignatures   #-}
 {-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE DeriveGeneric    #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE GADTs            #-}
+{-# LANGUAGE KindSignatures   #-}
+{-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE TypeOperators    #-}
 
 module RT.Examples where
@@ -23,6 +24,7 @@ import           Data.Row                     ( type (.+)
                                               , Rec
                                               )
 import qualified Data.Vector  as Vector
+import           GHC.Generics                 ( Generic )
 import           RT.DataFrame                 ( DataFrame )
 import qualified RT.DataFrame as DF
 
@@ -47,6 +49,11 @@ type AgeRec = Rec AgeFields
 type NameFields = "name" .== String
 
 type NameRec = Rec NameFields
+
+data Person' = Person'
+  { name :: String
+  , age :: Int
+  } deriving (Generic, Show)
 
 personName1 :: NameRec
 personName1 = #name .== "John"
@@ -100,6 +107,16 @@ df2 = DF.map justName df1
 -- df5 = DF.map (DF.relabel' #age) df1
 -- -- df5 = DF.column #age df1
 -- -- df5 = DF.map (get #age) df1
+
+df6 :: DataFrame Int PersonFields
+df6 = DF.fromNativeVector . Vector.fromList $
+  [ Person' "bob"  86
+  , Person' "dave" 55
+  , Person' "john" 46
+  ]
+
+person's :: [Person']
+person's = Vector.toList . DF.toNativeVector $ df6
 
 animals :: DataFrame Int ("animal" .== String)
 animals = DF.construct o

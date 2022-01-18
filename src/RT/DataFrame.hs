@@ -21,6 +21,7 @@ module RT.DataFrame
   , columns
   , construct
   , empty
+  , fromNativeVector
   , fromList
   , fromScalarList
   , fromVector
@@ -42,6 +43,7 @@ module RT.DataFrame
   , tail
   , tail_
   , toList
+  , toNativeVector
   , toVector
   ) where
 
@@ -394,3 +396,15 @@ lookup k DataFrame {..} = fmap snd . Vector.find ((== k) . fst) $ indexed
   where
     indexed = Vector.zip (Vector.fromList dfIndexes) dfData
 
+fromNativeVector :: Rec.FromNative t
+                 => Vector t
+                 -> DataFrame Int (Rec.NativeRow t)
+fromNativeVector recs = DataFrame
+  { dfData    = recs'
+  , dfIndexes = [0 .. Vector.length recs']
+  }
+  where
+    recs' = Vector.map Rec.fromNative recs
+
+toNativeVector :: Rec.ToNative t => DataFrame idx (Rec.NativeRow t) -> Vector t
+toNativeVector DataFrame {..} = Vector.map Rec.toNative dfData
