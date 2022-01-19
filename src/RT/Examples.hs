@@ -23,6 +23,8 @@ import           Data.Row                     ( type (.+)
                                               ,      (.==)
                                               , Rec
                                               )
+import qualified Data.Row.Records as Rec
+import           Data.Vector                  ( Vector)
 import qualified Data.Vector  as Vector
 import           GHC.Generics                 ( Generic )
 import           RT.DataFrame                 ( DataFrame )
@@ -33,7 +35,13 @@ type PersonFields =
   .+ "age"  .== Int
   )
 
-type Person = Rec PersonFields
+type VecPersonFields =
+  (  "name" .== Vector String
+  .+ "age"  .== Vector Int
+  )
+
+type    Person = Rec    PersonFields
+type VecPerson = Rec VecPersonFields
 
 type PlayerFields =
   (  "name" .== String
@@ -109,11 +117,17 @@ df2 = DF.map justName df1
 -- -- df5 = DF.map (get #age) df1
 
 df6 :: DataFrame Int PersonFields
-df6 = DF.fromNativeVector . Vector.fromList $
+df6 = DF.fromNativeVector nativeVector
+
+nativeVector :: Vector Person'
+nativeVector = Vector.fromList
   [ Person' "bob"  86
   , Person' "dave" 55
   , Person' "john" 46
   ]
+
+something :: VecPerson
+something = undefined -- Rec.distribute $ DF.toVector df6
 
 person's :: [Person']
 person's = Vector.toList . DF.toNativeVector $ df6
@@ -165,3 +179,6 @@ indexTest = DF.index df1 == [0, 1]
 
 r :: IO ()
 r = putStr rendered
+
+-- dfFocused :: DataFrame Int NameFields
+-- dfFocused = DF.map (Rec.focus #name) df1

@@ -1,9 +1,9 @@
-{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE OverloadedLabels    #-}
+{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
@@ -36,6 +36,7 @@ module RT.DataFrame
   , ndims
   , nrows
   , opts
+--  , project
   , reindex
   , renderWith
   , shape
@@ -67,6 +68,7 @@ import           Data.Row                       ( type (.==)
                                                 , (.==)
                                                 , Empty
                                                 , Forall
+--                                                , Label
                                                 , Rec
                                                 )
 import           Data.Text                      ( Text )
@@ -408,3 +410,16 @@ fromNativeVector recs = DataFrame
 
 toNativeVector :: Rec.ToNative t => DataFrame idx (Rec.NativeRow t) -> Vector t
 toNativeVector DataFrame {..} = Vector.map Rec.toNative dfData
+
+-- TODO
+-- locLabel :: label -> DataFrame idx a
+-- locLabel = undefined
+
+-- project :: [forall lbl. Label lbl] -> DataFrame idx a -> DataFrame idx b
+-- project = undefined
+
+-- data ColumnSlice idx
+--   = UpTo idx
+--   | Through (idx, idx)
+--   | Stepped (idx, idx, idx)
+--   deriving (Eq, Generic, Ord, Show)
