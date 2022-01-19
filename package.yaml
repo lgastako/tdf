@@ -19,13 +19,13 @@ ghc-options:
 - -Wall
 
 dependencies:
-- base >= 4.7 && < 5
+- base # >= 4.7 && < 5
 - deepseq
 - fin
 - generic-lens
 - ghc-datasize
 - lens
-- row-types
+- row-types  >= 1.0.0.0
 - superrecord
 - tagged
 - text

@@ -127,7 +127,7 @@ nativeVector = Vector.fromList
   ]
 
 something :: VecPerson
-something = undefined -- Rec.distribute $ DF.toVector df6
+something = Rec.distribute . DF.toVector $ df6
 
 person's :: [Person']
 person's = Vector.toList . DF.toNativeVector $ df6
