@@ -243,15 +243,15 @@ onVec :: forall idx a b.
 onVec f DataFrame {..} = DataFrame
   { dfIndexes = dfIndexes
   , dfData    = dfData'
-  , dfLength  = dfLength
+  , dfLength  = dfLength'
   }
   where
     _ = dfData :: Rec (Map Vector a)
-    va = Rec.sequence dfData :: Vector (Rec a)
-    vb = f va                :: Vector (Rec b)
+    (dfData', dfLength') = ((,) <$> Rec.distribute <*> Vector.length)
+                           . f
+                           . Rec.sequence
+                           $ dfData
 
-    dfData' :: Rec (Map Vector b)
-    dfData' = Rec.distribute vb -- ::
 over_ :: forall a b.
          ( Forall a Unconstrained1
          , Forall b Unconstrained1
@@ -394,36 +394,45 @@ empty = construct $ Options
   , optData = Vector.empty
   }
 
-head :: forall idx a. Int -> DataFrame idx a -> DataFrame idx a
+head :: forall idx a.
+        Forall a Unconstrained1
+     => Int
+     -> DataFrame idx a
+     -> DataFrame idx a
 head n df@DataFrame {..} = DataFrame
   { dfIndexes = List.take   m dfIndexes
-  , dfData    = error "head" -- under_ f dfData
+  , dfData    = Rec.distribute . f . Rec.sequence $ dfData
   , dfLength  = dfLength
   }
   where
-    -- f :: Forall a Unconstrained1 => Vector (Rec a) -> Vector (Rec a)
-    -- f = Vector.take m
+    f :: Forall a Unconstrained1 => Vector (Rec a) -> Vector (Rec a)
+    f = Vector.take m
 
     m | n > 0     = n
       | otherwise = nrows df + n
 
+head_ :: Forall a Unconstrained1 => DataFrame idx a -> DataFrame idx a
+head_ = head 5
 
+tail :: forall idx a.
+        Forall a Unconstrained1
+     => Int
+     -> DataFrame idx a
+     -> DataFrame idx a
+tail n df@DataFrame {..} = DataFrame
+  { dfIndexes = List.drop   m dfIndexes
+  , dfData    = Rec.distribute . f . Rec.sequence $ dfData
+  , dfLength  = dfLength
+  }
+  where
+    f :: Forall a Unconstrained1 => Vector (Rec a) -> Vector (Rec a)
+    f = Vector.drop m
 
+    m | n >= 0    = nrows df - n
+      | otherwise = negate n
 
--- head_ :: DataFrame idx a -> DataFrame idx a
--- head_ = head 5
-
--- tail :: Int -> DataFrame idx a -> DataFrame idx a
--- tail n df@DataFrame {..} = DataFrame
---   { dfIndexes = List.drop   m dfIndexes
---   , dfData    = Vector.drop m dfData
---   }
---   where
---     m | n >= 0    = nrows df - n
---       | otherwise = negate n
-
--- tail_ :: DataFrame idx a -> DataFrame idx a
--- tail_ = tail 5
+tail_ :: Forall a Unconstrained1 => DataFrame idx a -> DataFrame idx a
+tail_ = tail 5
 
 -- -- TODO: bool
 
