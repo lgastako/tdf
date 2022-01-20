@@ -31,6 +31,8 @@ library
       RT.DataFrame.Play
       RT.Examples
       RT.Examples.CSV
+      RT.RV.DataFrame
+      RT.RV.Examples
       TDF.RecOfVectors
       TDF.Types.RangeIndex
   other-modules:
@@ -59,6 +61,7 @@ test-suite tdf-test
   other-modules:
       RangeIndexTest
       RT.DataFrameTest
+      RT.RV.DataFrameTest
       Paths_tdf
   hs-source-dirs:
       test

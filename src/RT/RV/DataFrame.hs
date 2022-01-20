@@ -1,16 +1,53 @@
-{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE GADTs                #-}
 {-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeOperators        #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
 
-module RT.RV.DataFrame where
+module RT.RV.DataFrame
+  ( DataFrame
+  , Options(..)
+  , ToField(..)
+  , Verbosity(..)
+  , at
+  , columns
+  , construct
+  , empty
+  , fromList
+  , fromNativeVector
+  , fromScalarList
+  , fromVector
+  , head
+  , head_
+  , index
+  , info
+  , isEmpty
+  , map
+  , memSize
+  , ndims
+  , ncols
+  , nrows
+  , onColumn
+  , onVec
+  , opts
+  , over_
+  , reindex
+  , renderWith
+  , shape
+  , size
+  , tail
+  , tail_
+  , toList
+  , toNativeVector
+  , toVector
+  , under_
+  ) where
 
 import           Prelude             hiding ( head
                                             , lookup
@@ -31,15 +68,18 @@ import qualified Data.List        as List
 import           Data.Row                   ( Empty
                                             , Forall
                                             , Label
+                                            , KnownSymbol
                                             , Rec
+                                            , type (.!)
                                             , type (.==)
+                                            , (.!)
                                             , (.==)
                                             )
 import           Data.Row.Internal          ( Unconstrained1 )
-import           Data.Row.Records           ( NativeRow
+import           Data.Row.Records           ( Map
+                                            , NativeRow
                                             , ToNative
                                             )
-import           Data.Row.Records           ( Map )
 import qualified Data.Row.Records as Rec
 import qualified Data.Text        as T
 import           Data.Text                  ( Text )
@@ -304,10 +344,10 @@ map f = onVec (Vector.map f)
 -- --      -> Rec '[l := SuperRecord.RecTy l lts]
 -- relabel :: _ -> a ->
 -- relabel :: Getter s a -> Rec _ -> Rec _
-relabel :: forall s a. Getter s a
+_relabel :: forall s a. Getter s a
         -> s
         -> Rec ("value" .== a)
-relabel label x = label' .== view label x
+_relabel label x = label' .== view label x
   where
     _value :: a
     _value = view label x
@@ -494,3 +534,13 @@ toNativeVector df@DataFrame {..} = Vector.map Rec.toNative . toVector $ df
 --   | Through (idx, idx)
 --   | Stepped (idx, idx, idx)
 --   deriving (Eq, Generic, Ord, Show)
+
+onColumn :: forall k idx a c.
+            ( KnownSymbol k
+            , (Map Vector a .! k) ~ Vector (a .! k)
+            )
+         => Label k
+         -> (Vector (a Rec..! k) -> c)
+         -> DataFrame idx a
+         -> c
+onColumn k f DataFrame {..} = f $ dfData .! k
