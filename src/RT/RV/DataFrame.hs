@@ -1,3 +1,4 @@
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE FlexibleContexts     #-}
@@ -11,11 +12,11 @@
 
 module RT.RV.DataFrame where
 
-import           Prelude               hiding   ( head
-                                                , lookup
-                                                , map
-                                                , tail
-                                                )
+import           Prelude             hiding ( head
+                                            , lookup
+                                            , map
+                                            , tail
+                                            )
 
 import           Control.DeepSeq            ( ($!!)
                                             , NFData
@@ -29,31 +30,40 @@ import           Control.Monad.IO.Class     ( MonadIO
 import qualified Data.List        as List
 import           Data.Row                   ( Empty
                                             , Forall
+                                            , Label
                                             , Rec
                                             , type (.==)
                                             , (.==)
                                             )
--- import           Data.Row.Records           ( Map )
+import           Data.Row.Internal          ( Unconstrained1 )
+import           Data.Row.Records           ( NativeRow
+                                            , ToNative
+                                            )
+import           Data.Row.Records           ( Map )
 import qualified Data.Row.Records as Rec
 import qualified Data.Text        as T
 import           Data.Text                  ( Text )
 import           Data.Vector                ( Vector )
 import qualified Data.Vector      as Vector
 import           GHC.Generics               ( Generic )
-import qualified GHC.DataSize         as Data
+import qualified GHC.DataSize     as Data
 
 data DataFrame idx a = DataFrame
   { dfIndexes :: [idx]
-  , dfData    :: Vector (Rec a)
+  , dfData    :: Rec (Map Vector a)
+  , dfLength  :: Int
   } deriving (Generic)
 
-instance (Forall a NFData, NFData idx) => NFData (DataFrame idx a)
+instance (Forall (Map Vector a)  NFData, NFData idx)
+      => NFData (DataFrame idx a)
 
-deriving instance ( Forall a Show
+-- TODO: not the representaton we want but fine for Show... need
+--       "real" functions  for rendering
+deriving instance ( Forall (Map Vector a) Show
                   , Show idx
                   ) => Show (DataFrame idx a)
 
-deriving instance ( Forall a Eq
+deriving instance ( Forall (Map Vector a) Eq
                   , Eq idx
                   ) => Eq (DataFrame idx a)
 
@@ -93,17 +103,27 @@ opts = Options
   }
 
 -- https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame
-construct :: Options idx a -> DataFrame idx a
-construct Options {..} = DataFrame optIndexes optData
+construct :: forall idx a.
+             Forall a Unconstrained1
+          => Options idx a
+          -> DataFrame idx a
+construct Options {..} = DataFrame optIndexes d (Vector.length optData)
+  where
+    _ = optData :: Vector (Rec a)
+
+    d :: Forall a Unconstrained1 => Rec (Map Vector a)
+    d = Rec.distribute optData
 
 -- | The index (row labels) of the DataFrame.
 index :: DataFrame idx a -> [idx]
-index DataFrame {..} = List.take (Vector.length dfData) dfIndexes
+index DataFrame {..} = List.take n dfIndexes
+  where
+    n = error "index: Vector.length dfData"
 
 -- TODO: questionable to expose? at least with this interface... doing it for
 --       now for Examples.hs
 reindex :: [idx'] -> DataFrame idx a -> DataFrame idx' a
-reindex dfIndexes' DataFrame {..} = DataFrame dfIndexes' dfData
+reindex dfIndexes' DataFrame {..} = DataFrame dfIndexes' dfData dfLength
 
 columns :: forall idx a. (Forall a ToField) => DataFrame idx a -> [String]
 columns _ = Rec.labels @a @ToField
@@ -130,7 +150,7 @@ ndims df
   | otherwise                = 2
 
 nrows :: DataFrame idx a -> Int
-nrows DataFrame {..} = Vector.length dfData
+nrows DataFrame {..} = dfLength
 
 -- TODO use "Renderable" or something instead of Show for the idxs
 
@@ -175,7 +195,12 @@ showRangeIndex (n, Just (f, l)) = "Range index: " <> show n <> " entries, "
                                <> show f <> " to " <> show l
 
 -- TODO truncate indexes on construction so this doesn't infintie loop
-memSize :: (Forall a NFData, MonadIO m, NFData idx) => DataFrame idx a -> m Word
+memSize :: ( Forall (Map Vector a) NFData
+           , MonadIO m
+           , NFData idx
+           )
+        => DataFrame idx a
+        -> m Word
 memSize = (liftIO . Data.recursiveSize $!!)
 
 colIndex :: Forall a ToField => DataFrame idx a -> ColIndex
@@ -194,27 +219,70 @@ showColIndex (n, Nothing)     = "Columns: " <> show n <> " entries."
 showColIndex (n, Just (f, l)) = "Columns: " <> show n <> " entries, "
                              <> show f <> " to " <> show l
 
-fromList :: [Rec a] -> DataFrame Int a
+fromList :: Forall a Unconstrained1 => [Rec a] -> DataFrame Int a
 fromList = fromVector . Vector.fromList
 
 fromScalarList :: [a] -> DataFrame Int ("value" .== a)
 fromScalarList = fromList . List.map (\x -> #value .== x)
 
-fromVector :: Vector (Rec a) -> DataFrame Int a
+fromVector :: Forall a Unconstrained1
+           => Vector (Rec a)
+           -> DataFrame Int a
 fromVector recs = construct opts
   { optData    = recs
   , optIndexes = [0.. Vector.length recs]
   }
 
-fromVector__ :: Vector (Rec a) -> DataFrame idx a
-fromVector__ = undefined
-
-onVec :: (Vector (Rec a) -> Vector (Rec b))
+onVec :: forall idx a b.
+         ( Forall a Unconstrained1
+         , Forall b Unconstrained1
+         )
+      => (Vector (Rec a) -> Vector (Rec b))
       -> DataFrame idx a
       -> DataFrame idx b
-onVec f (DataFrame idx v) = DataFrame idx (f v)
+onVec f DataFrame {..} = DataFrame
+  { dfIndexes = dfIndexes
+  , dfData    = dfData'
+  , dfLength  = dfLength
+  }
+  where
+    _ = dfData :: Rec (Map Vector a)
+    va = Rec.sequence dfData :: Vector (Rec a)
+    vb = f va                :: Vector (Rec b)
 
-map :: (Rec a -> Rec b) -> DataFrame idx a -> DataFrame idx b
+    dfData' :: Rec (Map Vector b)
+    dfData' = Rec.distribute vb -- ::
+over_ :: forall a b.
+         ( Forall a Unconstrained1
+         , Forall b Unconstrained1
+         )
+      => (Rec a -> Rec b)
+      -> Rec (Map Vector a)
+      -> Rec (Map Vector b)
+over_ f = Rec.distribute . Vector.map f . Rec.sequence
+
+under_ :: forall a b.
+         ( Forall a Unconstrained1
+         , Forall b Unconstrained1
+         )
+      => (Vector (Rec a) -> Vector (Rec b))
+      -> Rec (Map Vector a)
+      -> Rec (Map Vector b)
+under_ = undefined
+
+-- onVec f (DataFrame idx v len) = DataFrame idx (mapify f v) len
+--   where
+--     mapify :: (Vector (Rec a) -> Vector (Rec b))
+--            -> Rec (Map Vector a)
+--            -> Rec (Map Vector b)
+--     mapify = undefined
+
+map :: ( Forall a Unconstrained1
+       , Forall b Unconstrained1
+       )
+    => (Rec a -> Rec b)
+    -> DataFrame idx a
+    -> DataFrame idx b
 map f = onVec (Vector.map f)
 
 -- column :: ( KnownSymbol label
@@ -227,34 +295,37 @@ map f = onVec (Vector.map f)
 -- --     -> DataFrame '[label := SuperRecord.RecTy label a]
 -- column label = map (relabel label)
 
--- -- relabel :: ( KnownSymbol l
--- --            , KnownNat (RecSize lts)
--- --            , KnownNat ((RecSize lts - RecTyIdxH 0 l lts) - 1))
--- --         => FldProxy l
--- --         -> Rec lts
--- --         -> Rec _
--- -- --      -> Rec '[l := SuperRecord.RecTy l lts]
--- -- relabel :: _ -> a ->
--- -- relabel :: Getter s a -> Rec _ -> Rec _
--- relabel :: forall s a. Getter s a
---         -> s
---         -> Rec ("value" .== a)
--- relabel label x = label' .== view label x
---   where
---     _value :: a
---     _value = view label x
+-- relabel :: ( KnownSymbol l
+--            , KnownNat (RecSize lts)
+--            , KnownNat ((RecSize lts - RecTyIdxH 0 l lts) - 1))
+--         => FldProxy l
+--         -> Rec lts
+--         -> Rec _
+-- --      -> Rec '[l := SuperRecord.RecTy l lts]
+-- relabel :: _ -> a ->
+-- relabel :: Getter s a -> Rec _ -> Rec _
+relabel :: forall s a. Getter s a
+        -> s
+        -> Rec ("value" .== a)
+relabel label x = label' .== view label x
+  where
+    _value :: a
+    _value = view label x
 
---     label' :: Label "value"
---     label' = error "value"
+    label' :: Label "value"
+    label' = error "value"
 
-renderWith :: (Rec a -> [String]) -> DataFrame idx a -> String
-renderWith f (DataFrame _idx v) = renderStrings headers rows
+renderWith :: Forall a Unconstrained1
+           => (Rec a -> [String])
+           -> DataFrame idx a
+           -> String
+renderWith f (DataFrame _idx v _len) = renderStrings headers rows
   where
     headers :: [String]
     headers = ["TODO", "fix", "column", "names"]
 
     rows :: Vector [String]
-    rows = Vector.map f v
+    rows = Vector.map f (Rec.sequence v)
 
 renderStrings :: [String] -> Vector [String] -> String
 renderStrings headers rows = unlines $
@@ -303,13 +374,13 @@ shape = (,) <$> nrows <*> ncols
 size :: Forall a ToField => DataFrame idx a -> Int
 size = (*) <$> ncols <*> nrows
 
-toList :: DataFrame idx a -> [Rec a]
+toList :: Forall a Unconstrained1 => DataFrame idx a -> [Rec a]
 toList = Vector.toList . toVector
 
 -- values replaced by toVector
 -- to_numpy replaced by toVector
-toVector :: DataFrame idx a -> Vector (Rec a)
-toVector DataFrame {..} = dfData
+toVector :: Forall a Unconstrained1 => DataFrame idx a -> Vector (Rec a)
+toVector DataFrame {..} = Rec.sequence dfData
 
 isEmpty :: Forall a ToField => DataFrame idx a -> Bool
 isEmpty df
@@ -323,58 +394,84 @@ empty = construct $ Options
   , optData = Vector.empty
   }
 
-head :: Int -> DataFrame idx a -> DataFrame idx a
+head :: forall idx a. Int -> DataFrame idx a -> DataFrame idx a
 head n df@DataFrame {..} = DataFrame
   { dfIndexes = List.take   m dfIndexes
-  , dfData    = Vector.take m dfData
+  , dfData    = error "head" -- under_ f dfData
+  , dfLength  = dfLength
   }
   where
+    -- f :: Forall a Unconstrained1 => Vector (Rec a) -> Vector (Rec a)
+    -- f = Vector.take m
+
     m | n > 0     = n
       | otherwise = nrows df + n
 
-head_ :: DataFrame idx a -> DataFrame idx a
-head_ = head 5
 
-tail :: Int -> DataFrame idx a -> DataFrame idx a
-tail n df@DataFrame {..} = DataFrame
-  { dfIndexes = List.drop   m dfIndexes
-  , dfData    = Vector.drop m dfData
-  }
-  where
-    m | n >= 0    = nrows df - n
-      | otherwise = negate n
 
-tail_ :: DataFrame idx a -> DataFrame idx a
-tail_ = tail 5
 
--- TODO: bool
+-- head_ :: DataFrame idx a -> DataFrame idx a
+-- head_ = head 5
+
+-- tail :: Int -> DataFrame idx a -> DataFrame idx a
+-- tail n df@DataFrame {..} = DataFrame
+--   { dfIndexes = List.drop   m dfIndexes
+--   , dfData    = Vector.drop m dfData
+--   }
+--   where
+--     m | n >= 0    = nrows df - n
+--       | otherwise = negate n
+
+-- tail_ :: DataFrame idx a -> DataFrame idx a
+-- tail_ = tail 5
+
+-- -- TODO: bool
 
 -- TODO we should really at least eliminate the `Forall a ToField` constraint
 -- on things that are just getting the column count -- should be able to get
 -- that without rendering them.
-at :: Eq idx => idx -> Getter (Rec a) b -> DataFrame idx a -> Maybe b
+at :: (Eq idx, Forall a Unconstrained1)
+   => idx
+   -> Getter (Rec a) b
+   -> DataFrame idx a
+   -> Maybe b
 at idx accessor df = view accessor <$> lookup idx df
 
 -- TODO: iat -- maybe?
 
 -- TODO this obviously needs to be SOOO much better
-lookup :: Eq idx => idx -> DataFrame idx a -> Maybe (Rec a)
+lookup :: (Eq idx, Forall a Unconstrained1)
+       => idx
+       -> DataFrame idx a
+       -> Maybe (Rec a)
 lookup k DataFrame {..} = fmap snd . Vector.find ((== k) . fst) $ indexed
   where
-    indexed = Vector.zip (Vector.fromList dfIndexes) dfData
+--    indexed = error "lookup.undefined"
+    dfData' = Rec.sequence dfData
+    indexed = Vector.zip (Vector.fromList dfIndexes) dfData'
 
-fromNativeVector :: Rec.FromNative t
+fromNativeVector :: forall t.
+                    ( Rec.FromNative t
+                    , Forall (Rec.NativeRow t) Unconstrained1
+                    )
                  => Vector t
                  -> DataFrame Int (Rec.NativeRow t)
-fromNativeVector recs = DataFrame
-  { dfData    = recs'
-  , dfIndexes = [0 .. Vector.length recs']
+fromNativeVector values = DataFrame
+  { dfData    = Rec.distribute recs
+  , dfIndexes = [0 .. Vector.length recs]
+  , dfLength  = Vector.length recs
   }
   where
-    recs' = Vector.map Rec.fromNative recs
+    recs :: Vector (Rec (Rec.NativeRow t))
+    recs = Vector.map Rec.fromNative values
 
-toNativeVector :: Rec.ToNative t => DataFrame idx (Rec.NativeRow t) -> Vector t
-toNativeVector DataFrame {..} = Vector.map Rec.toNative dfData
+toNativeVector :: forall idx t.
+                  ( ToNative t
+                  , Forall (NativeRow t) Unconstrained1
+                  )
+               => DataFrame idx (NativeRow t)
+               -> Vector t
+toNativeVector df@DataFrame {..} = Vector.map Rec.toNative . toVector $ df
 
 -- TODO
 -- locLabel :: label -> DataFrame idx a
