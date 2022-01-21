@@ -1,6 +1,8 @@
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE RecordWildCards       #-}
 
 module TDF.Types.RangeIndex
   ( RangeIndex( RangeIndex )
@@ -14,7 +16,9 @@ module TDF.Types.RangeIndex
   , upTo
   ) where
 
-import TDF.Prelude hiding ( toList )
+import           TDF.Prelude              hiding ( toList )
+import           TDF.Types.Index                 ( Index )
+import qualified TDF.Types.Index as Index
 
 data RangeIndex a = RangeIndex
   { start :: a
@@ -22,6 +26,11 @@ data RangeIndex a = RangeIndex
   , step  :: a
   , name  :: Maybe Text
   } deriving (Eq, Generic, Ord, Read, Show)
+
+instance (Bounded idx, Enum idx, Num idx) => Index idx (RangeIndex idx) where
+  start   = start
+  stop    = stop
+  next ri = (+ step ri)
 
 contains :: Ord a => RangeIndex a -> a -> Bool
 contains RangeIndex {..} n  = n >= start && n < stop
@@ -49,7 +58,7 @@ through a b = RangeIndex
 toList :: (Enum a, Eq a, Num a) => RangeIndex a -> [a]
 toList RangeIndex {..} = [start, start + step .. stop + offset]
   where
-    offset | signum step == -1 = 1
+    offset | signum step == -1 =  1
            | otherwise         = -1
 
 upTo :: Num a => a -> RangeIndex a

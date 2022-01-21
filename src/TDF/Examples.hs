@@ -20,10 +20,7 @@ import qualified Data.Vector      as Vector
 import           TDF.DataFrame                     ( DataFrame )
 import qualified TDF.DataFrame    as DF
 
-type PersonFields =
-  (  "name" .== Text
-  .+ "age"  .== Int
-  )
+type PersonFields = NameFields .+ AgeFields
 
 type VecPersonFields =
   (  "name" .== Vector Text
@@ -50,7 +47,7 @@ type NameRec = Rec NameFields
 
 data Person' = Person'
   { name :: Text
-  , age :: Int
+  , age  :: Int
   } deriving (Generic, Show)
 
 personName1 :: NameRec

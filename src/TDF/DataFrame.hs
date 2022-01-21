@@ -153,9 +153,13 @@ columns _ = Rec.labels @a @ToField
 -- TODO: dtypes
 -- TODO: select_dtypes
 
+class IsIndex idx where
 
 -- TODO: axes ?
--- data Axes
+data Axes = Axes
+  { rowLabels    :: forall idx. IsIndex idx => idx
+  , columnLabels :: forall idx. IsIndex idx => idx
+  }
 -- axes :: DataFrame idx a -> Axes
 -- axes = error "axes not implemented"
 

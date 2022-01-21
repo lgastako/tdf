@@ -6,10 +6,12 @@ import           TDF.Prelude
 
 import           Test.Tasty.Hspec
 
-import           TDF.Types.RangeIndex    ( stepping
-                                         , through
-                                         , upTo
-                                         )
+import           TDF.Types.RangeIndex               ( stepping
+                                                    , through
+                                                    , upTo
+                                                    )
+import qualified TDF.Types.Index      as Index
+import           TDF.Types.RangeIndex               ( RangeIndex )
 import qualified TDF.Types.RangeIndex as RangeIndex
 
 -- Examples from
@@ -64,3 +66,18 @@ spec_RangeIndex = do
       it "4 5 -2 (beyiond the stop is omitted)" $ do
         RangeIndex.toList (stepping 4 5 (-2))
           `shouldBe` ([] :: [Int])
+
+  context "Index" $ do
+    let ri = RangeIndex.upTo 10 :: RangeIndex Int
+
+    it ".start" $
+      Index.start ri
+        `shouldBe` (0 :: Int)
+
+    it ".stop" $
+      Index.stop ri
+        `shouldBe` (10 :: Int)
+
+    it ".next" $
+      fmap (\n -> Index.next (RangeIndex.upTo (10 :: Int)) (n :: Int)) [0..10]
+        `shouldBe` [1..11]
