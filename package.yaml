@@ -21,15 +21,16 @@ ghc-options:
 dependencies:
 - base # >= 4.7 && < 5
 - deepseq
-- fin
-- generic-lens
+#- fin
+#- generic-lens
 - ghc-datasize
-- lens
+#- lens
+- protolude
 - row-types  >= 1.0.0.0
-- superrecord
-- tagged
+#- superrecord
+#- tagged
 - text
-- vec
+#- vec
 - vector
 
 library:

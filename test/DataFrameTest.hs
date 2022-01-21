@@ -5,7 +5,6 @@ module DataFrameTest where
 import           Test.Tasty.Hspec
 
 import           Data.Row                       ( (.!) )
-import           Data.Generics.Labels           ()
 import qualified Data.Vector          as Vector
 import qualified TDF.DataFrame        as DF
 import qualified TDF.Examples         as Examples

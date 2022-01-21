@@ -29,6 +29,7 @@ library
   exposed-modules:
       TDF.DataFrame
       TDF.Examples
+      TDF.Prelude
       TDF.Types.RangeIndex
   other-modules:
       Paths_tdf
@@ -38,15 +39,10 @@ library
   build-depends:
       base
     , deepseq
-    , fin
-    , generic-lens
     , ghc-datasize
-    , lens
+    , protolude
     , row-types >=1.0.0.0
-    , superrecord
-    , tagged
     , text
-    , vec
     , vector
   default-language: Haskell2010
 
@@ -63,13 +59,9 @@ test-suite tdf-test
   build-depends:
       base
     , deepseq
-    , fin
-    , generic-lens
     , ghc-datasize
-    , lens
+    , protolude
     , row-types >=1.0.0.0
-    , superrecord
-    , tagged
     , tasty
     , tasty-discover
     , tasty-hedgehog
@@ -77,6 +69,5 @@ test-suite tdf-test
     , tasty-quickcheck
     , tdf
     , text
-    , vec
     , vector
   default-language: Haskell2010

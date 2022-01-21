@@ -61,18 +61,21 @@ import           Prelude             hiding ( head
 import           Control.DeepSeq            ( ($!!)
                                             , NFData
                                             )
-import           Control.Lens               ( Getter
-                                            , view
-                                            )
+-- import           Control.Lens               ( Getter
+--                                             , view
+--                                             )
 import           Control.Monad.IO.Class     ( MonadIO
                                             , liftIO
                                             )
 import qualified Data.List        as List
-import           Data.Row                   ( Empty
+import           Data.Row                   ( Disjoint
+                                            , Empty
                                             , Forall
                                             , Label
                                             , KnownSymbol
                                             , Rec
+                                            , type (≈)
+                                            , type (.+)
                                             , type (.!)
                                             , type (.==)
                                             , (.!)
@@ -347,14 +350,16 @@ map f = onVec (Vector.map f)
 -- --      -> Rec '[l := SuperRecord.RecTy l lts]
 -- relabel :: _ -> a ->
 -- relabel :: Getter s a -> Rec _ -> Rec _
-_relabel :: forall s a. Getter s a
-        -> s
-        -> Rec ("value" .== a)
-_relabel label x = label' .== view label x
+_relabel :: forall r k v rest.
+            ( KnownSymbol k
+            , r ≈ k .== v
+            , Disjoint r rest
+            )
+         => Label k
+         -> Rec (r .+ rest)
+         -> Rec ("value" .== v)
+_relabel label x = label' .== x .! label
   where
-    _value :: a
-    _value = view label x
-
     label' :: Label "value"
     label' = error "value"
 
@@ -482,12 +487,15 @@ tail_ = tail 5
 -- TODO we should really at least eliminate the `Forall a ToField` constraint
 -- on things that are just getting the column count -- should be able to get
 -- that without rendering them.
-at :: (Eq idx, Forall a Unconstrained1)
+at :: ( Eq idx
+      , Forall a Unconstrained1
+      , KnownSymbol k
+      )
    => idx
-   -> Getter (Rec a) b
+   -> Label k
    -> DataFrame idx a
-   -> Maybe b
-at idx accessor df = view accessor <$> lookup idx df
+   -> Maybe (a .! k)
+at idx k df = (.! k) <$> lookup idx df
 
 -- TODO: iat -- maybe?
 
@@ -498,7 +506,6 @@ lookup :: (Eq idx, Forall a Unconstrained1)
        -> Maybe (Rec a)
 lookup k DataFrame {..} = fmap snd . Vector.find ((== k) . fst) $ indexed
   where
---    indexed = error "lookup.undefined"
     dfData' = Rec.sequence dfData
     indexed = Vector.zip (Vector.fromList dfIndexes) dfData'
 

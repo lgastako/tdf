@@ -12,15 +12,17 @@ import           Prelude               hiding ( drop
                                               , take
                                               )
 
-import           Control.Lens                 ( (^.)
-                                              , view
-                                              )
-import           Data.Generics.Labels         ()
-import           Data.Generics.Product.Fields ( HasField' )
-import           Data.Row                     ( type (.+)
+-- import           Control.Lens                 ( (^.)
+--                                               , view
+--                                               )
+-- import           Data.Generics.Labels         ()
+-- import           Data.Generics.Product.Fields ( HasField' )
+import           Data.Row                     ( type (≈)
+                                              , type (.+)
                                               , type (.==)
                                               ,      (.+)
                                               ,      (.==)
+                                              ,      (.!)
                                               , Rec
                                               )
 import qualified Data.Row.Records as Rec
@@ -67,7 +69,7 @@ personName1 :: NameRec
 personName1 = #name .== "John"
 
 justName :: Person -> NameRec
-justName p = #name .== p ^. #name
+justName p = #name .== (p .! #name)
 
 person :: Person
 person = #name .== "Alex"
@@ -77,8 +79,10 @@ person2 :: Person
 person2 = #age  .== 45
        .+ #name .== "Dave"
 
-greet :: HasField' "name" a String => a -> String
-greet = ("Hello " ++) . view #name
+greet :: (r ≈ "name" .== String)
+      => Rec r
+      -> String
+greet = ("Hello " ++) . (.! #name)
 
 df1 :: DataFrame Int PersonFields
 df1 = DF.fromList
@@ -163,16 +167,16 @@ rendered = unlines
   ]
 
 ageToString :: Rec AgeFields -> [String]
-ageToString = pure . show . view #age
+ageToString = pure . show . (.! #age)
 
 toStrings :: Rec PersonFields -> [String]
 toStrings rp =
-  [ rp ^. #name
-  , show (rp ^. #age)
+  [ rp .! #name
+  , show (rp .! #age)
   ]
 
 toStrings' :: Rec NameFields -> [String]
-toStrings' rp = [ view #name rp ]
+toStrings' rp = [ rp .! #name ]
 
 indexTest :: Bool
 indexTest = DF.index df1 == [0, 1]
