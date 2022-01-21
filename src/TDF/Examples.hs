@@ -17,7 +17,9 @@ import           TDF.Prelude                hiding ( drop
 import qualified Data.Row.Records as Rec
 import qualified Data.Text        as Text
 import qualified Data.Vector      as Vector
-import           TDF.DataFrame                     ( DataFrame )
+import           TDF.DataFrame                     ( Axes
+                                                   , DataFrame
+                                                   )
 import qualified TDF.DataFrame    as DF
 
 type PersonFields = NameFields .+ AgeFields
@@ -83,6 +85,9 @@ df1 = DF.fromList
 ages :: DataFrame Int ("age" .== Int)
 ages = DF.restrict df1
 
+df1Axes :: Axes Int
+df1Axes = DF.axes df1
+
 -- Neat.
 df1Restricted :: DataFrame Int NameFields
 df1Restricted = DF.restrict df1
@@ -137,7 +142,7 @@ animals :: DataFrame Int ("animal" .== Text)
 animals = DF.construct o
   where
     o = DF.opts
-      { DF.optData = Vector.fromList . map mkRec $ animalNames
+      { DF.optData    = Vector.fromList . map mkRec $ animalNames
       , DF.optIndexes = [0 .. length animalNames :: Int]
       }
 

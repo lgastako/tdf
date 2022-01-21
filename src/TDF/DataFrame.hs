@@ -15,11 +15,18 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 module TDF.DataFrame
-  ( DataFrame
-  , Options(..)
+  ( Axes( Axes
+        , columnLabels
+        , rowLabels
+        )
+  , DataFrame
+  , Options( optData
+           , optIndexes
+           )
   , ToField(..)
   , Verbosity(..)
   , at
+  , axes
   , columns
   , construct
   , empty
@@ -69,6 +76,7 @@ import qualified Data.Row.Records as Rec
 import qualified Data.Text        as Text
 import qualified Data.Vector      as Vector
 import qualified GHC.DataSize     as Data
+-- import           TDF.Types.Index            ( Index )
 
 data DataFrame idx a = DataFrame
   { dfIndexes :: [idx]
@@ -93,6 +101,17 @@ data Options idx a = Options
   { optIndexes :: [idx]
   , optData    :: Vector (Rec a)
   }
+
+data Axes idx = Axes
+  { rowLabels    :: [idx]
+  , columnLabels :: [Text]
+  } deriving (Eq, Generic, Ord,  Show)
+
+--  deriving instance Eq idx   => Eq (Axes idx)
+-- deriving instance Ord idx  => Ord (Axes idx)
+-- deriving instance Show idx => Show (Axes idx)
+--deriving instance Eq idx => Eq (Axes idx)
+-- , Generic, Ord, Show)
 
 class ToField a where
   toField :: a -> Text
@@ -153,15 +172,11 @@ columns _ = Rec.labels @a @ToField
 -- TODO: dtypes
 -- TODO: select_dtypes
 
-class IsIndex idx where
-
--- TODO: axes ?
-data Axes = Axes
-  { rowLabels    :: forall idx. IsIndex idx => idx
-  , columnLabels :: forall idx. IsIndex idx => idx
+axes :: Forall a ToField => DataFrame idx a -> Axes idx
+axes df@DataFrame {..} = Axes
+  { rowLabels    = dfIndexes
+  , columnLabels = columns df
   }
--- axes :: DataFrame idx a -> Axes
--- axes = error "axes not implemented"
 
 -- TODO: Can we do away with the `Forall a ToField` stuff by substituting
 -- a contcreate ToField function from row-types?

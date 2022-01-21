@@ -30,6 +30,7 @@ library
       TDF.DataFrame
       TDF.Examples
       TDF.Prelude
+      TDF.Series
       TDF.Types.Index
       TDF.Types.RangeIndex
   other-modules:
