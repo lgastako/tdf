@@ -3,14 +3,16 @@
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE GADTs                #-}
+{-# LANGUAGE OverloadedLabels     #-}
 {-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE RecordWildCards      #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module RT.RV.DataFrame
+module TDF.DataFrame
   ( DataFrame
   , Options(..)
   , ToField(..)
@@ -23,6 +25,7 @@ module RT.RV.DataFrame
   , fromNativeVector
   , fromScalarList
   , fromVector
+  , getColumn
   , head
   , head_
   , index
@@ -535,12 +538,21 @@ toNativeVector df@DataFrame {..} = Vector.map Rec.toNative . toVector $ df
 --   | Stepped (idx, idx, idx)
 --   deriving (Eq, Generic, Ord, Show)
 
-onColumn :: forall k idx a c.
+onColumn :: forall k idx a b.
             ( KnownSymbol k
             , (Map Vector a .! k) ~ Vector (a .! k)
             )
          => Label k
-         -> (Vector (a Rec..! k) -> c)
+         -> (Vector (a Rec..! k) -> b)
          -> DataFrame idx a
-         -> c
+         -> b
 onColumn k f DataFrame {..} = f $ dfData .! k
+
+getColumn :: forall k idx a.
+             ( KnownSymbol k
+             , (Map Vector a .! k) ~ Vector (a .! k)
+             )
+          => Label k
+          -> DataFrame idx a
+          -> Vector (a .! k)
+getColumn = flip onColumn id

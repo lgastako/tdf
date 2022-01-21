@@ -27,13 +27,8 @@ source-repository head
 
 library
   exposed-modules:
-      RT.DataFrame
-      RT.DataFrame.Play
-      RT.Examples
-      RT.Examples.CSV
-      RT.RV.DataFrame
-      RT.RV.Examples
-      TDF.RecOfVectors
+      TDF.DataFrame
+      TDF.Examples
       TDF.Types.RangeIndex
   other-modules:
       Paths_tdf
@@ -59,9 +54,8 @@ test-suite tdf-test
   type: exitcode-stdio-1.0
   main-is: Driver.hs
   other-modules:
+      DataFrameTest
       RangeIndexTest
-      RT.DataFrameTest
-      RT.RV.DataFrameTest
       Paths_tdf
   hs-source-dirs:
       test

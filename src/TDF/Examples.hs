@@ -6,7 +6,7 @@
 {-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE TypeOperators    #-}
 
-module RT.Examples where
+module TDF.Examples where
 
 import           Prelude               hiding ( drop
                                               , take
@@ -25,10 +25,10 @@ import           Data.Row                     ( type (.+)
                                               )
 import qualified Data.Row.Records as Rec
 import           Data.Vector                  ( Vector)
-import qualified Data.Vector  as Vector
+import qualified Data.Vector      as Vector
 import           GHC.Generics                 ( Generic )
-import           RT.DataFrame                 ( DataFrame )
-import qualified RT.DataFrame as DF
+import           TDF.DataFrame                ( DataFrame )
+import qualified TDF.DataFrame    as DF
 
 type PersonFields =
   (  "name" .== String
