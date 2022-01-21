@@ -78,9 +78,11 @@ df1 = DF.fromList
   , person2
   ]
 
--- TODO can we make it easy to do the same thing with just "age" (or #age)
---      to avoid having to know the type... where the return type is whatever
---      the type of "age" is in in df1?
+-- TODO can we make it easy to do the same thing with just "age" (or #age) to
+--      avoid having to know the type... where the return type is whatever the
+--      type of "age" is in in df1?  maybe we don't want to lose the type info?
+--      so perhaps DF.restrict replaces both select_types and whatever other
+--      subsetting facilities? let's assume so for now.
 ages :: DataFrame Int ("age" .== Int)
 ages = DF.restrict df1
 
