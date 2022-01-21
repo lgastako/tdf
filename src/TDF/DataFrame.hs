@@ -50,7 +50,7 @@ module TDF.DataFrame
   , opts
   , over_
   , reindex
-  , renderWith
+  , render
   , restrict
   , shape
   , size
@@ -76,7 +76,6 @@ import qualified Data.Row.Records as Rec
 import qualified Data.Text        as Text
 import qualified Data.Vector      as Vector
 import qualified GHC.DataSize     as Data
--- import           TDF.Types.Index            ( Index )
 
 data DataFrame idx a = DataFrame
   { dfIndexes :: [idx]
@@ -358,17 +357,45 @@ _relabel label x = label' .== x .! label
     label' :: Label "value"
     label' = panic "value"
 
-renderWith :: Forall a Unconstrained1
-           => (Rec a -> [Text])
-           -> DataFrame idx a
-           -> Text
-renderWith f (DataFrame _idx v _len) = renderTexts headers rows
+render :: forall idx a.
+          ( Forall a ToField
+          , Forall a Unconstrained1
+          )
+       => DataFrame idx a
+       -> Text
+render _df@(DataFrame _idx _v _len) = renderTexts headers rows
   where
     headers :: [Text]
     headers = ["TODO", "fix", "column", "names"]
 
     rows :: Vector [Text]
-    rows = Vector.map f (Rec.sequence v)
+    rows = panic "rows"
+
+    -- Vector.map f . Rec.sequence $ v
+
+
+
+    -- f :: forall k. ToField (a .! k) => Rec a -> [Text]
+    -- f
+    -- f r = List.map g . columns $ df
+    --   where
+    --     g :: Text -> Text
+    --     g k = toField (r .! labelize k)
+
+    --     labelize :: Text -> Label k
+    --     labelize = undefined
+
+-- renderWith :: Forall a Unconstrained1
+--            => (Rec a -> [Text])
+--            -> DataFrame idx a
+--            -> Text
+-- renderWith f (DataFrame _idx v _len) = renderTexts headers rows
+--   where
+--     headers :: [Text]
+--     headers = ["TODO", "fix", "column", "names"]
+
+--     rows :: Vector [Text]
+--     rows = Vector.map f (Rec.sequence v)
 
 renderTexts :: [Text] -> Vector [Text] -> Text
 renderTexts headers rows = Text.unlines $
