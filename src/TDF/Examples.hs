@@ -10,14 +10,14 @@
 
 module TDF.Examples where
 
-import           TDF.Prelude           hiding ( drop
-                                              , take
-                                              )
+import           TDF.Prelude                hiding ( drop
+                                                   , take
+                                                   )
 
 import qualified Data.Row.Records as Rec
 import qualified Data.Text        as Text
 import qualified Data.Vector      as Vector
-import           TDF.DataFrame                ( DataFrame )
+import           TDF.DataFrame                     ( DataFrame )
 import qualified TDF.DataFrame    as DF
 
 type PersonFields =
@@ -77,6 +77,10 @@ df1 = DF.fromList
   [ person
   , person2
   ]
+
+-- Neat.
+df1Restricted :: DataFrame Int NameFields
+df1Restricted = DF.restrict df1
 
 df1' :: DataFrame Int PersonFields
 df1' = DF.reindex [0, 1] df1

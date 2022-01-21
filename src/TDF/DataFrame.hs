@@ -44,6 +44,7 @@ module TDF.DataFrame
   , over_
   , reindex
   , renderWith
+  , restrict
   , shape
   , size
   , tail
@@ -538,3 +539,35 @@ getColumn :: forall k idx a.
           -> DataFrame idx a
           -> Vector (a .! k)
 getColumn = flip onColumn identity
+
+restrict :: forall idx a b.
+            ( Forall a Unconstrained1
+            , Forall b Unconstrained1
+            , Rec.Subset b a
+            )
+         => DataFrame idx a
+         -> DataFrame idx b
+restrict DataFrame {..}= DataFrame
+  { dfIndexes = dfIndexes
+  , dfData    = dfData'
+  , dfLength  = dfLength
+  }
+  where
+    _ = dfData :: Rec (Map Vector a)
+
+    vrec :: Forall a Unconstrained1 => Vector (Rec a)
+    vrec = Rec.sequence dfData
+
+    vrec' :: ( Forall a Unconstrained1
+             , Forall b Unconstrained1
+             )
+          => Vector (Rec b)
+    vrec' = Vector.map Rec.restrict vrec
+
+    -- dfData' :: Rec (Map Vector b)
+    dfData' :: ( Forall a Unconstrained1
+               , Forall b Unconstrained1
+               )
+            => Rec  (Map Vector b)
+    dfData' = Rec.distribute vrec'
+

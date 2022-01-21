@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE OverloadedLabels  #-}
 
 module DataFrameTest where
@@ -52,6 +53,14 @@ spec_DataFrame = do
       DF.onColumn #age Vector.sum df
         `shouldBe` 68
 
-    it "at" $
-      DF.at 0 #name
-        `shouldBe` "John"
+    it "at 0 #name" $
+      DF.at 0 #name df
+        `shouldBe` Just "Alex"
+
+    it "at 1 #name" $
+      DF.at 1 #name df
+        `shouldBe` Just "Dave"
+
+    it "at 1 #age" $
+      DF.at 1 #age df
+        `shouldBe` Just 23
