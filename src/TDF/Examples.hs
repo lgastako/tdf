@@ -5,6 +5,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE OverloadedLabels  #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
 module TDF.Examples where
@@ -13,19 +14,19 @@ import           TDF.Prelude           hiding ( drop
                                               , take
                                               )
 
-import qualified Data.List        as List
 import qualified Data.Row.Records as Rec
+import qualified Data.Text        as Text
 import qualified Data.Vector      as Vector
 import           TDF.DataFrame                ( DataFrame )
 import qualified TDF.DataFrame    as DF
 
 type PersonFields =
-  (  "name" .== String
+  (  "name" .== Text
   .+ "age"  .== Int
   )
 
 type VecPersonFields =
-  (  "name" .== Vector String
+  (  "name" .== Vector Text
   .+ "age"  .== Vector Int
   )
 
@@ -33,8 +34,8 @@ type    Person = Rec    PersonFields
 type VecPerson = Rec VecPersonFields
 
 type PlayerFields =
-  (  "name" .== String
-  .+ "team" .== String
+  (  "name" .== Text
+  .+ "team" .== Text
   )
 
 type Player = Rec PlayerFields
@@ -43,12 +44,12 @@ type AgeFields = "age" .== Int
 
 type AgeRec = Rec AgeFields
 
-type NameFields = "name" .== String
+type NameFields = "name" .== Text
 
 type NameRec = Rec NameFields
 
 data Person' = Person'
-  { name :: String
+  { name :: Text
   , age :: Int
   } deriving (Generic, Show)
 
@@ -66,10 +67,10 @@ person2 :: Person
 person2 = #age  .== 45
        .+ #name .== "Dave"
 
-greet :: (r ≈ "name" .== String)
+greet :: (r ≈ "name" .== Text)
       => Rec r
-      -> String
-greet = ("Hello " ++) . (.! #name)
+      -> Text
+greet = ("Hello " <>) . (.! #name)
 
 df1 :: DataFrame Int PersonFields
 df1 = DF.fromList
@@ -84,8 +85,8 @@ df1' = DF.reindex [0, 1] df1
 -- 1096
 -- Yeesh that's a lot of overhead for [{name:Alex,age:23},{name:Dave,age:45}]
 
-df1'' :: DataFrame Int (PersonFields .+ "foo" .== String)
-df1'' = DF.map (\x -> x .+ #foo .== ("bar" ::String)) df1'
+df1'' :: DataFrame Int (PersonFields .+ "foo" .== Text)
+df1'' = DF.map (\x -> x .+ #foo .== ("bar" ::Text)) df1'
 
 df2 :: DataFrame Int NameFields
 df2 = DF.map justName df1
@@ -123,7 +124,7 @@ something = Rec.distribute . DF.toVector $ df6
 person's :: [Person']
 person's = Vector.toList . DF.toNativeVector $ df6
 
-animals :: DataFrame Int ("animal" .== String)
+animals :: DataFrame Int ("animal" .== Text)
 animals = DF.construct o
   where
     o = DF.opts
@@ -145,25 +146,25 @@ animals = DF.construct o
       , "zebra"
       ]
 
-rendered :: String
-rendered = List.unlines
-  [ DF.renderWith toStrings  df1
-  , DF.renderWith toStrings' df2
---  , DF.renderWith toStrings' df3
---  , DF.renderWith ageToString df4
+rendered :: Text
+rendered = Text.unlines
+  [ DF.renderWith toTexts  df1
+  , DF.renderWith toTexts' df2
+--  , DF.renderWith toTexts' df3
+--  , DF.renderWith ageToText df4
   ]
 
-ageToString :: Rec AgeFields -> [String]
-ageToString = pure . show . (.! #age)
+ageToText :: Rec AgeFields -> [Text]
+ageToText = pure . show . (.! #age)
 
-toStrings :: Rec PersonFields -> [String]
-toStrings rp =
+toTexts :: Rec PersonFields -> [Text]
+toTexts rp =
   [ rp .! #name
   , show (rp .! #age)
   ]
 
-toStrings' :: Rec NameFields -> [String]
-toStrings' rp = [ rp .! #name ]
+toTexts' :: Rec NameFields -> [Text]
+toTexts' rp = [ rp .! #name ]
 
 indexTest :: Bool
 indexTest = DF.index df1 == [0, 1]

@@ -51,3 +51,7 @@ spec_DataFrame = do
     it "onColumn #age Vector.sum" $
       DF.onColumn #age Vector.sum df
         `shouldBe` 68
+
+    it "at" $
+      DF.at 0 #name
+        `shouldBe` "John"

@@ -65,7 +65,7 @@ import           Control.DeepSeq            ( ($!!)
                                             )
 import qualified Data.List        as List
 import qualified Data.Row.Records as Rec
-import qualified Data.Text        as T
+import qualified Data.Text        as Text
 import qualified Data.Vector      as Vector
 import qualified GHC.DataSize     as Data
 
@@ -100,13 +100,13 @@ instance ToField Text where
   toField = identity
 
 instance ToField Integer where
-  toField = T.pack . show
+  toField = Text.pack . show
 
 instance ToField Int where
-  toField = T.pack . show
+  toField = Text.pack . show
 
-instance ToField String where
-  toField = T.pack
+-- instance ToField String where
+--   toField = Text.pack
 
 data Verbosity
   = Quiet
@@ -115,7 +115,7 @@ data Verbosity
 
 -- TODO find better name for this so as to not conflict with "real" RangeIndex
 type RangeIndex idx = (Int, Maybe (idx, idx))
-type ColIndex       = (Int, Maybe (String, String))
+type ColIndex       = (Int, Maybe (Text, Text))
 
 opts :: Options Int a
 opts = Options
@@ -146,7 +146,7 @@ index DataFrame {..} = List.take n dfIndexes
 reindex :: [idx'] -> DataFrame idx a -> DataFrame idx' a
 reindex dfIndexes' DataFrame {..} = DataFrame dfIndexes' dfData dfLength
 
-columns :: forall idx a. (Forall a ToField) => DataFrame idx a -> [String]
+columns :: forall idx a. (Forall a ToField) => DataFrame idx a -> [Text]
 columns _ = Rec.labels @a @ToField
 
 -- TODO: dtypes
@@ -178,22 +178,22 @@ nrows DataFrame {..} = dfLength
 info :: (Forall a ToField, Show idx)
      => Verbosity
      -> DataFrame idx a
-     -> String
+     -> Text
 info verbosity = case verbosity of
   Quiet   -> infoQuiet
   Verbose -> infoVerbose
 
 infoQuiet :: (Forall a ToField, Show idx)
           => DataFrame idx a
-          -> String
-infoQuiet df = List.unlines
+          -> Text
+infoQuiet df = Text.unlines
   [ showRangeIndex (rangeIndex df)
   , showColIndex (colIndex df)
   ]
 
-infoVerbose :: Show idx => DataFrame idx a -> String
-infoVerbose df = List.unlines
-  [ showRangeIndex (rangeIndex df) ++ "\nmore soon\n"
+infoVerbose :: Show idx => DataFrame idx a -> Text
+infoVerbose df = Text.unlines
+  [ showRangeIndex (rangeIndex df) <> "\nmore soon\n"
   , "more soon (verbose)"
   ]
 
@@ -210,7 +210,7 @@ rangeIndex df = ( length idxs
   where
     idxs = index df
 
-showRangeIndex :: Show idx => RangeIndex idx -> String
+showRangeIndex :: Show idx => RangeIndex idx -> Text
 showRangeIndex (n, Nothing)     = "Range index: " <> show n <> " entries."
 showRangeIndex (n, Just (f, l)) = "Range index: " <> show n <> " entries, "
                                <> show f <> " to " <> show l
@@ -235,7 +235,7 @@ colIndex df = ( length cols
   where
     cols = columns df
 
-showColIndex :: ColIndex -> String
+showColIndex :: ColIndex -> Text
 showColIndex (n, Nothing)     = "Columns: " <> show n <> " entries."
 showColIndex (n, Just (f, l)) = "Columns: " <> show n <> " entries, "
                              <> show f <> " to " <> show l
@@ -339,57 +339,57 @@ _relabel label x = label' .== x .! label
     label' = panic "value"
 
 renderWith :: Forall a Unconstrained1
-           => (Rec a -> [String])
+           => (Rec a -> [Text])
            -> DataFrame idx a
-           -> String
-renderWith f (DataFrame _idx v _len) = renderStrings headers rows
+           -> Text
+renderWith f (DataFrame _idx v _len) = renderTexts headers rows
   where
-    headers :: [String]
+    headers :: [Text]
     headers = ["TODO", "fix", "column", "names"]
 
-    rows :: Vector [String]
+    rows :: Vector [Text]
     rows = Vector.map f (Rec.sequence v)
 
-renderStrings :: [String] -> Vector [String] -> String
-renderStrings headers rows = List.unlines $
-  [top, headerRow, middle] ++ renderedRows ++ [ bottom ]
+renderTexts :: [Text] -> Vector [Text] -> Text
+renderTexts headers rows = Text.unlines $
+  [top, headerRow, middle] <> renderedRows <> [ bottom ]
   where
-    renderedRows :: [String]
+    renderedRows :: [Text]
     renderedRows = Vector.toList $ Vector.map wrap rows
 
-    headerRow :: String
+    headerRow :: Text
     headerRow = wrap headers
 
-    top, middle, bottom :: String
+    top, middle, bottom :: Text
     top    = lineWith ('+', '-', 'v', '+')
     middle = lineWith ('+', '-', '+', '+')
     bottom = lineWith ('+', '-', '^', '+')
 
-    wrap :: [String] -> String
-    wrap = ("| " ++)
-      . (++ " |")
-      . List.intercalate " | "
+    wrap :: [Text] -> Text
+    wrap = ("| " <>)
+      . (<> " |")
+      . Text.intercalate " | "
       . zipWith pad maxWidths
 
-    pad :: Int -> String -> String
-    pad n s = replicate (length s - n) ' ' ++ s
+    pad :: Int -> Text -> Text
+    pad n s = Text.replicate (Text.length s - n) " " <> s
 
     maxWidths :: [Int]
     maxWidths = fmap maximum
               . List.transpose
-              . fmap (fmap length)
-              $ allStrings
+              . fmap (fmap Text.length)
+              $ allTexts
 
-    lineWith :: (Char, Char, Char, Char) -> String
-    lineWith (left, _mid, _break, _right) = left:rest
+    lineWith :: (Char, Char, Char, Char) -> Text
+    lineWith (left, _mid, _break, _right) = Text.cons left rest
       where
         rest = "[REST]"
 
-    allStrings :: [[String]]
-    allStrings = headers:rowStrings
+    allTexts :: [[Text]]
+    allTexts = headers:rowTexts
 
-    rowStrings :: [[String]]
-    rowStrings = Vector.toList rows
+    rowTexts :: [[Text]]
+    rowTexts = Vector.toList rows
 
 shape :: Forall a ToField => DataFrame idx a -> (Int, Int)
 shape = (,) <$> nrows <*> ncols
