@@ -78,6 +78,12 @@ df1 = DF.fromList
   , person2
   ]
 
+-- TODO can we make it easy to do the same thing with just "age" (or #age)
+--      to avoid having to know the type... where the return type is whatever
+--      the type of "age" is in in df1?
+ages :: DataFrame Int ("age" .== Int)
+ages = DF.restrict df1
+
 -- Neat.
 df1Restricted :: DataFrame Int NameFields
 df1Restricted = DF.restrict df1
