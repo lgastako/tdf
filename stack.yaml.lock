@@ -5,12 +5,12 @@
 
 packages:
 - completed:
-    hackage: constraints-0.13.2@sha256:8ff7b39b8495fb43a2b11164c20d362dc4600feaa9658a5f942232b2a66686c0,2504
+    hackage: constraints-0.12@sha256:7edf1e72a92d0a6761da634f08be9123dfcc0dcec11c269cbf465a09721c3481,2322
     pantry-tree:
       size: 867
-      sha256: 42069feb5ca331d79376e7a52269c0f749c9399b4840ebb6bc5fd7bd7f433e7c
+      sha256: c3422b7121927dd912d2b2b40d12f8addd991b83933d9f1415dfac883ada0c46
   original:
-    hackage: constraints-0.13.2@sha256:8ff7b39b8495fb43a2b11164c20d362dc4600feaa9658a5f942232b2a66686c0,2504
+    hackage: constraints-0.12@sha256:7edf1e72a92d0a6761da634f08be9123dfcc0dcec11c269cbf465a09721c3481,2322
 - completed:
     hackage: ghc-datasize-0.2.2@sha256:3c2afb582a1cf0702c2ccdb0465dad090695e397179848b78b24cc24f02351bd,1140
     pantry-tree:
@@ -25,13 +25,6 @@ packages:
       sha256: 5fb893f6e14aff59d6f2be39b4b288c66d53551f746c44edd0d069487ce167bd
   original:
     hackage: row-types-1.0.1.2
-- completed:
-    hackage: superrecord-0.5.1.0@sha256:b05ffddd8e1b504f8dad7a9726c1489caa1fcd3e2460f8bda44b2baa6e2a76fb,2480
-    pantry-tree:
-      size: 766
-      sha256: c87b04730f31eb8459150cd541b3649b3771263a1cbda099325c1118d51f83eb
-  original:
-    hackage: superrecord-0.5.1.0@sha256:b05ffddd8e1b504f8dad7a9726c1489caa1fcd3e2460f8bda44b2baa6e2a76fb,2480
 - completed:
     hackage: type-equality-1@sha256:bb3a34a93ad02866763b325e889ea9f5aa31f7428e32dcaa1cf14015bd21b9cb,1597
     pantry-tree:

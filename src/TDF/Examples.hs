@@ -1,34 +1,21 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE DeriveGeneric    #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs            #-}
-{-# LANGUAGE KindSignatures   #-}
-{-# LANGUAGE OverloadedLabels #-}
-{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE KindSignatures    #-}
+{-# LANGUAGE OverloadedLabels  #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module TDF.Examples where
 
-import           Prelude               hiding ( drop
+import           TDF.Prelude           hiding ( drop
                                               , take
                                               )
 
--- import           Control.Lens                 ( (^.)
---                                               , view
---                                               )
--- import           Data.Generics.Labels         ()
--- import           Data.Generics.Product.Fields ( HasField' )
-import           Data.Row                     ( type (≈)
-                                              , type (.+)
-                                              , type (.==)
-                                              ,      (.+)
-                                              ,      (.==)
-                                              ,      (.!)
-                                              , Rec
-                                              )
+import qualified Data.List        as List
 import qualified Data.Row.Records as Rec
-import           Data.Vector                  ( Vector)
 import qualified Data.Vector      as Vector
-import           GHC.Generics                 ( Generic )
 import           TDF.DataFrame                ( DataFrame )
 import qualified TDF.DataFrame    as DF
 
@@ -159,7 +146,7 @@ animals = DF.construct o
       ]
 
 rendered :: String
-rendered = unlines
+rendered = List.unlines
   [ DF.renderWith toStrings  df1
   , DF.renderWith toStrings' df2
 --  , DF.renderWith toStrings' df3

@@ -1,13 +1,15 @@
-{-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels  #-}
 
 module DataFrameTest where
 
+import           TDF.Prelude
+
 import           Test.Tasty.Hspec
 
-import           Data.Row                       ( (.!) )
-import qualified Data.Vector          as Vector
-import qualified TDF.DataFrame        as DF
-import qualified TDF.Examples         as Examples
+import qualified Data.Vector       as Vector
+import qualified TDF.DataFrame     as DF
+import qualified TDF.Examples      as Examples
 
 spec_DataFrame :: Spec
 spec_DataFrame = do

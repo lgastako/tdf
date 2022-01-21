@@ -19,25 +19,19 @@ ghc-options:
 - -Wall
 
 dependencies:
-- base # >= 4.7 && < 5
+- base            # >= 4.7 && < 5
 - deepseq
-#- fin
-#- generic-lens
 - ghc-datasize
-#- lens
 - protolude
-- row-types  >= 1.0.0.0
-#- superrecord
-#- tagged
+- row-types       >= 1.0.0.0
 - text
-#- vec
 - vector
 
 library:
   source-dirs: src
 
 # executables:
-#   tdf-exe:
+#   tdf:
 #     main:                Main.hs
 #     source-dirs:         app
 #     ghc-options:

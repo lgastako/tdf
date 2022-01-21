@@ -4,8 +4,7 @@ packages:
 - .
 
 extra-deps:
-- constraints-0.13.2@sha256:8ff7b39b8495fb43a2b11164c20d362dc4600feaa9658a5f942232b2a66686c0,2504
+- constraints-0.12@sha256:7edf1e72a92d0a6761da634f08be9123dfcc0dcec11c269cbf465a09721c3481,2322
 - ghc-datasize-0.2.2@sha256:3c2afb582a1cf0702c2ccdb0465dad090695e397179848b78b24cc24f02351bd,1140
 - row-types-1.0.1.2
-- superrecord-0.5.1.0@sha256:b05ffddd8e1b504f8dad7a9726c1489caa1fcd3e2460f8bda44b2baa6e2a76fb,2480
 - type-equality-1@sha256:bb3a34a93ad02866763b325e889ea9f5aa31f7428e32dcaa1cf14015bd21b9cb,1597

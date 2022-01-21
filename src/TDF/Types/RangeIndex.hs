@@ -1,5 +1,6 @@
-{-# LANGUAGE DeriveGeneric   #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module TDF.Types.RangeIndex
   ( RangeIndex( RangeIndex )
@@ -13,8 +14,7 @@ module TDF.Types.RangeIndex
   , upTo
   ) where
 
-import GHC.Generics ( Generic )
-import Data.Text    ( Text )
+import TDF.Prelude hiding ( toList )
 
 data RangeIndex a = RangeIndex
   { start :: a

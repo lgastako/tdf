@@ -1,4 +1,8 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module RangeIndexTest where
+
+import           TDF.Prelude
 
 import           Test.Tasty.Hspec
 

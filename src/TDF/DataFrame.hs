@@ -3,7 +3,9 @@
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE GADTs                #-}
+{-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE OverloadedLabels     #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
@@ -52,46 +54,19 @@ module TDF.DataFrame
   , under_
   ) where
 
-import           Prelude             hiding ( head
-                                            , lookup
+import           TDF.Prelude         hiding ( empty
+                                            , head
                                             , map
-                                            , tail
+                                            , toList
                                             )
 
 import           Control.DeepSeq            ( ($!!)
                                             , NFData
                                             )
--- import           Control.Lens               ( Getter
---                                             , view
---                                             )
-import           Control.Monad.IO.Class     ( MonadIO
-                                            , liftIO
-                                            )
 import qualified Data.List        as List
-import           Data.Row                   ( Disjoint
-                                            , Empty
-                                            , Forall
-                                            , Label
-                                            , KnownSymbol
-                                            , Rec
-                                            , type (≈)
-                                            , type (.+)
-                                            , type (.!)
-                                            , type (.==)
-                                            , (.!)
-                                            , (.==)
-                                            )
-import           Data.Row.Internal          ( Unconstrained1 )
-import           Data.Row.Records           ( Map
-                                            , NativeRow
-                                            , ToNative
-                                            )
 import qualified Data.Row.Records as Rec
 import qualified Data.Text        as T
-import           Data.Text                  ( Text )
-import           Data.Vector                ( Vector )
 import qualified Data.Vector      as Vector
-import           GHC.Generics               ( Generic )
 import qualified GHC.DataSize     as Data
 
 data DataFrame idx a = DataFrame
@@ -101,7 +76,7 @@ data DataFrame idx a = DataFrame
   } deriving (Generic)
 
 instance (Forall (Map Vector a)  NFData, NFData idx)
-      => NFData (DataFrame idx a)
+  => NFData (DataFrame idx a)
 
 -- TODO: not the representaton we want but fine for Show... need
 --       "real" functions  for rendering
@@ -122,7 +97,7 @@ class ToField a where
   toField :: a -> Text
 
 instance ToField Text where
-  toField = id
+  toField = identity
 
 instance ToField Integer where
   toField = T.pack . show
@@ -164,7 +139,7 @@ construct Options {..} = DataFrame optIndexes d (Vector.length optData)
 index :: DataFrame idx a -> [idx]
 index DataFrame {..} = List.take n dfIndexes
   where
-    n = error "index: Vector.length dfData"
+    n = panic "index: Vector.length dfData"
 
 -- TODO: questionable to expose? at least with this interface... doing it for
 --       now for Examples.hs
@@ -211,13 +186,13 @@ info verbosity = case verbosity of
 infoQuiet :: (Forall a ToField, Show idx)
           => DataFrame idx a
           -> String
-infoQuiet df = unlines
+infoQuiet df = List.unlines
   [ showRangeIndex (rangeIndex df)
   , showColIndex (colIndex df)
   ]
 
 infoVerbose :: Show idx => DataFrame idx a -> String
-infoVerbose df = unlines
+infoVerbose df = List.unlines
   [ showRangeIndex (rangeIndex df) ++ "\nmore soon\n"
   , "more soon (verbose)"
   ]
@@ -305,7 +280,7 @@ over_ :: forall a b.
       => (Rec a -> Rec b)
       -> Rec (Map Vector a)
       -> Rec (Map Vector b)
-over_ f = Rec.distribute . Vector.map f . Rec.sequence
+over_ f = under_ (Vector.map f)
 
 under_ :: forall a b.
          ( Forall a Unconstrained1
@@ -314,7 +289,7 @@ under_ :: forall a b.
       => (Vector (Rec a) -> Vector (Rec b))
       -> Rec (Map Vector a)
       -> Rec (Map Vector b)
-under_ = undefined
+under_ f = Rec.distribute . f . Rec.sequence
 
 -- onVec f (DataFrame idx v len) = DataFrame idx (mapify f v) len
 --   where
@@ -361,7 +336,7 @@ _relabel :: forall r k v rest.
 _relabel label x = label' .== x .! label
   where
     label' :: Label "value"
-    label' = error "value"
+    label' = panic "value"
 
 renderWith :: Forall a Unconstrained1
            => (Rec a -> [String])
@@ -376,7 +351,7 @@ renderWith f (DataFrame _idx v _len) = renderStrings headers rows
     rows = Vector.map f (Rec.sequence v)
 
 renderStrings :: [String] -> Vector [String] -> String
-renderStrings headers rows = unlines $
+renderStrings headers rows = List.unlines $
   [top, headerRow, middle] ++ renderedRows ++ [ bottom ]
   where
     renderedRows :: [String]
@@ -562,4 +537,4 @@ getColumn :: forall k idx a.
           => Label k
           -> DataFrame idx a
           -> Vector (a .! k)
-getColumn = flip onColumn id
+getColumn = flip onColumn identity
