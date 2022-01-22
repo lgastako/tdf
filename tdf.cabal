@@ -35,6 +35,7 @@ library
       TDF.Tutorial
       TDF.Types.FromField
       TDF.Types.Index
+      TDF.Types.ListIndex
       TDF.Types.RangeIndex
       TDF.Types.Table
       TDF.Types.ToField

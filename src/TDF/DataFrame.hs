@@ -129,9 +129,10 @@ data Verbosity
 type InternalRangeIndex idx = (Int, Maybe (idx, idx))
 type ColIndex               = (Int, Maybe (Text, Text))
 
-data Index idx
-  = RangeIdx (RangeIndex idx)
-  deriving (Eq, Generic, Ord, Show)
+-- data Index idx
+--   = ListIdx (ListIndex idx)
+--   | RangeIdx (RangeIndex idx)
+--   deriving (Eq, Generic, Ord, Show)
 
 opts :: Options Int a
 opts = Options
@@ -146,8 +147,6 @@ construct :: forall idx a.
           -> DataFrame idx a
 construct Options {..} = DataFrame dfIndexes d
   where
-    _ = optData :: Vector (Rec a)
-
     dfIndexes :: [idx]
     dfIndexes = zipWith const optIndexes (Vector.toList optData)
 
@@ -167,9 +166,6 @@ reindex dfIndexes' DataFrame {..} = DataFrame dfIndexes' dfData
 
 columns :: forall idx a. (Forall a ToField) => DataFrame idx a -> [Text]
 columns _ = Rec.labels @a @ToField
-
--- TODO: dtypes
--- TODO: select_dtypes
 
 axes :: Forall a ToField => DataFrame idx a -> Axes idx
 axes df@DataFrame {..} = Axes
@@ -294,17 +290,8 @@ onVec f DataFrame {..} = DataFrame
                             . Rec.sequence
                             $ dfData
 
-    -- TODO updatet instead of dfLength' above
+    -- TODO update indexes instead of dfLength' above
     dfIndexes' = dfIndexes
-
--- over_ :: forall a b.
---          ( Forall a Unconstrained1
---          , Forall b Unconstrained1
---          )
---       => (Rec a -> Rec b)
---       -> Rec (Map Vector a)
---       -> Rec (Map Vector b)
--- over_ f = under_ (Vector.map f)
 
 over :: forall idx a b.
         ( Forall a Unconstrained1
@@ -356,7 +343,7 @@ under f DataFrame {..} = DataFrame
   }
   where
     (_dfLength', dfData') = underL_ f dfData
-    -- TODO updat indexes instead of dfLength
+    -- TODO: update indexes instead of dfLength
     dfIndexes' = dfIndexes
 
 map :: ( Forall a Unconstrained1
@@ -400,33 +387,19 @@ toTexts df@DataFrame {..} = (headers:)
     f = toFields headers
 
 render :: forall idx a.
-          ( Forall a Unconstrained1
-          , Forall a ToField
+          ( Forall a ToField
           , Forall a Typeable
+          , Forall a Unconstrained1
           )
        => DataFrame idx a
        -> Text
-render df@(DataFrame _idx rv) = Table.render . Table.fromTexts $ texts
+render df@(DataFrame _idx rv) = Table.render . Table.fromTexts $ headers:rows
   where
-    texts :: [[Text]]
-    texts = headers:rows
-
-    headers :: [Text]
     headers = columns df
-
-    rows :: [[Text]]
-    rows = Vector.toList . Vector.map (toFields headers) $ vr
-
-    _ = rv :: Rec (Map Vector a)
+    rows    = Vector.toList . Vector.map (toFields headers) $ vr
 
     vr :: Vector (Rec a)
     vr = Rec.sequence rv
-
-    -- f :: Rec a -> Rec b
-    -- f = undefined
-
-    -- v' :: Vector (Rec a)
-    -- v' = undefined
 
 toFields :: ( Forall a ToField
             , Forall a Typeable
@@ -476,8 +449,6 @@ size = (*) <$> ncols <*> nrows
 toList :: Forall a Unconstrained1 => DataFrame idx a -> [Rec a]
 toList = Vector.toList . toVector
 
--- values replaced by toVector
--- to_numpy replaced by toVector
 toVector :: Forall a Unconstrained1 => DataFrame idx a -> Vector (Rec a)
 toVector DataFrame {..} = Rec.sequence dfData
 
@@ -531,8 +502,6 @@ tail n df@DataFrame {..} = DataFrame
 tail_ :: Forall a Unconstrained1 => DataFrame idx a -> DataFrame idx a
 tail_ = tail 5
 
--- -- TODO: bool
-
 -- TODO we should really at least eliminate the `Forall a ToField` constraint
 -- on things that are just getting the column count -- should be able to get
 -- that without rendering them.
@@ -545,8 +514,6 @@ at :: ( Eq idx
    -> DataFrame idx a
    -> Maybe (a .! k)
 at idx k df = (.! k) <$> lookup idx df
-
--- TODO: iat -- maybe?
 
 -- TODO this obviously needs to be SOOO much better
 lookup :: (Eq idx, Forall a Unconstrained1)
@@ -579,6 +546,13 @@ toNativeVector :: forall idx t.
                => DataFrame idx (NativeRow t)
                -> Vector t
 toNativeVector df@DataFrame {..} = Vector.map Rec.toNative . toVector $ df
+
+-- TODO: iat -- maybe? or explain
+-- TODO: explain bool
+-- TODO: explain dtypes
+-- TODO: explain select_dtypes
+-- TODO: explain values replaced by toVector
+-- TODO: explain to_numpy replaced by toVector
 
 -- TODO
 -- locLabel :: label -> DataFrame idx a
