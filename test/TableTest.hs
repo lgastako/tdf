@@ -35,4 +35,3 @@ spec_Tables = do
           , "Jonathan | 46     "
           , "Dave     | 52     "
           ]
-

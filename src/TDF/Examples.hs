@@ -45,6 +45,12 @@ type AgeRec = Rec AgeFields
 
 type NameFields = "name" .== Text
 
+type FullNameFields = "fullName" .== Text
+
+type FullPersonFields = FullNameFields .+ AgeFields
+
+type FullPerson = Rec FullPersonFields
+
 type NameRec = Rec NameFields
 
 data Person' = Person'
@@ -76,6 +82,9 @@ df1 = DF.fromList
   [ person
   , person2
   ]
+
+df1Renamed :: DataFrame Int FullPersonFields
+df1Renamed = DF.rename #name #fullName df1
 
 -- TODO can we make it easy to do the same thing with just "age" (or #age) to
 --      avoid having to know the type... where the return type is whatever the
@@ -188,3 +197,6 @@ r = putStr rendered
 
 -- dfFocused :: DataFrame Int NameFields
 -- dfFocused = DF.map (Rec.focus #name) df1
+
+displayDf1 :: IO ()
+displayDf1 = DF.display df1

@@ -2,6 +2,9 @@ resolver: lts-14.27
 
 packages:
 - .
+- location:
+    git: https://github.com/gnumonik/row-extras.git
+    commit: 2e911ab94f6d7d79fd4509d6c719b6f8759af465
 
 extra-deps:
 - constraints-0.12@sha256:7edf1e72a92d0a6761da634f08be9123dfcc0dcec11c269cbf465a09721c3481,2322

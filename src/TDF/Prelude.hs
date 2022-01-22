@@ -1,7 +1,10 @@
 {-# LANGUAGE ExplicitNamespaces #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
 
-module TDF.Prelude ( module X ) where
+module TDF.Prelude
+  ( module X
+  , cs
+  ) where
 
 import Data.Row          as X        ( Disjoint
                                      , Empty
@@ -11,10 +14,12 @@ import Data.Row          as X        ( Disjoint
                                      , Rec
                                      , type (.!)
                                      , type (.+)
+                                     , type (.-)
                                      , type (.==)
                                      , type (≈)
                                      , (.!)
                                      , (.+)
+                                     , (.-)
                                      , (.==)
                                      )
 import Data.Row.Internal as X        ( Unconstrained1 )
@@ -27,3 +32,6 @@ import Protolude         as X hiding ( Map )
 import Protolude.Conv                ( Leniency( Lenient )
                                      , StringConv
                                      )
+
+cs :: StringConv a b => a -> b
+cs = strConv Lenient

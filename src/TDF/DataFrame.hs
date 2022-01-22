@@ -27,8 +27,10 @@ module TDF.DataFrame
   , Verbosity(..)
   , at
   , axes
+  , column
   , columns
   , construct
+  , display
   , empty
   , fromList
   , fromNativeVector
@@ -48,8 +50,9 @@ module TDF.DataFrame
   , onColumn
   , onVec
   , opts
-  , over_
+  , over
   , reindex
+  , rename
   , render
   , restrict
   , shape
@@ -58,8 +61,9 @@ module TDF.DataFrame
   , tail_
   , toList
   , toNativeVector
+  , toTexts
   , toVector
-  , under_
+  , under
   ) where
 
 import           TDF.Prelude         hiding ( empty
@@ -76,6 +80,7 @@ import qualified Data.Row.Records as Rec
 import qualified Data.Text        as Text
 import qualified Data.Vector      as Vector
 import qualified GHC.DataSize     as Data
+import qualified TDF.Types.Table  as Table
 
 data DataFrame idx a = DataFrame
   { dfIndexes :: [idx]
@@ -292,14 +297,42 @@ onVec f DataFrame {..} = DataFrame
                            . Rec.sequence
                            $ dfData
 
-over_ :: forall a b.
+-- over_ :: forall a b.
+--          ( Forall a Unconstrained1
+--          , Forall b Unconstrained1
+--          )
+--       => (Rec a -> Rec b)
+--       -> Rec (Map Vector a)
+--       -> Rec (Map Vector b)
+-- over_ f = under_ (Vector.map f)
+
+over :: forall idx a b.
+        ( Forall a Unconstrained1
+        , Forall b Unconstrained1
+        )
+     => (Rec a -> Rec b)
+     -> DataFrame idx a
+     -> DataFrame idx b
+over f = under (Vector.map f)
+
+recDistributeL :: ( Forall r Unconstrained1
+                  , Foldable f
+                  , Functor f
+                  )
+               => f (Rec r)
+               -> (Int, Rec (Map f r))
+recDistributeL v = (len, Rec.distribute v)
+  where
+    len = length v
+
+underL_ :: forall a b.
          ( Forall a Unconstrained1
          , Forall b Unconstrained1
          )
-      => (Rec a -> Rec b)
+      => (Vector (Rec a) -> Vector (Rec b))
       -> Rec (Map Vector a)
-      -> Rec (Map Vector b)
-over_ f = under_ (Vector.map f)
+      -> (Int, Rec (Map Vector b))
+underL_ f = recDistributeL . f . Rec.sequence
 
 under_ :: forall a b.
          ( Forall a Unconstrained1
@@ -310,12 +343,20 @@ under_ :: forall a b.
       -> Rec (Map Vector b)
 under_ f = Rec.distribute . f . Rec.sequence
 
--- onVec f (DataFrame idx v len) = DataFrame idx (mapify f v) len
---   where
---     mapify :: (Vector (Rec a) -> Vector (Rec b))
---            -> Rec (Map Vector a)
---            -> Rec (Map Vector b)
---     mapify = undefined
+under :: forall idx a b.
+         ( Forall a Unconstrained1
+         , Forall b Unconstrained1
+         )
+      => (Vector (Rec a) -> Vector (Rec b))
+      -> DataFrame idx a
+      -> DataFrame idx b
+under f DataFrame {..} = DataFrame
+  { dfIndexes = dfIndexes
+  , dfData    = dfData'
+  , dfLength  = dfLength'
+  }
+  where
+    (dfLength', dfData') = underL_ f dfData
 
 map :: ( Forall a Unconstrained1
        , Forall b Unconstrained1
@@ -325,118 +366,51 @@ map :: ( Forall a Unconstrained1
     -> DataFrame idx b
 map f = onVec (Vector.map f)
 
--- column :: ( KnownSymbol label
---           , KnownNat (RecSize a)
---           , KnownNat ((RecSize a - RecTyIdxH 0 label a) - 1)
---           )
---        => FldProxy label
---        -> DataFrame idx a
---        -> DataFrame idx _
--- --     -> DataFrame '[label := SuperRecord.RecTy label a]
--- column label = map (relabel label)
+column :: forall r idx k v rest.
+          ( Disjoint r rest
+          , Forall r Unconstrained1
+          , Forall (r .+ rest) Unconstrained1
+          , KnownSymbol k
+          , r ≈ k .== v
+          )
+       => Label k
+       -> DataFrame idx (r .+ rest)
+       -> DataFrame idx r
+column _ = map Rec.restrict
 
--- relabel :: ( KnownSymbol l
---            , KnownNat (RecSize lts)
---            , KnownNat ((RecSize lts - RecTyIdxH 0 l lts) - 1))
---         => FldProxy l
---         -> Rec lts
---         -> Rec _
--- --      -> Rec '[l := SuperRecord.RecTy l lts]
--- relabel :: _ -> a ->
--- relabel :: Getter s a -> Rec _ -> Rec _
-_relabel :: forall r k v rest.
-            ( KnownSymbol k
-            , r ≈ k .== v
-            , Disjoint r rest
-            )
-         => Label k
-         -> Rec (r .+ rest)
-         -> Rec ("value" .== v)
-_relabel label x = label' .== x .! label
-  where
-    label' :: Label "value"
-    label' = panic "value"
+toTexts :: DataFrame idx a -> [[Text]]
+toTexts = panic "toTexts"
 
 render :: forall idx a.
-          ( Forall a ToField
-          , Forall a Unconstrained1
+          ( Forall a Unconstrained1
+          , Forall a ToField
           )
        => DataFrame idx a
        -> Text
-render _df@(DataFrame _idx _v _len) = renderTexts headers rows
+render df@(DataFrame _idx rv _len) = Table.render . Table.fromTexts $ texts
   where
+    texts :: [[Text]]
+    texts = headers:rows
+
     headers :: [Text]
-    headers = ["TODO", "fix", "column", "names"]
+    headers = columns df
 
-    rows :: Vector [Text]
-    rows = panic "rows"
+    rows :: [[Text]]
+    rows = Vector.toList . Vector.map toFields $ vr
 
-    -- Vector.map f . Rec.sequence $ v
+    _ = rv :: Rec (Map Vector a)
 
+    vr :: Vector (Rec a)
+    vr = Rec.sequence rv
 
+    -- f :: Rec a -> Rec b
+    -- f = undefined
 
-    -- f :: forall k. ToField (a .! k) => Rec a -> [Text]
-    -- f
-    -- f r = List.map g . columns $ df
-    --   where
-    --     g :: Text -> Text
-    --     g k = toField (r .! labelize k)
+    -- v' :: Vector (Rec a)
+    -- v' = undefined
 
-    --     labelize :: Text -> Label k
-    --     labelize = undefined
-
--- renderWith :: Forall a Unconstrained1
---            => (Rec a -> [Text])
---            -> DataFrame idx a
---            -> Text
--- renderWith f (DataFrame _idx v _len) = renderTexts headers rows
---   where
---     headers :: [Text]
---     headers = ["TODO", "fix", "column", "names"]
-
---     rows :: Vector [Text]
---     rows = Vector.map f (Rec.sequence v)
-
-renderTexts :: [Text] -> Vector [Text] -> Text
-renderTexts headers rows = Text.unlines $
-  [top, headerRow, middle] <> renderedRows <> [ bottom ]
-  where
-    renderedRows :: [Text]
-    renderedRows = Vector.toList $ Vector.map wrap rows
-
-    headerRow :: Text
-    headerRow = wrap headers
-
-    top, middle, bottom :: Text
-    top    = lineWith ('+', '-', 'v', '+')
-    middle = lineWith ('+', '-', '+', '+')
-    bottom = lineWith ('+', '-', '^', '+')
-
-    wrap :: [Text] -> Text
-    wrap = ("| " <>)
-      . (<> " |")
-      . Text.intercalate " | "
-      . zipWith pad maxWidths
-
-    pad :: Int -> Text -> Text
-    pad n s = Text.replicate (Text.length s - n) " " <> s
-
-    maxWidths :: [Int]
-    maxWidths = fmap maximum
-              . List.transpose
-              . fmap (fmap Text.length)
-              $ allTexts
-
-    lineWith :: (Char, Char, Char, Char) -> Text
-    lineWith (left, _mid, _break, _right) = Text.cons left rest
-      where
-        rest = "[REST]"
-
-    allTexts :: [[Text]]
-    allTexts = headers:rowTexts
-
-    rowTexts :: [[Text]]
-    rowTexts = Vector.toList rows
+toFields :: Forall a ToField => Rec a -> [Text]
+toFields = panic "toFields"
 
 shape :: Forall a ToField => DataFrame idx a -> (Int, Int)
 shape = (,) <$> nrows <*> ncols
@@ -471,7 +445,7 @@ head :: forall idx a.
      -> DataFrame idx a
 head n df@DataFrame {..} = DataFrame
   { dfIndexes = List.take   m dfIndexes
-  , dfData    = Rec.distribute . f . Rec.sequence $ dfData
+  , dfData    = under_ f dfData
   , dfLength  = dfLength
   }
   where
@@ -490,8 +464,8 @@ tail :: forall idx a.
      -> DataFrame idx a
      -> DataFrame idx a
 tail n df@DataFrame {..} = DataFrame
-  { dfIndexes = List.drop   m dfIndexes
-  , dfData    = Rec.distribute . f . Rec.sequence $ dfData
+  { dfIndexes = List.drop m dfIndexes
+  , dfData    = under_ f dfData
   , dfLength  = dfLength
   }
   where
@@ -617,3 +591,33 @@ restrict DataFrame {..}= DataFrame
             => Rec  (Map Vector b)
     dfData' = Rec.distribute vrec'
 
+rename :: forall k k' idx a b.
+          ( Forall a Unconstrained1
+          , Forall b Unconstrained1
+          , KnownSymbol k
+          , KnownSymbol k'
+          , b ~ Rec.Extend k' (a .! k) (a .- k)
+          )
+       => Label k
+       -> Label k'
+       -> DataFrame idx a
+       -> DataFrame idx b
+rename k k' DataFrame {..} = DataFrame
+  { dfIndexes = dfIndexes
+  , dfData    = dfData'
+  , dfLength  = dfLength
+  }
+  where
+    _ = dfData :: Rec (Map Vector a)
+
+    dfDataI :: Forall a Unconstrained1 => Vector (Rec a)
+    dfDataI = Rec.sequence dfData
+
+    dfDataI' :: Forall a Unconstrained1 => Vector (Rec b)
+    dfDataI' = Vector.map (Rec.rename k k') dfDataI
+
+    dfData' :: Forall b Unconstrained1 => Rec (Map Vector b)
+    dfData' = Rec.distribute dfDataI'
+
+display :: DataFrame idx a -> IO ()
+display = panic "display"

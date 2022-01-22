@@ -23,6 +23,7 @@ dependencies:
 - deepseq
 - ghc-datasize
 - protolude
+- row-extras
 - row-types       >= 1.0.0.0
 - text
 - vector
