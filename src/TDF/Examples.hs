@@ -195,8 +195,5 @@ indexTest = DF.index df1 == [0, 1]
 r :: IO ()
 r = putStr rendered
 
--- dfFocused :: DataFrame Int NameFields
--- dfFocused = DF.map (Rec.focus #name) df1
-
 displayDf1 :: IO ()
 displayDf1 = DF.display df1

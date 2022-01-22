@@ -620,4 +620,4 @@ rename k k' DataFrame {..} = DataFrame
     dfData' = Rec.distribute dfDataI'
 
 display :: DataFrame idx a -> IO ()
-display = panic "display"
+display = putStr . Table.render . Table.fromTexts . toTexts
