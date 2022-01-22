@@ -137,13 +137,20 @@ something = Rec.distribute . DF.toVector $ df6
 person's :: [Person']
 person's = Vector.toList . DF.toNativeVector $ df6
 
+-- Example from
+--   https://pandas.pydata.org/pandas-docs/version/0.23.0/generated/pandas.Series.tail.html
 animals :: DataFrame Int ("animal" .== Text)
 animals = DF.construct o
   where
     o = DF.opts
       { DF.optData    = Vector.fromList . map mkRec $ animalNames
-      , DF.optIndexes = [0 .. length animalNames :: Int]
+      , DF.optIndexes = optIndexes
       }
+
+    -- TODO make this the default construction logic
+    --  .. TODO improve construction in general
+    optIndexes :: [Int]
+    optIndexes = zipWith const [0..] animalNames
 
     mkRec a = #animal .== a
 

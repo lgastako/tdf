@@ -94,7 +94,6 @@ import           TDF.Types.ToField              ( ToField )
 data DataFrame idx a = DataFrame
   { dfIndexes :: [idx]
   , dfData    :: Rec (Map Vector a)
-  , dfLength  :: Int
   } deriving (Generic)
 
 instance (Forall (Map Vector a)  NFData, NFData idx)
@@ -140,7 +139,7 @@ construct :: forall idx a.
              Forall a Unconstrained1
           => Options idx a
           -> DataFrame idx a
-construct Options {..} = DataFrame optIndexes d (Vector.length optData)
+construct Options {..} = DataFrame optIndexes d
   where
     _ = optData :: Vector (Rec a)
 
@@ -156,7 +155,7 @@ index DataFrame {..} = List.take n dfIndexes
 -- TODO: questionable to expose? at least with this interface... doing it for
 --       now for Examples.hs
 reindex :: [idx'] -> DataFrame idx a -> DataFrame idx' a
-reindex dfIndexes' DataFrame {..} = DataFrame dfIndexes' dfData dfLength
+reindex dfIndexes' DataFrame {..} = DataFrame dfIndexes' dfData
 
 columns :: forall idx a. (Forall a ToField) => DataFrame idx a -> [Text]
 columns _ = Rec.labels @a @ToField
@@ -183,7 +182,10 @@ ndims df
   | otherwise                = 2
 
 nrows :: DataFrame idx a -> Int
-nrows DataFrame {..} = dfLength
+nrows = dfLength
+
+dfLength :: DataFrame idx a -> Int
+dfLength DataFrame {..} = List.length dfIndexes -- TODO better index types
 
 -- TODO use "Renderable" or something instead of Show for the idxs
 
@@ -274,16 +276,18 @@ onVec :: forall idx a b.
       -> DataFrame idx a
       -> DataFrame idx b
 onVec f DataFrame {..} = DataFrame
-  { dfIndexes = dfIndexes
+  { dfIndexes = dfIndexes'
   , dfData    = dfData'
-  , dfLength  = dfLength'
   }
   where
     _ = dfData :: Rec (Map Vector a)
-    (dfData', dfLength') = ((,) <$> Rec.distribute <*> Vector.length)
-                           . f
-                           . Rec.sequence
-                           $ dfData
+    (dfData', _dfLength') = ((,) <$> Rec.distribute <*> Vector.length)
+                            . f
+                            . Rec.sequence
+                            $ dfData
+
+    -- TODO updatet instead of dfLength' above
+    dfIndexes' = dfIndexes
 
 -- over_ :: forall a b.
 --          ( Forall a Unconstrained1
@@ -339,12 +343,13 @@ under :: forall idx a b.
       -> DataFrame idx a
       -> DataFrame idx b
 under f DataFrame {..} = DataFrame
-  { dfIndexes = dfIndexes
+  { dfIndexes = dfIndexes'
   , dfData    = dfData'
-  , dfLength  = dfLength'
   }
   where
-    (dfLength', dfData') = underL_ f dfData
+    (_dfLength', dfData') = underL_ f dfData
+    -- TODO updat indexes instead of dfLength
+    dfIndexes' = dfIndexes
 
 map :: ( Forall a Unconstrained1
        , Forall b Unconstrained1
@@ -393,7 +398,7 @@ render :: forall idx a.
           )
        => DataFrame idx a
        -> Text
-render df@(DataFrame _idx rv _len) = Table.render . Table.fromTexts $ texts
+render df@(DataFrame _idx rv) = Table.render . Table.fromTexts $ texts
   where
     texts :: [[Text]]
     texts = headers:rows
@@ -486,9 +491,8 @@ head :: forall idx a.
      -> DataFrame idx a
      -> DataFrame idx a
 head n df@DataFrame {..} = DataFrame
-  { dfIndexes = List.take   m dfIndexes
+  { dfIndexes = List.take m dfIndexes
   , dfData    = under_ f dfData
-  , dfLength  = dfLength
   }
   where
     f :: Forall a Unconstrained1 => Vector (Rec a) -> Vector (Rec a)
@@ -508,7 +512,6 @@ tail :: forall idx a.
 tail n df@DataFrame {..} = DataFrame
   { dfIndexes = List.drop m dfIndexes
   , dfData    = under_ f dfData
-  , dfLength  = dfLength
   }
   where
     f :: Forall a Unconstrained1 => Vector (Rec a) -> Vector (Rec a)
@@ -556,7 +559,6 @@ fromNativeVector :: forall t.
 fromNativeVector values = DataFrame
   { dfData    = Rec.distribute recs
   , dfIndexes = [0 .. Vector.length recs]
-  , dfLength  = Vector.length recs
   }
   where
     recs :: Vector (Rec (Rec.NativeRow t))
@@ -612,7 +614,6 @@ restrict :: forall idx a b.
 restrict DataFrame {..}= DataFrame
   { dfIndexes = dfIndexes
   , dfData    = dfData'
-  , dfLength  = dfLength
   }
   where
     _ = dfData :: Rec (Map Vector a)
@@ -647,7 +648,6 @@ rename :: forall k k' idx a b.
 rename k k' DataFrame {..} = DataFrame
   { dfIndexes = dfIndexes
   , dfData    = dfData'
-  , dfLength  = dfLength
   }
   where
     _ = dfData :: Rec (Map Vector a)
