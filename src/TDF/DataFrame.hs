@@ -32,6 +32,7 @@ module TDF.DataFrame
   , construct
   , display
   , empty
+  , extend
   , fromList
   , fromNativeVector
   , fromScalarList
@@ -621,3 +622,64 @@ rename k k' DataFrame {..} = DataFrame
 
 display :: DataFrame idx a -> IO ()
 display = putStr . Table.render . Table.fromTexts . toTexts
+
+-- swapCols :: forall idx k tmp k' v v' a b rest.
+--             ( a ≈ k .== v
+--             , b ≈ k .== v'
+--             , Disjoint a rest
+--             , Disjoint b rest
+--             , Rec.Extend
+--                           k'
+--                           (Rec.Extend
+--                              k
+--                              (Rec.Extend
+--                                 tmp
+--                                 v
+--                                 ( ((k .== v) .+ rest)
+--                                  .- k)
+--                               .! k')
+--                              (Rec.Extend
+--                                 tmp
+--                                 v
+--                                 (((k .== v) .+ rest)
+--                                  .- k)
+--                               .- k')
+--                            .! tmp)
+--                           (Rec.Extend
+--                              k
+--                              (Rec.Extend
+--                                 tmp
+--                                 v
+--                                 (((k .== v) .+ rest)
+--                                  .- k)
+--                               .! k')
+--                              (Rec.Extend
+--                                 tmp
+--                                 v
+--                                 (((k .== v) .+ rest)
+--                                  .- k)
+--                               .- k')
+--                            .- tmp)
+--                         ~ ((k .== v) .+ rest)
+--             , ((k .== v) .+ rest) ~ ((k .== v) .+ rest)
+--             )
+--          => Label k
+--          -> Label tmp
+--          -> Label k'
+--          -> DataFrame idx (a .+ rest)
+--          -> DataFrame idx (b .+ rest)
+-- swapCols k t k' df = rename t k'
+--   . rename k' k
+--   . rename k t
+--   $ df
+
+extend :: forall idx k v r.
+          ( Forall r Unconstrained1
+          , Forall (Rec.Extend k v r) Unconstrained1
+          , KnownSymbol k
+          )
+       => Label k
+       -> v
+       -> DataFrame idx r
+       -> DataFrame idx (Rec.Extend k v r)
+extend k v = under $ Vector.map (Rec.extend k v)

@@ -197,3 +197,6 @@ r = putStr rendered
 
 displayDf1 :: IO ()
 displayDf1 = DF.display df1
+
+flagged :: DataFrame Int (PersonFields .+ "flagged" .== Bool)
+flagged = DF.extend #flagged False df1
