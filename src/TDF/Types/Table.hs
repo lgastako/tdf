@@ -11,15 +11,14 @@ module TDF.Types.Table
   , fromHeadedRows
   , fromRows
   , fromTexts
+  , promoteHeader
   , render
   ) where
 
 import           TDF.Prelude              hiding ( from )
 
 import qualified Data.Text        as Text
-import           TDF.Types.Widths                ( -- Widths,
-                                                   widths
-                                                 )
+import           TDF.Types.Widths                ( widths )
 import qualified TDF.Types.Widths as Widths
 
 newtype Table = Table (Maybe Header, [Row])
@@ -31,8 +30,9 @@ newtype Header = Header { unHeader :: Row }
 newtype Row = Row {unRow :: [Text]}
   deriving (Eq, Generic, Ord, Show)
 
-display :: Table -> IO ()
-display = putStr . render
+-- ================================================================ --
+--   Constructors
+-- ================================================================ --
 
 from :: Maybe Header -> [Row] -> Table
 from = curry Table
@@ -47,12 +47,21 @@ fromRows = from Nothing
 fromTexts :: [[Text]] -> Table
 fromTexts = fromRows . map Row
 
-_example :: [Row]
-_example = map Row
-  [ ["name", "age"]
-  , ["John", "46"]
-  , ["Dave", "52"]
-  ]
+-- ================================================================ --
+--   Combinators
+-- ================================================================ --
+
+promoteHeader :: Table -> Maybe Table
+promoteHeader = \case
+  Table (_, [])     -> Nothing
+  Table (_, (x:xs)) -> Just $ Table (Just (Header x), xs)
+
+-- ================================================================ --
+--  Eliminators
+-- ================================================================ --
+
+display :: Table -> IO ()
+display = putStr . render
 
 render :: Table -> Text
 render table = (headerText <>)
@@ -82,6 +91,10 @@ render table = (headerText <>)
       Table (_, rows) -> map unRow rows
 
     joinCols = Text.intercalate sep
+
+-- ================================================================ --
+--  Helpers
+-- ================================================================ --
 
 toTexts :: Table -> [[Text]]
 toTexts = \case

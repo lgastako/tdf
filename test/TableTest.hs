@@ -16,10 +16,19 @@ spec_Tables = do
   context "with example1" $ do
     let t = Table.fromTexts example1
 
-    it "should render properly" $ do
+    it "should render properly" $
       Table.render t
         `shouldBe` Text.unlines
           [ "name     | age val"
+          , "Jonathan | 46     "
+          , "Dave     | 52     "
+          ]
+
+    it "should promote properly" $
+      (Table.render . fromMaybe (panic "ahh!") . Table.promoteHeader $ t)
+        `shouldBe` Text.unlines
+          [ "name     | age val"
+          , "---------+--------"
           , "Jonathan | 46     "
           , "Dave     | 52     "
           ]

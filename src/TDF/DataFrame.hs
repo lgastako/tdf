@@ -91,10 +91,11 @@ import qualified GHC.DataSize         as Data
 import qualified TDF.Types.Table      as Table
 import           TDF.Types.ToField               ( ToField )
 import           TDF.Types.RangeIndex            ( RangeIndex )
+import qualified TDF.Types.SAI        as SA
 
 data DataFrame idx a = DataFrame
-  { dfIndexes :: [idx]
-  , dfData    :: Rec (Map Vector a)
+  { dfIndex :: SA.Index idx
+  , dfData  :: Rec (Map Vector a)
   } deriving (Generic)
 
 instance (Forall (Map Vector a)  NFData, NFData idx)
@@ -124,15 +125,6 @@ data Verbosity
   = Quiet
   | Verbose
   deriving (Bounded, Enum, Generic, Eq, Ord, Show)
-
--- TODO better names
-type InternalRangeIndex idx = (Int, Maybe (idx, idx))
-type ColIndex               = (Int, Maybe (Text, Text))
-
--- data Index idx
---   = ListIdx (ListIndex idx)
---   | RangeIdx (RangeIndex idx)
---   deriving (Eq, Generic, Ord, Show)
 
 opts :: Options Int a
 opts = Options
@@ -215,23 +207,23 @@ infoVerbose df = Text.unlines
   , "more soon (verbose)"
   ]
 
-internalRangeIndex :: DataFrame idx a -> InternalRangeIndex idx
-internalRangeIndex df =
-  ( length idxs
-  , case idxs of
-      []    -> Nothing
-      (f:xs) -> case reverse xs of
-        [] -> Nothing
-        (l:_) -> Just (f, l)
-  )
-  where
-    idxs = index df
+-- internalRangeIndex :: DataFrame idx a -> InternalRangeIndex idx
+-- internalRangeIndex df =
+--   ( length idxs
+--   , case idxs of
+--       []    -> Nothing
+--       (f:xs) -> case reverse xs of
+--         [] -> Nothing
+--         (l:_) -> Just (f, l)
+--   )
+--   where
+--     idxs = index df
 
-showInternalRangeIndex :: Show idx => InternalRangeIndex idx -> Text
-showInternalRangeIndex (n, Nothing)
-  = "Range index: " <> show n <> " entries."
-showInternalRangeIndex (n, Just (f, l))
-  = "Range index: " <> show n <> " entries, " <> show f <> " to " <> show l
+-- showInternalRangeIndex :: Show idx => InternalRangeIndex idx -> Text
+-- showInternalRangeIndex (n, Nothing)
+--   = "Range index: " <> show n <> " entries."
+-- showInternalRangeIndex (n, Just (f, l))
+--   = "Range index: " <> show n <> " entries, " <> show f <> " to " <> show l
 
 -- TODO truncate indexes on construction so this doesn't infintie loop
 memSize :: ( Forall (Map Vector a) NFData
@@ -242,21 +234,21 @@ memSize :: ( Forall (Map Vector a) NFData
         -> m Word
 memSize = (liftIO . Data.recursiveSize $!!)
 
-colIndex :: Forall a ToField => DataFrame idx a -> ColIndex
-colIndex df = ( length cols
-              , case cols of
-                  []    -> Nothing
-                  (f:xs) -> case reverse xs of
-                              [] -> Nothing
-                              (l:_) -> Just (f, l)
-              )
-  where
-    cols = columns df
+-- colIndex :: Forall a ToField => DataFrame idx a -> ColIndex
+-- colIndex df = ( length cols
+--               , case cols of
+--                   []    -> Nothing
+--                   (f:xs) -> case reverse xs of
+--                               [] -> Nothing
+--                               (l:_) -> Just (f, l)
+--               )
+--   where
+--     cols = columns df
 
-showColIndex :: ColIndex -> Text
-showColIndex (n, Nothing)     = "Columns: " <> show n <> " entries."
-showColIndex (n, Just (f, l)) = "Columns: " <> show n <> " entries, "
-                             <> show f <> " to " <> show l
+-- showColIndex :: ColIndex -> Text
+-- showColIndex (n, Nothing)     = "Columns: " <> show n <> " entries."
+-- showColIndex (n, Just (f, l)) = "Columns: " <> show n <> " entries, "
+--                              <> show f <> " to " <> show l
 
 fromList :: Forall a Unconstrained1 => [Rec a] -> DataFrame Int a
 fromList = fromVector . Vector.fromList
@@ -280,8 +272,8 @@ onVec :: forall idx a b.
       -> DataFrame idx a
       -> DataFrame idx b
 onVec f DataFrame {..} = DataFrame
-  { dfIndexes = dfIndexes'
-  , dfData    = dfData'
+  { dfIndex = dfIndex'
+  , dfData  = dfData'
   }
   where
     _ = dfData :: Rec (Map Vector a)
@@ -291,7 +283,7 @@ onVec f DataFrame {..} = DataFrame
                             $ dfData
 
     -- TODO update indexes instead of dfLength' above
-    dfIndexes' = dfIndexes
+    dfIndex' = dfIndexes
 
 over :: forall idx a b.
         ( Forall a Unconstrained1
@@ -338,13 +330,13 @@ under :: forall idx a b.
       -> DataFrame idx a
       -> DataFrame idx b
 under f DataFrame {..} = DataFrame
-  { dfIndexes = dfIndexes'
-  , dfData    = dfData'
+  { dfIndex = dfIndex'
+  , dfData  = dfData'
   }
   where
     (_dfLength', dfData') = underL_ f dfData
     -- TODO: update indexes instead of dfLength
-    dfIndexes' = dfIndexes
+    dfIndex' = dfIndexes
 
 map :: ( Forall a Unconstrained1
        , Forall b Unconstrained1
@@ -470,8 +462,8 @@ head :: forall idx a.
      -> DataFrame idx a
      -> DataFrame idx a
 head n df@DataFrame {..} = DataFrame
-  { dfIndexes = List.take m dfIndexes
-  , dfData    = under_ f dfData
+  { dfIndex = SA.take m dfIndex
+  , dfData  = under_ f dfData
   }
   where
     f :: Forall a Unconstrained1 => Vector (Rec a) -> Vector (Rec a)
