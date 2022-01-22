@@ -46,6 +46,20 @@ spec_DataFrame = do
       (map (.! #animal) . DF.toList . DF.tail (-3) $ df)
         `shouldBe` ["lion", "monkey", "parrot", "shark", "whale", "zebra"]
 
+    it "toList should produce proper results" $
+      DF.toList df
+        `shouldBe`
+          [ #animal .== "alligator"
+          , #animal .== "bee"
+          , #animal .== "falcon"
+          , #animal .== "lion"
+          , #animal .== "monkey"
+          , #animal .== "parrot"
+          , #animal .== "shark"
+          , #animal .== "whale"
+          , #animal .== "zebra"
+          ]
+
   context "with df1 (Person(name,age))" $ do
     let df = Examples.df1
 
@@ -64,3 +78,18 @@ spec_DataFrame = do
     it "at 1 #age" $
       DF.at 1 #age df
         `shouldBe` Just 23
+
+    it "toList should produce proper results" $
+      DF.toList df
+        `shouldBe`
+          [ #age .== 23 .+ #name .== "Alex"
+          , #age .== 45 .+ #name .== "Alex"
+          ]
+
+    it "toVector should produce proper results" $
+      DF.toVector df
+        `shouldBe`
+          Vector.fromList
+            [ #age .== 23 .+ #name .== "Alex"
+            , #age .== 45 .+ #name .== "Alex"
+            ]
