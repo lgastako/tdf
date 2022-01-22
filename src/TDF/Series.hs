@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE RecordWildCards      #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE UndecidableInstances #-}
 

@@ -162,8 +162,8 @@ animals = DF.construct o
 
 rendered :: Text
 rendered = Text.unlines
-  [ DF.renderWith toTexts  df1
-  , DF.renderWith toTexts' df2
+  [ DF.render df1
+  , DF.render df2
 --  , DF.renderWith toTexts' df3
 --  , DF.renderWith ageToText df4
   ]
