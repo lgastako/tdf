@@ -114,8 +114,14 @@ df1'' = DF.map (\x -> x .+ #foo .== ("bar" ::Text)) df1'
 df2 :: DataFrame Int NameFields
 df2 = DF.map justName df1
 
--- df3' :: DataFrame Int NameFields
--- df3' = DF.map (\x -> ) df1
+df3' :: DataFrame Int (PersonFields .+ "fullName" .== Text)
+df3' = DF.map fooFoo df1
+
+fooFoo :: Rec PersonFields
+       -> Rec (PersonFields .+ "fullName" .== Text)
+fooFoo r = Rec.extend #fullName fname r
+  where
+    fname = r .! #name
 
 -- df3 :: DataFrame Int NameFields
 -- df3 = DF.column #name df1
@@ -192,8 +198,8 @@ toTexts' rp = [ rp .! #name ]
 indexTest :: Bool
 indexTest = DF.index df1 == [0, 1]
 
-r :: IO ()
-r = putStr rendered
+rd :: IO ()
+rd = putStr rendered
 
 displayDf1 :: IO ()
 displayDf1 = DF.display df1
