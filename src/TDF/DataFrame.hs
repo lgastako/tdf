@@ -33,6 +33,7 @@ module TDF.DataFrame
   , display
   , empty
   , extend
+  , extendWith
   , fromList
   , fromNativeVector
   , fromScalarList
@@ -60,6 +61,7 @@ module TDF.DataFrame
   , size
   , tail
   , tail_
+  , toFields -- temporarily
   , toList
   , toNativeVector
   , toTexts
@@ -67,21 +69,27 @@ module TDF.DataFrame
   , under
   ) where
 
-import           TDF.Prelude         hiding ( empty
-                                            , head
-                                            , map
-                                            , toList
-                                            )
+import           TDF.Prelude             hiding ( empty
+                                                , head
+                                                , map
+                                                , toList
+                                                )
 
-import           Control.DeepSeq            ( ($!!)
-                                            , NFData
-                                            )
-import qualified Data.List        as List
-import qualified Data.Row.Records as Rec
-import qualified Data.Text        as Text
-import qualified Data.Vector      as Vector
-import qualified GHC.DataSize     as Data
-import qualified TDF.Types.Table  as Table
+import           Control.DeepSeq                ( ($!!)
+                                                , NFData
+                                                )
+import           Data.Dynamic                   ( Dynamic
+                                                , fromDynamic
+                                                )
+import           Data.HashMap.Strict            ( HashMap )
+import qualified Data.HashMap.Strict as HashMap
+import qualified Data.List           as List
+import qualified Data.Row.Records    as Rec
+import           Data.String                    ( String )
+import qualified Data.Text           as Text
+import qualified Data.Vector         as Vector
+import qualified GHC.DataSize        as Data
+import qualified TDF.Types.Table     as Table
 
 data DataFrame idx a = DataFrame
   { dfIndexes :: [idx]
@@ -379,12 +387,30 @@ column :: forall r idx k v rest.
        -> DataFrame idx r
 column _ = map Rec.restrict
 
-toTexts :: DataFrame idx a -> [[Text]]
-toTexts = panic "toTexts"
+toTexts :: forall idx a.
+           ( Forall a ToField
+           , Forall a Typeable
+           , Forall a Unconstrained1
+           )
+        => DataFrame idx a
+        -> [[Text]]
+toTexts df@DataFrame {..} = (headers:)
+  . Vector.toList
+  . Vector.map f
+  $ vec
+  where
+    vec = toVector df
+
+    headers :: [Text]
+    headers = columns df
+
+    f :: Rec a -> [Text]
+    f = toFields headers
 
 render :: forall idx a.
           ( Forall a Unconstrained1
           , Forall a ToField
+          , Forall a Typeable
           )
        => DataFrame idx a
        -> Text
@@ -397,7 +423,7 @@ render df@(DataFrame _idx rv _len) = Table.render . Table.fromTexts $ texts
     headers = columns df
 
     rows :: [[Text]]
-    rows = Vector.toList . Vector.map toFields $ vr
+    rows = Vector.toList . Vector.map (toFields headers) $ vr
 
     _ = rv :: Rec (Map Vector a)
 
@@ -410,8 +436,44 @@ render df@(DataFrame _idx rv _len) = Table.render . Table.fromTexts $ texts
     -- v' :: Vector (Rec a)
     -- v' = undefined
 
-toFields :: Forall a ToField => Rec a -> [Text]
-toFields = panic "toFields"
+toFields :: ( Forall a ToField
+            , Forall a Typeable
+            ) => [Text] -> Rec a -> [Text]
+toFields headers r = List.map f headers
+  where
+    dm = Rec.toDynamicMap r
+
+    f :: Text -> Text
+    f k = getValue k dm
+
+getValue :: Text -> HashMap Text Dynamic -> Text
+getValue k m = maybe noKeyError f $ HashMap.lookup k m
+  where
+    f v = fromAnyDyn v & fromMaybe noDynError
+
+    noKeyError = "getValue failed: key not found in map: " <> k
+    noDynError = "getValue failed: no value undynamicable"
+
+-- TODO I tried to do something like this:
+--
+--   case fromAnyDyn dyn of
+--     Just (x :: forall a. ToField a => a) -> ...
+--
+-- but I couldn't get it working.  TODO: Ask on Haskell Slack.
+fromAnyDyn :: Dynamic -> Maybe Text
+fromAnyDyn dyn = case fromDynamic dyn of
+  Just (t :: Text) -> Just t
+  Nothing -> case fromDynamic dyn of
+    Just (d :: Double) -> Just . show $ d
+    Nothing -> case fromDynamic dyn of
+      Just (i :: Integer) -> Just . show $ i
+      Nothing -> case fromDynamic dyn of
+        Just (i :: Int) -> Just . show $ i
+        Nothing -> case fromDynamic dyn of
+          Just (f :: Float) -> Just . show $ f
+          Nothing -> case fromDynamic dyn of
+            Just (s :: String) -> Just . cs $ s
+            Nothing -> Nothing
 
 shape :: Forall a ToField => DataFrame idx a -> (Int, Int)
 shape = (,) <$> nrows <*> ncols
@@ -620,8 +682,20 @@ rename k k' DataFrame {..} = DataFrame
     dfData' :: Forall b Unconstrained1 => Rec (Map Vector b)
     dfData' = Rec.distribute dfDataI'
 
-display :: DataFrame idx a -> IO ()
-display = putStr . Table.render . Table.fromTexts . toTexts
+display :: ( Forall a ToField
+           , Forall a Typeable
+           , Forall a Unconstrained1
+           )
+        => DataFrame idx a
+        -> IO ()
+display = putStr
+  . Table.render
+  . fromMaybe explode
+  . Table.fromHeadedRows
+  . List.map Table.Row
+  . toTexts
+  where
+    explode = panic "display explode"
 
 -- swapCols :: forall idx k tmp k' v v' a b rest.
 --             ( a ≈ k .== v
@@ -683,3 +757,15 @@ extend :: forall idx k v r.
        -> DataFrame idx r
        -> DataFrame idx (Rec.Extend k v r)
 extend k v = under $ Vector.map (Rec.extend k v)
+
+extendWith :: forall idx k v r.
+              ( Forall r Unconstrained1
+              , Forall (Rec.Extend k v r) Unconstrained1
+              , KnownSymbol k
+              , Monoid v
+              )
+           => Label k
+           -> (Rec r -> v)
+           -> DataFrame idx r
+           -> DataFrame idx (Rec.Extend k v r)
+extendWith k f = under $ Vector.map (Rec.extend k =<< f)

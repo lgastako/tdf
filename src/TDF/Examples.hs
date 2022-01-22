@@ -115,27 +115,10 @@ df2 :: DataFrame Int NameFields
 df2 = DF.map justName df1
 
 df3' :: DataFrame Int (PersonFields .+ "fullName" .== Text)
-df3' = DF.map fooFoo df1
+df3' = DF.map plusFull df1
 
-fooFoo :: Rec PersonFields
-       -> Rec (PersonFields .+ "fullName" .== Text)
-fooFoo r = Rec.extend #fullName fname r
-  where
-    fname = r .! #name
-
--- df3 :: DataFrame Int NameFields
--- df3 = DF.column #name df1
-
--- df4 :: DataFrame Int AgeFields
--- df4 = DF.columnWith f #age df1
---   where
---     f :: AgeRec -> AgeRec
---     f = id -- undefined -- show
-
--- df5 :: DataFrame Int AgeFields
--- df5 = DF.map (DF.relabel' #age) df1
--- -- df5 = DF.column #age df1
--- -- df5 = DF.map (get #age) df1
+df3 :: DataFrame Int NameFields
+df3 = DF.column #name df1
 
 df6 :: DataFrame Int PersonFields
 df6 = DF.fromNativeVector nativeVector
@@ -179,8 +162,6 @@ rendered :: Text
 rendered = Text.unlines
   [ DF.render df1
   , DF.render df2
---  , DF.renderWith toTexts' df3
---  , DF.renderWith ageToText df4
   ]
 
 ageToText :: Rec AgeFields -> [Text]
@@ -206,3 +187,13 @@ displayDf1 = DF.display df1
 
 flagged :: DataFrame Int (PersonFields .+ "flagged" .== Bool)
 flagged = DF.extend #flagged False df1
+
+plusFull :: Rec PersonFields
+         -> Rec (PersonFields .+ "fullName" .== Text)
+plusFull r = Rec.extend #fullName fname r
+  where
+    fname = r .! #name
+
+capitalize :: DataFrame Int PersonFields
+           -> DataFrame Int (PersonFields .+ "capsName" .== Text)
+capitalize = DF.extendWith #capsName (\r -> Text.toUpper $ r .! #name)

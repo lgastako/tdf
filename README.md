@@ -11,23 +11,16 @@ from the `row-types` package.
 
 We take vectors of rows as input and turn it into rows of vectors to operate on.
 
-TODO: mutability
+** BIG TODO: mutability **
 
-DataFrames enable the following types of operations:
-
-- Add columns
-- Remove columns
-- Add rows
-- Remove rows
-- Perform aggregate computations over the rows
-- Calculate new columns as a function of existing rows
-- Create from a list of Haskell data types
-- Generate from a generator function like vectors
-
-In general we want most operations that change the DataFrame to return another
-DataFrame so that labels and indexes are maintained.  Of course we have
-operations for extract lists, scalars, etc. from the DataFrames for further
-processing.
+- TODO List:
+  - Tests to ensure indexes are properly preserved along the lines of
+    whatever Pandas does
+  - Add rows
+  - Remove rows
+  - Perform aggregate computations over the rows
+  - TODOs in code... in particular:
+    - eliminating the Forall on column counts and the like
 
 ## More
 
