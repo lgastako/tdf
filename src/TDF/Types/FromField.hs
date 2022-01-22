@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
-{-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module TDF.Types.FromField
@@ -42,9 +41,9 @@ genericReadFF :: ( Read b
                  , StringConv a String
                  , Show a
                  )
-              => [Char]
+              => String
               -> a
-              -> Either [Char] b
+              -> Either String b
 genericReadFF s t = cs t
-    & readMaybe
-    & maybe (Left $ "Invalid " <> s <> ": " ++ show t) Right
+  & readMaybe
+  & maybe (Left $ "Invalid " <> s <> ": " ++ show t) Right

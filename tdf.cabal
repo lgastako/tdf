@@ -27,11 +27,12 @@ source-repository head
 
 library
   exposed-modules:
+      TDF.CSV
       TDF.DataFrame
-      TDF.DataFrame.CSV
       TDF.Examples
       TDF.Prelude
       TDF.Series
+      TDF.Tutorial
       TDF.Types.FromField
       TDF.Types.Index
       TDF.Types.RangeIndex
@@ -58,6 +59,7 @@ test-suite tdf-test
   type: exitcode-stdio-1.0
   main-is: Driver.hs
   other-modules:
+      CSVTest
       DataFrameTest
       RangeIndexTest
       TableTest

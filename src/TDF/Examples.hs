@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE OverloadedLabels  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies      #-}
@@ -21,6 +20,8 @@ import           TDF.DataFrame                     ( Axes
                                                    , DataFrame
                                                    )
 import qualified TDF.DataFrame    as DF
+import qualified TDF.CSV          as CSV
+import           System.IO.Unsafe                  ( unsafePerformIO )
 
 type PersonFields = NameFields .+ AgeFields
 
@@ -197,3 +198,12 @@ plusFull r = Rec.extend #fullName fname r
 capitalize :: DataFrame Int PersonFields
            -> DataFrame Int (PersonFields .+ "capsName" .== Text)
 capitalize = DF.extendWith #capsName (\r -> Text.toUpper $ r .! #name)
+
+{-# NOINLINE examples #-}
+examples :: DataFrame Int PersonFields
+examples = unsafePerformIO (f <$> CSV.fromHeadedCSV "example.csv")
+  where
+    f :: Either CSV.Error (DataFrame Int PersonFields)
+      -> DataFrame Int PersonFields
+    f (Right x) = x
+    f (Left error) = panic .show $ error
