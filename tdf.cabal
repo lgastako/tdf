@@ -28,12 +28,15 @@ source-repository head
 library
   exposed-modules:
       TDF.DataFrame
+      TDF.DataFrame.CSV
       TDF.Examples
       TDF.Prelude
       TDF.Series
+      TDF.Types.FromField
       TDF.Types.Index
       TDF.Types.RangeIndex
       TDF.Types.Table
+      TDF.Types.ToField
       TDF.Types.Widths
   other-modules:
       Paths_tdf

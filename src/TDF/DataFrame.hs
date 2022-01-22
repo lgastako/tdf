@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE GADTs                #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE OverloadedLabels     #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
@@ -11,6 +10,7 @@
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -23,7 +23,6 @@ module TDF.DataFrame
   , Options( optData
            , optIndexes
            )
-  , ToField(..)
   , Verbosity(..)
   , at
   , axes
@@ -90,6 +89,7 @@ import qualified Data.Text           as Text
 import qualified Data.Vector         as Vector
 import qualified GHC.DataSize        as Data
 import qualified TDF.Types.Table     as Table
+import           TDF.Types.ToField              ( ToField )
 
 data DataFrame idx a = DataFrame
   { dfIndexes :: [idx]
@@ -119,27 +119,6 @@ data Axes idx = Axes
   { rowLabels    :: [idx]
   , columnLabels :: [Text]
   } deriving (Eq, Generic, Ord,  Show)
-
---  deriving instance Eq idx   => Eq (Axes idx)
--- deriving instance Ord idx  => Ord (Axes idx)
--- deriving instance Show idx => Show (Axes idx)
---deriving instance Eq idx => Eq (Axes idx)
--- , Generic, Ord, Show)
-
-class ToField a where
-  toField :: a -> Text
-
-instance ToField Text where
-  toField = identity
-
-instance ToField Integer where
-  toField = Text.pack . show
-
-instance ToField Int where
-  toField = Text.pack . show
-
--- instance ToField String where
---   toField = Text.pack
 
 data Verbosity
   = Quiet
