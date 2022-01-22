@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
 
 {-# LANGUAGE DataKinds             #-}
@@ -8,6 +9,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 
@@ -28,19 +30,37 @@ import           Data.Row
 import qualified Data.Row.Records  as Rec
 import           Data.String              ( String )
 import qualified Data.Text         as T
--- import qualified Data.Text.IO      as T
 import           TDF.DataFrame            ( DataFrame )
 import qualified TDF.DataFrame     as DF
 import           TDF.Types.FromField      ( FromField( fromField ) )
 import           TDF.Types.ToField        ( ToField( toField ) )
 
+-- temporary
+import           TDF.Examples
+
 data Error
   = FileNotFound FilePath
+  | FromCSVError String
+  deriving (Eq, Generic, Ord, Show)
 
-fromHeadedCSV :: FilePath -> IO (Either Error (DataFrame Int a))
-fromHeadedCSV _path = panic "fromHeadedCSV"
+fromHeadedCSV :: ( AllUniqueLabels a
+                 , Forall a FromField
+                 , Forall a Unconstrained1
+                 )
+              => FilePath
+              -> IO (Either Error (DataFrame Int a))
+fromHeadedCSV path = recFromCSV <$> readFile path >>= \case
+  Left error       -> pure . Left  . FromCSVError $ error
+  Right listOfRecs -> pure . Right . DF.fromList  $ listOfRecs
+
+_sanity3 :: IO ()
+_sanity3 = fromHeadedCSV path >>= \case
+  Left error -> print error
+  Right df -> do
+    let _ = df :: DataFrame Int PersonFields
+    panic "sanity3 not ready yet"
   where
-    _ = panic "soon" :: DF.Axes idx
+    path = "example.csv"
 
 -- ================================================================ --
 
