@@ -19,13 +19,13 @@ newtype Widths = Widths { unWidths :: [Int] }
   deriving (Eq, Generic, Ord, Show)
 
 fill :: Widths -> Text -> [Text]
-fill (Widths ws) s = map (flip Text.replicate s) ws
+fill (Widths ws) s = map (`Text.replicate` s) ws
 
 pad :: Widths -> [Text] -> [Text]
 pad = zipWith padN . unWidths
 
 padN :: Int -> Text -> Text
-padN n s = s <> (Text.replicate (n - Text.length s) " ")
+padN n s = s <> Text.replicate (n - Text.length s) " "
 
 total :: Widths -> Int
 total = sum . unWidths

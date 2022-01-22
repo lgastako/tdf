@@ -2,7 +2,6 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ViewPatterns      #-}
 
 module TDF.Types.Table
   ( Row( Row )
@@ -58,8 +57,7 @@ _example = map Row
 render :: Table -> Text
 render table = (headerText <>)
   . Text.unlines
-  . map joinCols
-  . map (Widths.pad ws)
+  . map (joinCols . Widths.pad ws)
   $ rowTexts
   where
     ws = widths ts
