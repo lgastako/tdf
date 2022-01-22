@@ -68,28 +68,29 @@ module TDF.DataFrame
   , under
   ) where
 
-import           TDF.Prelude             hiding ( empty
-                                                , head
-                                                , map
-                                                , toList
-                                                )
+import           TDF.Prelude              hiding ( empty
+                                                 , head
+                                                 , map
+                                                 , toList
+                                                 )
 
-import           Control.DeepSeq                ( ($!!)
-                                                , NFData
-                                                )
-import           Data.Dynamic                   ( Dynamic
-                                                , fromDynamic
-                                                )
-import           Data.HashMap.Strict            ( HashMap )
-import qualified Data.HashMap.Strict as HashMap
-import qualified Data.List           as List
-import qualified Data.Row.Records    as Rec
-import           Data.String                    ( String )
-import qualified Data.Text           as Text
-import qualified Data.Vector         as Vector
-import qualified GHC.DataSize        as Data
-import qualified TDF.Types.Table     as Table
-import           TDF.Types.ToField              ( ToField )
+import           Control.DeepSeq                 ( ($!!)
+                                                 , NFData
+                                                 )
+import           Data.Dynamic                    ( Dynamic
+                                                 , fromDynamic
+                                                 )
+import           Data.HashMap.Strict             ( HashMap )
+import qualified Data.HashMap.Strict  as HashMap
+import qualified Data.List            as List
+import qualified Data.Row.Records     as Rec
+import           Data.String                     ( String )
+import qualified Data.Text            as Text
+import qualified Data.Vector          as Vector
+import qualified GHC.DataSize         as Data
+import qualified TDF.Types.Table      as Table
+import           TDF.Types.ToField               ( ToField )
+import           TDF.Types.RangeIndex            ( RangeIndex )
 
 data DataFrame idx a = DataFrame
   { dfIndexes :: [idx]
@@ -124,9 +125,13 @@ data Verbosity
   | Verbose
   deriving (Bounded, Enum, Generic, Eq, Ord, Show)
 
--- TODO find better name for this so as to not conflict with "real" RangeIndex
-type RangeIndex idx = (Int, Maybe (idx, idx))
-type ColIndex       = (Int, Maybe (Text, Text))
+-- TODO better names
+type InternalRangeIndex idx = (Int, Maybe (idx, idx))
+type ColIndex               = (Int, Maybe (Text, Text))
+
+data Index idx
+  = RangeIdx (RangeIndex idx)
+  deriving (Eq, Generic, Ord, Show)
 
 opts :: Options Int a
 opts = Options
@@ -139,9 +144,12 @@ construct :: forall idx a.
              Forall a Unconstrained1
           => Options idx a
           -> DataFrame idx a
-construct Options {..} = DataFrame optIndexes d
+construct Options {..} = DataFrame dfIndexes d
   where
     _ = optData :: Vector (Rec a)
+
+    dfIndexes :: [idx]
+    dfIndexes = zipWith const optIndexes (Vector.toList optData)
 
     d :: Forall a Unconstrained1 => Rec (Map Vector a)
     d = Rec.distribute optData
@@ -201,33 +209,33 @@ infoQuiet :: (Forall a ToField, Show idx)
           => DataFrame idx a
           -> Text
 infoQuiet df = Text.unlines
-  [ showRangeIndex (rangeIndex df)
+  [ showInternalRangeIndex (internalRangeIndex df)
   , showColIndex (colIndex df)
   ]
 
 infoVerbose :: Show idx => DataFrame idx a -> Text
 infoVerbose df = Text.unlines
-  [ showRangeIndex (rangeIndex df) <> "\nmore soon\n"
+  [ showInternalRangeIndex (internalRangeIndex df) <> "\nmore soon\n"
   , "more soon (verbose)"
   ]
 
--- TODO: this is poorly named, especially since we're probably about to implement
---       our own "real" RangeIndex type.
-rangeIndex :: DataFrame idx a -> RangeIndex idx
-rangeIndex df = ( length idxs
-                , case idxs of
-                    []    -> Nothing
-                    (f:xs) -> case reverse xs of
-                                [] -> Nothing
-                                (l:_) -> Just (f, l)
-                )
+internalRangeIndex :: DataFrame idx a -> InternalRangeIndex idx
+internalRangeIndex df =
+  ( length idxs
+  , case idxs of
+      []    -> Nothing
+      (f:xs) -> case reverse xs of
+        [] -> Nothing
+        (l:_) -> Just (f, l)
+  )
   where
     idxs = index df
 
-showRangeIndex :: Show idx => RangeIndex idx -> Text
-showRangeIndex (n, Nothing)     = "Range index: " <> show n <> " entries."
-showRangeIndex (n, Just (f, l)) = "Range index: " <> show n <> " entries, "
-                               <> show f <> " to " <> show l
+showInternalRangeIndex :: Show idx => InternalRangeIndex idx -> Text
+showInternalRangeIndex (n, Nothing)
+  = "Range index: " <> show n <> " entries."
+showInternalRangeIndex (n, Just (f, l))
+  = "Range index: " <> show n <> " entries, " <> show f <> " to " <> show l
 
 -- TODO truncate indexes on construction so this doesn't infintie loop
 memSize :: ( Forall (Map Vector a) NFData
