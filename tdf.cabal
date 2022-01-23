@@ -35,8 +35,10 @@ library
       TDF.Tutorial
       TDF.Types.FromField
       TDF.Types.ListIndex
+      TDF.Types.Positive
       TDF.Types.RangeIndex
       TDF.Types.SAI
+      TDF.Types.SII
       TDF.Types.Table
       TDF.Types.ToField
       TDF.Types.Widths

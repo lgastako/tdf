@@ -24,21 +24,26 @@ module TDF.Types.RangeIndex
   , upTo
   ) where
 
-import           TDF.Prelude  hiding ( drop
-                                     , empty
-                                     , length
-                                     , take
-                                     , toList
-                                     )
+import           TDF.Prelude         hiding ( drop
+                                            , empty
+                                            , length
+                                            , one
+                                            , take
+                                            , toList
+                                            )
 
-import qualified Data.List   as List
+import qualified Data.List          as List
+import           TDF.Types.Positive         ( Positive
+                                            , one
+                                            , unPositive
+                                            )
 
 data RangeIndex idx = RangeIndex
   { start :: idx
   , stop  :: idx
-  , step  :: idx
+  , step  :: Positive Int
   , name  :: Maybe Text
-  } deriving (Eq, Generic, Ord, Read, Show)
+  } deriving (Eq, Generic, Ord, Show)
 
 instance NFData idx => NFData (RangeIndex idx)
 
@@ -46,8 +51,10 @@ instance NFData idx => NFData (RangeIndex idx)
 --  Constructors
 -- ================================================================--
 
+-- TODO explode on zero steps?
+
 empty :: RangeIndex Int
-empty = RangeIndex 0 0 1 Nothing
+empty = RangeIndex 0 0 one Nothing
 
 defaultFor :: Foldable f
            => f a
@@ -61,11 +68,11 @@ defaultFromFor :: Foldable f
 defaultFromFor start xs = RangeIndex
   { start = start
   , stop  = List.length xs
-  , step  = 1
+  , step  = one
   , name  = Nothing
   }
 
-stepping :: a -> a -> a -> RangeIndex a
+stepping :: a -> a -> Positive Int -> RangeIndex a
 stepping a b c = RangeIndex a b c Nothing
 
 through :: (Num a, Ord a) => a -> a -> RangeIndex a
@@ -135,7 +142,9 @@ contains :: Ord a => RangeIndex a -> a -> Bool
 contains RangeIndex {..} n  = n >= start && n < stop
 
 length :: Enum idx => RangeIndex idx -> Int
-length RangeIndex {..} = (fromEnum stop - fromEnum start) `div` fromEnum step
+length _ri@RangeIndex {..}
+  | step < 0   = panic "RI.length (neg)"
+  | otherwise = (fromEnum stop - fromEnum start) `div` fromEnum step
 
 monotonicDecreasing :: (Integral a, Num a, Ord a) => RangeIndex a -> Bool
 monotonicDecreasing ri@RangeIndex {..} = step < 0 || size ri <= 1
@@ -148,10 +157,13 @@ size :: (Integral a, Num a) => RangeIndex a -> Int
 size = List.length . toList
 
 toList :: (Enum a, Eq a, Num a) => RangeIndex a -> [a]
-toList RangeIndex {..} = [start, start + step .. stop + offset]
+toList RangeIndex {..} = [start, start + step'' .. stop + offset]
   where
     offset | signum step == -1 =  1
            | otherwise         = -1
+
+    step'  = unPositive step
+    step'' = toEnum . (+ step') . fromEnum $ step
 
 -- TODO: Document this better - headerdoc?
 
