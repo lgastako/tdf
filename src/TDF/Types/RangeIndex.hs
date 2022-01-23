@@ -83,15 +83,15 @@ defaultFromFor start xs = RangeIndex
 stepping :: a -> a -> a -> RangeIndex a
 stepping a b c = RangeIndex a b c Nothing
 
-through :: Num a => a -> a -> RangeIndex a
+through :: (Num a, Ord a) => a -> a -> RangeIndex a
 through a b = RangeIndex
   { start = a
-  , stop  = b
+  , stop  = if b > a then b else a
   , step  = 1
   , name  = Nothing
   }
 
-upTo :: Num a => a -> RangeIndex a
+upTo :: (Num a, Ord a) => a -> RangeIndex a
 upTo = (0 `through`)
 
 -- ================================================================ --
