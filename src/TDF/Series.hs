@@ -14,8 +14,7 @@ module TDF.Series
 
 import           TDF.Prelude
 
-import qualified Data.Vector   as Vector
-import qualified TDF.Types.SAI as SA
+import qualified Data.Vector as Vector
 
 -- See https://pandas.pydata.org/docs/reference/api/pandas.Series.html
 
