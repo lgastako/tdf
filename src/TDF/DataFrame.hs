@@ -27,6 +27,7 @@ module TDF.DataFrame
   , at
   , axes
   , column
+  , columnVector
   , columns
   , construct
   , display
@@ -37,7 +38,6 @@ module TDF.DataFrame
   , fromNativeVector
   , fromScalarList
   , fromVector
-  , getColumn
   , head
   , head_
   , index
@@ -130,6 +130,18 @@ data Verbosity
 --   Constructors
 -- ================================================================ --
 
+column :: forall r idx k v rest.
+          ( Disjoint r rest
+          , Forall r Unconstrained1
+          , Forall (r .+ rest) Unconstrained1
+          , KnownSymbol k
+          , r ≈ k .== v
+          )
+       => Label k
+       -> DataFrame idx (r .+ rest)
+       -> DataFrame idx r
+column _ = map Rec.restrict
+
 -- https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame
 construct :: forall idx a.
              Forall a Unconstrained1
@@ -145,78 +157,34 @@ construct Options {..} = DataFrame dfIndex d
     d :: Forall a Unconstrained1 => Rec (Map Vector a)
     d = Rec.distribute optData
 
-opts :: Options Int a
-opts = Options
+empty :: DataFrame () Empty
+empty = construct $ Options
   { optIndex = SA.defaultFor v
   , optData  = v
   }
   where
     v = Vector.empty
 
--- ================================================================ --
---  Combinators
--- ================================================================ --
-
--- TODO: questionable to expose? at least with this interface... doing it for
---       now for Examples.hs
-reindex :: [idx'] -> DataFrame idx a -> DataFrame idx' a
-reindex ixs DataFrame {..} = DataFrame dfIndex' dfData
-  where
-    dfIndex' = SA.fromList ixs
-
--- ================================================================ --
---   Eliminators
--- ================================================================ --
-
-axes :: Forall a ToField => DataFrame idx a -> Axes idx
-axes df@DataFrame {..} = Axes
-  { rowLabels    = panic "axes.1"
-  , columnLabels = columns df
-  }
-
-columns :: forall idx a. (Forall a ToField) => DataFrame idx a -> [Text]
-columns _ = Rec.labels @a @ToField
-
--- | The index (row labels) of the DataFrame.
-index :: forall idx a.
-         ( Enum idx
-         , Eq idx
-         , Forall a Unconstrained1
-         , Num idx
-         )
-      => DataFrame idx a
-      -> Vector idx
-index DataFrame {..} = Vector.map fst . SA.index dfIndex $ rows
-  where
-    rows :: Vector (Rec a)
-    rows = Rec.sequence dfData
-
--- TODO: Can we do away with the `Forall a ToField` stuff by substituting
--- a contcreate ToField function from row-types?
-
-ncols :: Forall a ToField => DataFrame idx a -> Int
-ncols = length . columns
-
--- I think this is right?
-ndims :: Forall a ToField => DataFrame idx a -> Int
-ndims df
-  | length (columns df) <= 1 = 1
-  | otherwise                = 2
-
-nrows :: Enum idx => DataFrame idx a -> Int
-nrows DataFrame {..} = SA.length dfIndex
-
--- TODO truncate indexes on construction so this doesn't infintie loop
-memSize :: ( Forall (Map Vector a) NFData
-           , MonadIO m
-           , NFData idx
-           )
-        => DataFrame idx a
-        -> m Word
-memSize = (liftIO . Data.recursiveSize $!!)
-
-fromList :: Forall a Unconstrained1 => [Rec a] -> DataFrame Int a
+fromList :: Forall a Unconstrained1
+         => [Rec a]
+         -> DataFrame Int a
 fromList = fromVector . Vector.fromList
+
+fromNativeVector :: forall t.
+                    ( Rec.FromNative t
+                    , Forall (Rec.NativeRow t) Unconstrained1
+                    )
+                 => Vector t
+                 -> DataFrame Int (Rec.NativeRow t)
+fromNativeVector values = DataFrame
+  { dfData  = Rec.distribute recs
+  , dfIndex = dfIndex
+  }
+  where
+    recs :: Vector (Rec (Rec.NativeRow t))
+    recs = Vector.map Rec.fromNative values
+
+    dfIndex = panic "fromNativeVector.dfIndex"
 
 fromScalarList :: [a] -> DataFrame Int ("value" .== a)
 fromScalarList = fromList . List.map (\x -> #value .== x)
@@ -229,199 +197,40 @@ fromVector recs = construct opts
   , optIndex = SA.defaultFor recs
   }
 
-onVec :: forall idx a b.
-         ( Forall a Unconstrained1
-         , Forall b Unconstrained1
-         )
-      => (Vector (Rec a) -> Vector (Rec b))
-      -> DataFrame idx a
-      -> DataFrame idx b
-onVec f DataFrame {..} = DataFrame
-  { dfIndex = dfIndex'
-  , dfData  = dfData'
-  }
-  where
-    _ = dfData :: Rec (Map Vector a)
-    (dfData', _dfLength') = ((,) <$> Rec.distribute <*> Vector.length)
-                            . f
-                            . Rec.sequence
-                            $ dfData
-
-    -- TODO update indexes instead of dfLength' above
-    dfIndex' = dfIndex
-
-over :: forall idx a b.
-        ( Forall a Unconstrained1
-        , Forall b Unconstrained1
-        )
-     => (Rec a -> Rec b)
-     -> DataFrame idx a
-     -> DataFrame idx b
-over f = under (Vector.map f)
-
-recDistributeL :: ( Forall r Unconstrained1
-                  , Foldable f
-                  , Functor f
-                  )
-               => f (Rec r)
-               -> (Int, Rec (Map f r))
-recDistributeL v = (len, Rec.distribute v)
-  where
-    len = length v
-
-underL_ :: forall a b.
-         ( Forall a Unconstrained1
-         , Forall b Unconstrained1
-         )
-      => (Vector (Rec a) -> Vector (Rec b))
-      -> Rec (Map Vector a)
-      -> (Int, Rec (Map Vector b))
-underL_ f = recDistributeL . f . Rec.sequence
-
-under_ :: forall a b.
-         ( Forall a Unconstrained1
-         , Forall b Unconstrained1
-         )
-      => (Vector (Rec a) -> Vector (Rec b))
-      -> Rec (Map Vector a)
-      -> Rec (Map Vector b)
-under_ f = Rec.distribute . f . Rec.sequence
-
-under :: forall idx a b.
-         ( Forall a Unconstrained1
-         , Forall b Unconstrained1
-         )
-      => (Vector (Rec a) -> Vector (Rec b))
-      -> DataFrame idx a
-      -> DataFrame idx b
-under f DataFrame {..} = DataFrame
-  { dfIndex = dfIndex'
-  , dfData  = dfData'
-  }
-  where
-    (_dfLength', dfData') = underL_ f dfData
-    -- TODO: update indexes instead of dfLength
-    dfIndex' = dfIndex
-
-map :: ( Forall a Unconstrained1
-       , Forall b Unconstrained1
-       )
-    => (Rec a -> Rec b)
-    -> DataFrame idx a
-    -> DataFrame idx b
-map f = onVec (Vector.map f)
-
-column :: forall r idx k v rest.
-          ( Disjoint r rest
-          , Forall r Unconstrained1
-          , Forall (r .+ rest) Unconstrained1
-          , KnownSymbol k
-          , r ≈ k .== v
-          )
-       => Label k
-       -> DataFrame idx (r .+ rest)
-       -> DataFrame idx r
-column _ = map Rec.restrict
-
-toTexts :: forall idx a.
-           ( Forall a ToField
-           , Forall a Typeable
-           , Forall a Unconstrained1
-           )
-        => DataFrame idx a
-        -> [[Text]]
-toTexts df@DataFrame {..} = (headers:)
-  . Vector.toList
-  . Vector.map f
-  $ vec
-  where
-    vec = toVector df
-
-    headers :: [Text]
-    headers = columns df
-
-    f :: Rec a -> [Text]
-    f = toFields headers
-
-render :: forall idx a.
-          ( Forall a ToField
-          , Forall a Typeable
-          , Forall a Unconstrained1
-          )
-       => DataFrame idx a
-       -> Text
-render df@(DataFrame _idx rv) = Table.render . Table.fromTexts $ headers:rows
-  where
-    headers = columns df
-    rows    = Vector.toList . Vector.map (toFields headers) $ vr
-
-    vr :: Vector (Rec a)
-    vr = Rec.sequence rv
-
-toFields :: ( Forall a ToField
-            , Forall a Typeable
-            ) => [Text] -> Rec a -> [Text]
-toFields headers r = List.map f headers
-  where
-    dm = Rec.toDynamicMap r
-
-    f :: Text -> Text
-    f k = getValue k dm
-
-getValue :: Text -> HashMap Text Dynamic -> Text
-getValue k m = maybe noKeyError f $ HashMap.lookup k m
-  where
-    f v = fromAnyDyn v & fromMaybe noDynError
-
-    noKeyError = "getValue failed: key not found in map: " <> k
-    noDynError = "getValue failed: no value undynamicable"
-
--- TODO I tried to do something like this:
---
---   case fromAnyDyn dyn of
---     Just (x :: forall a. ToField a => a) -> ...
---
--- but I couldn't get it working.  TODO: Ask on Haskell Slack.
-fromAnyDyn :: Dynamic -> Maybe Text
-fromAnyDyn dyn = case fromDynamic dyn of
-  Just (t :: Text) -> Just t
-  Nothing -> case fromDynamic dyn of
-    Just (d :: Double) -> Just . show $ d
-    Nothing -> case fromDynamic dyn of
-      Just (i :: Integer) -> Just . show $ i
-      Nothing -> case fromDynamic dyn of
-        Just (i :: Int) -> Just . show $ i
-        Nothing -> case fromDynamic dyn of
-          Just (f :: Float) -> Just . show $ f
-          Nothing -> case fromDynamic dyn of
-            Just (s :: String) -> Just . cs $ s
-            Nothing -> Nothing
-
-shape :: (Enum idx, Forall a ToField) => DataFrame idx a -> (Int, Int)
-shape = (,) <$> nrows <*> ncols
-
-size :: (Enum idx, Forall a ToField) => DataFrame idx a -> Int
-size = (*) <$> ncols <*> nrows
-
-toList :: Forall a Unconstrained1 => DataFrame idx a -> [Rec a]
-toList = Vector.toList . toVector
-
-toVector :: Forall a Unconstrained1 => DataFrame idx a -> Vector (Rec a)
-toVector DataFrame {..} = Rec.sequence dfData
-
-isEmpty :: (Enum idx, Forall a ToField) => DataFrame idx a -> Bool
-isEmpty df
-  | ncols df == 0 = True
-  | nrows df == 0 = True
-  | otherwise     = False
-
-empty :: DataFrame () Empty
-empty = construct $ Options
+opts :: Options Int a
+opts = Options
   { optIndex = SA.defaultFor v
   , optData  = v
   }
   where
     v = Vector.empty
+
+-- ================================================================ --
+--  Combinators
+-- ================================================================ --
+
+extend :: forall idx k v r.
+          ( Forall r Unconstrained1
+          , Forall (Rec.Extend k v r) Unconstrained1
+          , KnownSymbol k
+          )
+       => Label k
+       -> v
+       -> DataFrame idx r
+       -> DataFrame idx (Rec.Extend k v r)
+extend k v = under $ Vector.map (Rec.extend k v)
+
+extendWith :: forall idx k v r.
+              ( Forall r Unconstrained1
+              , Forall (Rec.Extend k v r) Unconstrained1
+              , KnownSymbol k
+              , Monoid v
+              )
+           => Label k
+           -> (Rec r -> v)
+           -> DataFrame idx r
+           -> DataFrame idx (Rec.Extend k v r)
+extendWith k f = under $ Vector.map (Rec.extend k =<< f)
 
 head :: forall idx a.
         ( Enum idx
@@ -452,105 +261,79 @@ head_ :: ( Enum idx
       -> DataFrame idx a
 head_ = head 5
 
-tail :: forall idx a.
-        ( Enum idx
-        , Eq idx
-        , Forall a Unconstrained1
-        , Num idx
-        )
-     => Int
-     -> DataFrame idx a
-     -> DataFrame idx a
-tail n df@DataFrame {..} = DataFrame
-  { dfIndex = SA.drop m dfIndex
-  , dfData  = under_ f dfData
-  }
-  where
-    f :: Forall a Unconstrained1 => Vector (Rec a) -> Vector (Rec a)
-    f = Vector.drop m
-
-    m | n >= 0    = nrows df - n
-      | otherwise = negate n
-
-tail_ :: ( Enum idx
-         , Eq idx
-         , Forall a Unconstrained1
-         , Num idx
+onVec :: forall idx a b.
+         ( Forall a Unconstrained1
+         , Forall b Unconstrained1
          )
-      => DataFrame idx a
+      => (Vector (Rec a) -> Vector (Rec b))
       -> DataFrame idx a
-tail_ = tail 5
-
--- TODO we should really at least eliminate the `Forall a ToField` constraint
--- on things that are just getting the column count -- should be able to get
--- that without rendering them.
-at :: ( Enum idx
-      , Eq idx
-      , Forall a Unconstrained1
-      , KnownSymbol k
-      , Num idx
-      )
-   => idx
-   -> Label k
-   -> DataFrame idx a
-   -> Maybe (a .! k)
-at idx k df = (.! k) <$> lookup idx df
-
--- TODO this obviously needs to be SOOO much better
-lookup :: ( Enum idx
-          , Eq idx
-          , Forall a Unconstrained1
-          , Num idx
-          )
-       => idx
-       -> DataFrame idx a
-       -> Maybe (Rec a)
-lookup k DataFrame {..} = fmap snd . Vector.find ((== k) . fst) $ indexed
-  where
-    indexed = SA.index dfIndex (Rec.sequence dfData)
-
-fromNativeVector :: forall t.
-                    ( Rec.FromNative t
-                    , Forall (Rec.NativeRow t) Unconstrained1
-                    )
-                 => Vector t
-                 -> DataFrame Int (Rec.NativeRow t)
-fromNativeVector values = DataFrame
-  { dfData  = Rec.distribute recs
-  , dfIndex = dfIndex
+      -> DataFrame idx b
+onVec f DataFrame {..} = DataFrame
+  { dfIndex = dfIndex'
+  , dfData  = dfData'
   }
   where
-    recs :: Vector (Rec (Rec.NativeRow t))
-    recs = Vector.map Rec.fromNative values
+    _ = dfData :: Rec (Map Vector a)
+    (dfData', _dfLength') = ((,) <$> Rec.distribute <*> Vector.length)
+                            . f
+                            . Rec.sequence
+                            $ dfData
 
-    dfIndex = panic "fromNativeVector.dfIndex"
+    -- TODO update indexes instead of dfLength' above
+    dfIndex' = dfIndex
 
-toNativeVector :: forall idx t.
-                  ( ToNative t
-                  , Forall (NativeRow t) Unconstrained1
-                  )
-               => DataFrame idx (NativeRow t)
-               -> Vector t
-toNativeVector df@DataFrame {..} = Vector.map Rec.toNative . toVector $ df
+map :: ( Forall a Unconstrained1
+       , Forall b Unconstrained1
+       )
+    => (Rec a -> Rec b)
+    -> DataFrame idx a
+    -> DataFrame idx b
+map f = onVec (Vector.map f)
 
-onColumn :: forall k idx a b.
-            ( KnownSymbol k
-            , (Map Vector a .! k) ~ Vector (a .! k)
-            )
-         => Label k
-         -> (Vector (a Rec..! k) -> b)
-         -> DataFrame idx a
-         -> b
-onColumn k f DataFrame {..} = f $ dfData .! k
+over :: forall idx a b.
+        ( Forall a Unconstrained1
+        , Forall b Unconstrained1
+        )
+     => (Rec a -> Rec b)
+     -> DataFrame idx a
+     -> DataFrame idx b
+over f = under (Vector.map f)
 
-getColumn :: forall k idx a.
-             ( KnownSymbol k
-             , (Map Vector a .! k) ~ Vector (a .! k)
-             )
-          => Label k
-          -> DataFrame idx a
-          -> Vector (a .! k)
-getColumn = flip onColumn identity
+-- TODO: questionable to expose? at least with this interface... doing it for
+--       now for Examples.hs
+reindex :: [idx']
+        -> DataFrame idx a
+        -> DataFrame idx' a
+reindex ixs DataFrame {..} = DataFrame dfIndex' dfData
+  where
+    dfIndex' = SA.fromList ixs
+
+rename :: forall k k' idx a b.
+          ( Forall a Unconstrained1
+          , Forall b Unconstrained1
+          , KnownSymbol k
+          , KnownSymbol k'
+          , b ~ Rec.Extend k' (a .! k) (a .- k)
+          )
+       => Label k
+       -> Label k'
+       -> DataFrame idx a
+       -> DataFrame idx b
+rename k k' DataFrame {..} = DataFrame
+  { dfIndex = dfIndex
+  , dfData  = dfData'
+  }
+  where
+    _ = dfData :: Rec (Map Vector a)
+
+    dfDataI :: Forall a Unconstrained1 => Vector (Rec a)
+    dfDataI = Rec.sequence dfData
+
+    dfDataI' :: Forall a Unconstrained1 => Vector (Rec b)
+    dfDataI' = Vector.map (Rec.rename k k') dfDataI
+
+    dfData' :: Forall b Unconstrained1 => Rec (Map Vector b)
+    dfData' = Rec.distribute dfDataI'
 
 restrict :: forall idx a b.
             ( Forall a Unconstrained1
@@ -584,32 +367,95 @@ restrict DataFrame {..}= DataFrame
             => Rec  (Map Vector b)
     dfData' = Rec.distribute vrec'
 
-rename :: forall k k' idx a b.
-          ( Forall a Unconstrained1
-          , Forall b Unconstrained1
-          , KnownSymbol k
-          , KnownSymbol k'
-          , b ~ Rec.Extend k' (a .! k) (a .- k)
-          )
-       => Label k
-       -> Label k'
-       -> DataFrame idx a
-       -> DataFrame idx b
-rename k k' DataFrame {..} = DataFrame
-  { dfIndex = dfIndex
+tail :: forall idx a.
+        ( Enum idx
+        , Eq idx
+        , Forall a Unconstrained1
+        , Num idx
+        )
+     => Int
+     -> DataFrame idx a
+     -> DataFrame idx a
+tail n df@DataFrame {..} = DataFrame
+  { dfIndex = SA.drop m dfIndex
+  , dfData  = under_ f dfData
+  }
+  where
+    f :: Forall a Unconstrained1 => Vector (Rec a) -> Vector (Rec a)
+    f = Vector.drop m
+
+    m | n >= 0    = nrows df - n
+      | otherwise = negate n
+
+tail_ :: ( Enum idx
+         , Eq idx
+         , Forall a Unconstrained1
+         , Num idx
+         )
+      => DataFrame idx a
+      -> DataFrame idx a
+tail_ = tail 5
+
+under :: forall idx a b.
+         ( Forall a Unconstrained1
+         , Forall b Unconstrained1
+         )
+      => (Vector (Rec a) -> Vector (Rec b))
+      -> DataFrame idx a
+      -> DataFrame idx b
+under f DataFrame {..} = DataFrame
+  { dfIndex = dfIndex'
   , dfData  = dfData'
   }
   where
-    _ = dfData :: Rec (Map Vector a)
+    (_dfLength', dfData') = underL_ f dfData
+    -- TODO: update indexes instead of dfLength
+    dfIndex' = dfIndex
 
-    dfDataI :: Forall a Unconstrained1 => Vector (Rec a)
-    dfDataI = Rec.sequence dfData
+-- TODO: merge (however python does it)
+--  ~ merge :: DataFrame idx a -> DataFrame idx b -> Extend a b
 
-    dfDataI' :: Forall a Unconstrained1 => Vector (Rec b)
-    dfDataI' = Vector.map (Rec.rename k k') dfDataI
+-- ================================================================ --
+--   Eliminators
+-- ================================================================ --
 
-    dfData' :: Forall b Unconstrained1 => Rec (Map Vector b)
-    dfData' = Rec.distribute dfDataI'
+-- TODO we should really at least eliminate the `Forall a ToField` constraint
+-- on things that are just getting the column count -- should be able to get
+-- that without rendering them.
+at :: ( Enum idx
+      , Eq idx
+      , Forall a Unconstrained1
+      , KnownSymbol k
+      , Num idx
+      )
+   => idx
+   -> Label k
+   -> DataFrame idx a
+   -> Maybe (a .! k)
+at idx k df = (.! k) <$> lookup idx df
+
+axes :: Forall a ToField
+     => DataFrame idx a
+     -> Axes idx
+axes df@DataFrame {..} = Axes
+  { rowLabels    = panic "axes.1"
+  , columnLabels = columns df
+  }
+
+columns :: forall idx a.
+           Forall a ToField
+        => DataFrame idx a
+        -> [Text]
+columns _ = Rec.labels @a @ToField
+
+columnVector :: forall k idx a.
+                ( KnownSymbol k
+                , (Map Vector a .! k) ~ Vector (a .! k)
+                )
+             => Label k
+             -> DataFrame idx a
+             -> Vector (a .! k)
+columnVector = flip onColumn identity
 
 display :: ( Forall a ToField
            , Forall a Typeable
@@ -626,28 +472,227 @@ display = putStr
   where
     explode = panic "display explode"
 
-extend :: forall idx k v r.
-          ( Forall r Unconstrained1
-          , Forall (Rec.Extend k v r) Unconstrained1
-          , KnownSymbol k
-          )
-       => Label k
-       -> v
-       -> DataFrame idx r
-       -> DataFrame idx (Rec.Extend k v r)
-extend k v = under $ Vector.map (Rec.extend k v)
+-- | The index (row labels) of the DataFrame.
+index :: forall idx a.
+         ( Enum idx
+         , Eq idx
+         , Forall a Unconstrained1
+         , Num idx
+         )
+      => DataFrame idx a
+      -> Vector idx
+index DataFrame {..} = Vector.map fst . SA.index dfIndex $ rows
+  where
+    rows :: Vector (Rec a)
+    rows = Rec.sequence dfData
 
-extendWith :: forall idx k v r.
-              ( Forall r Unconstrained1
-              , Forall (Rec.Extend k v r) Unconstrained1
-              , KnownSymbol k
-              , Monoid v
-              )
-           => Label k
-           -> (Rec r -> v)
-           -> DataFrame idx r
-           -> DataFrame idx (Rec.Extend k v r)
-extendWith k f = under $ Vector.map (Rec.extend k =<< f)
+isEmpty :: ( Enum idx
+           , Forall a ToField
+           )
+        => DataFrame idx a
+        -> Bool
+isEmpty df
+  | ncols df == 0 = True
+  | nrows df == 0 = True
+  | otherwise     = False
+
+-- TODO: Can we do away with the `Forall a ToField` stuff by substituting
+-- a contcreate ToField function from row-types?
+
+-- TODO truncate indexes on construction so this doesn't infintie loop
+memSize :: ( Forall (Map Vector a) NFData
+           , MonadIO m
+           , NFData idx
+           )
+        => DataFrame idx a
+        -> m Word
+memSize = (liftIO . Data.recursiveSize $!!)
+
+ncols :: Forall a ToField
+      => DataFrame idx a
+      -> Int
+ncols = length . columns
+
+-- I think this is right?
+ndims :: Forall a ToField
+      => DataFrame idx a
+      -> Int
+ndims df
+  | length (columns df) <= 1 = 1
+  | otherwise                = 2
+
+nrows :: Enum idx
+      => DataFrame idx a
+      -> Int
+nrows DataFrame {..} = SA.length dfIndex
+
+onColumn :: forall k idx a b.
+            ( KnownSymbol k
+            , (Map Vector a .! k) ~ Vector (a .! k)
+            )
+         => Label k
+         -> (Vector (a Rec..! k) -> b)
+         -> DataFrame idx a
+         -> b
+onColumn k f DataFrame {..} = f $ dfData .! k
+
+render :: forall idx a.
+          ( Forall a ToField
+          , Forall a Typeable
+          , Forall a Unconstrained1
+          )
+       => DataFrame idx a
+       -> Text
+render df@(DataFrame _idx rv) = Table.render . Table.fromTexts $ headers:rows
+  where
+    headers = columns df
+    rows    = Vector.toList . Vector.map (toFields headers) $ vr
+
+    vr :: Vector (Rec a)
+    vr = Rec.sequence rv
+
+shape :: ( Enum idx
+         , Forall a ToField
+         )
+      => DataFrame idx a
+      -> (Int, Int)
+shape = (,) <$> nrows <*> ncols
+
+size :: ( Enum idx
+        , Forall a ToField
+        )
+     => DataFrame idx a
+     -> Int
+size = (*) <$> ncols <*> nrows
+
+toList :: Forall a Unconstrained1
+       => DataFrame idx a
+       -> [Rec a]
+toList = Vector.toList . toVector
+
+toNativeVector :: forall idx t.
+                  ( ToNative t
+                  , Forall (NativeRow t) Unconstrained1
+                  )
+               => DataFrame idx (NativeRow t)
+               -> Vector t
+toNativeVector df@DataFrame {..} = Vector.map Rec.toNative . toVector $ df
+
+toTexts :: forall idx a.
+           ( Forall a ToField
+           , Forall a Typeable
+           , Forall a Unconstrained1
+           )
+        => DataFrame idx a
+        -> [[Text]]
+toTexts df@DataFrame {..} = (headers:)
+  . Vector.toList
+  . Vector.map f
+  $ vec
+  where
+    vec = toVector df
+
+    headers :: [Text]
+    headers = columns df
+
+    f :: Rec a -> [Text]
+    f = toFields headers
+
+toVector :: Forall a Unconstrained1
+         => DataFrame idx a
+         -> Vector (Rec a)
+toVector DataFrame {..} = Rec.sequence dfData
+
+-- ================================================================ --
+--  Helpers
+-- ================================================================ --
+
+-- TODO I tried to do something like this:
+--
+--   case fromAnyDyn dyn of
+--     Just (x :: forall a. ToField a => a) -> ...
+--
+-- but I couldn't get it working.  TODO: Ask on Haskell Slack.
+fromAnyDyn :: Dynamic -> Maybe Text
+fromAnyDyn dyn = case fromDynamic dyn of
+  Just (t :: Text) -> Just t
+  Nothing -> case fromDynamic dyn of
+    Just (d :: Double) -> Just . show $ d
+    Nothing -> case fromDynamic dyn of
+      Just (i :: Integer) -> Just . show $ i
+      Nothing -> case fromDynamic dyn of
+        Just (i :: Int) -> Just . show $ i
+        Nothing -> case fromDynamic dyn of
+          Just (f :: Float) -> Just . show $ f
+          Nothing -> case fromDynamic dyn of
+            Just (s :: String) -> Just . cs $ s
+            Nothing -> Nothing
+
+getValue :: Text -> HashMap Text Dynamic -> Text
+getValue k m = maybe noKeyError f $ HashMap.lookup k m
+  where
+    f v = fromAnyDyn v & fromMaybe noDynError
+
+    noKeyError = "getValue failed: key not found in map: " <> k
+    noDynError = "getValue failed: no value undynamicable"
+
+-- TODO this obviously needs to be SOOO much better
+lookup :: ( Enum idx
+          , Eq idx
+          , Forall a Unconstrained1
+          , Num idx
+          )
+       => idx
+       -> DataFrame idx a
+       -> Maybe (Rec a)
+lookup k DataFrame {..} = fmap snd . Vector.find ((== k) . fst) $ indexed
+  where
+    indexed = SA.index dfIndex (Rec.sequence dfData)
+
+recDistributeL :: ( Forall r Unconstrained1
+                  , Foldable f
+                  , Functor f
+                  )
+               => f (Rec r)
+               -> (Int, Rec (Map f r))
+recDistributeL v = (len, Rec.distribute v)
+  where
+    len = length v
+
+toFields :: ( Forall a ToField
+            , Forall a Typeable
+            )
+         => [Text]
+         -> Rec a
+         -> [Text]
+toFields headers r = List.map f headers
+  where
+    dm = Rec.toDynamicMap r
+
+    f :: Text -> Text
+    f k = getValue k dm
+
+underL_ :: forall a b.
+         ( Forall a Unconstrained1
+         , Forall b Unconstrained1
+         )
+      => (Vector (Rec a) -> Vector (Rec b))
+      -> Rec (Map Vector a)
+      -> (Int, Rec (Map Vector b))
+underL_ f = recDistributeL . f . Rec.sequence
+
+under_ :: forall a b.
+         ( Forall a Unconstrained1
+         , Forall b Unconstrained1
+         )
+      => (Vector (Rec a) -> Vector (Rec b))
+      -> Rec (Map Vector a)
+      -> Rec (Map Vector b)
+under_ f = Rec.distribute . f . Rec.sequence
+
+-- ================================================================ --
+--  TODOs
+-- ================================================================ --
 
 -- TODO: iat -- maybe? or explain
 -- TODO: explain bool
@@ -752,7 +797,6 @@ extendWith k f = under $ Vector.map (Rec.extend k =<< f)
 --   = "Range index: " <> show n <> " entries."
 -- showInternalRangeIndex (n, Just (f, l))
 --   = "Range index: " <> show n <> " entries, " <> show f <> " to " <> show l
-
 
 -- colIndex :: Forall a ToField => DataFrame idx a -> ColIndex
 -- colIndex df = ( length cols
