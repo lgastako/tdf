@@ -34,7 +34,6 @@ library
       TDF.Series
       TDF.Tutorial
       TDF.Types.FromField
-      TDF.Types.Index
       TDF.Types.ListIndex
       TDF.Types.RangeIndex
       TDF.Types.SAI

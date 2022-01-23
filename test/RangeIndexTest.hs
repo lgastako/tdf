@@ -112,4 +112,9 @@ spec_RangeIndex = do
        `shouldBe`
          RangeIndex.empty
 
---  context "defaultFromFor" $ do
+  context "defaultFromFor" $ do
+
+    it "should produce empty for empty input" $
+      RangeIndex.defaultFromFor 5 []
+       `shouldBe`
+         RangeIndex.RangeIndex 5 0 1 Nothing

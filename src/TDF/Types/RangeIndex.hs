@@ -12,6 +12,7 @@ module TDF.Types.RangeIndex
   , defaultFor
   , defaultFromFor
   , drop
+  , empty
   , length
   , monotonicDecreasing
   , monotonicIncreasing
@@ -23,15 +24,14 @@ module TDF.Types.RangeIndex
   , upTo
   ) where
 
-import           TDF.Prelude              hiding ( drop
-                                                 , length
-                                                 , take
-                                                 , toList
-                                                 )
+import           TDF.Prelude  hiding ( drop
+                                     , empty
+                                     , length
+                                     , take
+                                     , toList
+                                     )
 
-import qualified Data.List       as List
-import           TDF.Types.Index                 ( Index )
-import qualified TDF.Types.Index as Index
+import qualified Data.List   as List
 
 data RangeIndex idx = RangeIndex
   { start :: idx
@@ -40,16 +40,14 @@ data RangeIndex idx = RangeIndex
   , name  :: Maybe Text
   } deriving (Eq, Generic, Ord, Read, Show)
 
-instance (Bounded idx, Enum idx, Num idx) => Index idx (RangeIndex idx) where
-  start   = start
-  stop    = stop
-  next ri = (+ step ri)
-
 instance NFData idx => NFData (RangeIndex idx)
 
 -- ================================================================ --
 --  Constructors
 -- ================================================================--
+
+empty :: RangeIndex Int
+empty = RangeIndex 0 0 1 Nothing
 
 defaultFor :: Foldable f
            => f a

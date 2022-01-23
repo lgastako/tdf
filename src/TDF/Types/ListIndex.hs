@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -16,36 +17,10 @@ module TDF.Types.ListIndex
   -- , upTo
   ) where
 
-import           TDF.Prelude              hiding ( toList )
-import           TDF.Types.Index                 ( Index
-                                                 , start
-                                                 , stop
-                                                 )
-import qualified TDF.Types.Index as Index
+import TDF.Prelude hiding ( toList )
 
 newtype ListIndex a = ListIndex [a]
   deriving (Eq, Generic, Ord, Read, Show)
-
-instance ( Bounded idx
-         , Enum idx
-         , Eq idx
-         , Num idx
-         )
-      => Index idx (ListIndex idx) where
-  start (ListIndex (x:_)) = x
-  start (ListIndex [])    = panic "invalid index (case 1)"
-
-  stop (ListIndex xs) = case lastMay xs of
-    Just x  -> x
-    Nothing -> panic "invalid index (case 2)"
-
-  next (ListIndex xs) x = fromMaybe (panic error)
-    . headMay
-    . drop 1
-    . dropWhile (/= x)
-    $ xs
-    where
-      error = "invalid index (case 3)"
 
 contains :: Ord a => ListIndex a -> a -> Bool
 contains (ListIndex xs) n = n `elem` xs
@@ -57,7 +32,13 @@ contains (ListIndex xs) n = n `elem` xs
 -- monotonicIncreasing ri@ListIndex {..} = step > 0 || size ri <= 1
 
 size :: (Bounded a, Enum a, Eq a, Num a) => ListIndex a -> a
-size li = stop li - start li
+size = \case
+  ListIndex [] -> panic "ListIndex.size on empty index"
+  ListIndex xs -> (fromMaybe error . lastMay) xs
+                   -
+                  (fromMaybe error . head) xs
+  where
+    error = panic "No last element in allegedly non-empty list."
 
 -- stepping :: a -> a -> a -> ListIndex a
 -- stepping a b c = ListIndex a b c Nothing
