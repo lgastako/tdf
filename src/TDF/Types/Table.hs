@@ -53,8 +53,8 @@ fromTexts = fromRows . map Row
 
 promoteHeader :: Table -> Maybe Table
 promoteHeader = \case
-  Table (_, [])     -> Nothing
-  Table (_, (x:xs)) -> Just $ Table (Just (Header x), xs)
+  Table (_, [])   -> Nothing
+  Table (_, x:xs) -> Just $ Table (Just (Header x), xs)
 
 -- ================================================================ --
 --  Eliminators

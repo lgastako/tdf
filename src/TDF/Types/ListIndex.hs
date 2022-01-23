@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE OverloadedStrings     #-}
 
 module TDF.Types.ListIndex
   ( ListIndex( ListIndex )
@@ -23,7 +23,7 @@ import           TDF.Types.Index                 ( Index
                                                  )
 import qualified TDF.Types.Index as Index
 
-data ListIndex a = ListIndex [a]
+newtype ListIndex a = ListIndex [a]
   deriving (Eq, Generic, Ord, Read, Show)
 
 instance ( Bounded idx
@@ -40,7 +40,7 @@ instance ( Bounded idx
     Nothing -> panic "invalid index (case 2)"
 
   next (ListIndex xs) x = fromMaybe (panic error)
-    . head
+    . headMay
     . drop 1
     . dropWhile (/= x)
     $ xs

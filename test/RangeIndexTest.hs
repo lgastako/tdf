@@ -1,4 +1,6 @@
+{-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module RangeIndexTest where
 
@@ -10,7 +12,6 @@ import           TDF.Types.RangeIndex               ( stepping
                                                     , through
                                                     , upTo
                                                     )
-import qualified TDF.Types.Index      as Index
 import           TDF.Types.RangeIndex               ( RangeIndex )
 import qualified TDF.Types.RangeIndex as RangeIndex
 
@@ -18,66 +19,88 @@ import qualified TDF.Types.RangeIndex as RangeIndex
 -- https://cs.stanford.edu/people/nick/py/python-range.html
 -- some of the examples seem to be wrong so I've checked them against python
 
+data RangeIndexExpectations idx = RangeIndexExpectations
+  { label          :: Text
+  , expectedToList :: [idx]
+  , testIndex      :: RangeIndex idx
+  }
+
+type IntExpectations = RangeIndexExpectations Int
+
 spec_RangeIndex :: Spec
 spec_RangeIndex = do
-  context "upTo" $ do
+  let testExpectations RangeIndexExpectations {..} = do
+        let _ = expectedToList :: [Int]
+        context (cs label) $ do
+          it "toList" $
+            RangeIndex.toList testIndex `shouldBe` expectedToList
+          it "length" $
+            RangeIndex.length testIndex `shouldBe` length expectedToList
 
-    it "0" $ do
-      RangeIndex.toList (upTo 0)
-        `shouldBe` ([] :: [Int])
+  context "constructors" $ do
 
-    it "1" $ do
-      RangeIndex.toList (upTo 1)
-        `shouldBe` [0 :: Int]
+    context "upTo" $ do
 
-    it "5" $ do
-      RangeIndex.toList (upTo (5 :: Int))
-        `shouldBe` [0, 1, 2, 3, 4 :: Int]
+      testExpectations $ RangeIndexExpectations
+        { label          = "upTo(0)"
+        , expectedToList = []
+        , testIndex      = upTo 0
+        }
 
-    it "negative number" $ do
-      RangeIndex.toList (upTo (-42))
-        `shouldBe` ([] :: [Int])
+      testExpectations $ RangeIndexExpectations
+        { label          = "upTo(1)"
+        , expectedToList = [0]
+        , testIndex      = upTo 1
+        }
+
+      testExpectations $ RangeIndexExpectations
+        { label          = "upTo(5)"
+        , expectedToList = [0, 1, 2, 3, 4]
+        , testIndex      = upTo 5
+        }
+
+      testExpectations $ RangeIndexExpectations
+        { label          = "negative number"
+        , expectedToList = []
+        , testIndex      = upTo (-42)
+        }
 
   context "through" $ do
 
-    it "3,5" $ do
-      RangeIndex.toList (3 `through` 5)
-        `shouldBe` [3, 4 :: Int]
+    testExpectations $ RangeIndexExpectations
+      { label          = "3,5"
+      , expectedToList = [3, 4]
+      , testIndex      = 3 `through` 5
+      }
 
   context "stepping" $ do
 
-    it "0 3 1" $ do
-      RangeIndex.toList (stepping 0 3 1)
-        `shouldBe` [0, 1, 2 :: Int]
+    testExpectations $ RangeIndexExpectations
+      { label          = "0 3 1"
+      , expectedToList = [0, 1, 2]
+      , testIndex      = stepping 0 3 1
+      }
 
-    context "with a negative step" $ do
-      it "10 5 -1" $ do
-        RangeIndex.toList (stepping 10 5 (-1))
-          `shouldBe` [10, 9, 8, 7, 6 :: Int]
+    testExpectations $ RangeIndexExpectations
+      { label          = "10 5 -1"
+      , expectedToList = [10, 9, 8, 7, 6]
+      , testIndex      = stepping 10 5 (-1)
+      }
 
-      it "6 5 -2" $ do
-        RangeIndex.toList (stepping 6 5 (-2))
-          `shouldBe` [6 :: Int]
+    testExpectations $ RangeIndexExpectations
+      { label          = "6 5 -2"
+      , expectedToList = [6]
+      , testIndex      = stepping 6 5 (-2)
+      }
 
-      it "5 5 -2 (equal to stop is omitted)" $ do
-        RangeIndex.toList (stepping 5 5 (-2))
-          `shouldBe` ([] :: [Int])
+    testExpectations $ RangeIndexExpectations
+      { label          = "5 5 -2 (equal to stop is omitted)."
+      , expectedToList = []
+      , testIndex      = stepping 5 5 (-2)
+      }
 
-      it "4 5 -2 (beyiond the stop is omitted)" $ do
-        RangeIndex.toList (stepping 4 5 (-2))
-          `shouldBe` ([] :: [Int])
-
-  context "Index" $ do
-    let ri = RangeIndex.upTo 10 :: RangeIndex Int
-
-    it ".start" $
-      Index.start ri
-        `shouldBe` (0 :: Int)
-
-    it ".stop" $
-      Index.stop ri
-        `shouldBe` (10 :: Int)
-
-    it ".next" $
-      fmap (\n -> Index.next (RangeIndex.upTo (10 :: Int)) (n :: Int)) [0..10]
-        `shouldBe` [1..11]
+    testExpectations $ RangeIndexExpectations
+      { label          = "4 5 -2 (beyond stop is omitted)."
+      , expectedToList = []
+      , testIndex      = stepping 4 5 (-2)
+      }

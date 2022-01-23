@@ -21,6 +21,7 @@ import           TDF.DataFrame                     ( Axes
                                                    )
 import qualified TDF.DataFrame    as DF
 import qualified TDF.CSV          as CSV
+import qualified TDF.Types.SAI    as SA
 import           System.IO.Unsafe                  ( unsafePerformIO )
 
 type PersonFields = NameFields .+ AgeFields
@@ -143,14 +144,11 @@ animals :: DataFrame Int ("animal" .== Text)
 animals = DF.construct o
   where
     o = DF.opts
-      { DF.optData    = Vector.fromList . map mkRec $ animalNames
-      , DF.optIndexes = optIndexes
+      { DF.optData  = Vector.fromList . map mkRec $ animalNames
+      -- TODO make this the default construction logic
+      --  .. TODO improve construction in general
+      , DF.optIndex = SA.defaultFor animalNames
       }
-
-    -- TODO make this the default construction logic
-    --  .. TODO improve construction in general
-    optIndexes :: [Int]
-    optIndexes = zipWith const [0..] animalNames
 
     mkRec a = #animal .== a
 
@@ -185,7 +183,7 @@ toTexts' :: Rec NameFields -> [Text]
 toTexts' rp = [ rp .! #name ]
 
 indexTest :: Bool
-indexTest = DF.index df1 == [0, 1]
+indexTest = DF.index df1 == Vector.fromList [0, 1]
 
 rd :: IO ()
 rd = putStr rendered
