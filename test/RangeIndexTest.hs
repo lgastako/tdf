@@ -104,3 +104,12 @@ spec_RangeIndex = do
       , expectedToList = []
       , testIndex      = stepping 4 5 (-2)
       }
+
+  context "defaultFor" $ do
+
+    it "should produce empty for empty input" $
+      RangeIndex.defaultFor []
+       `shouldBe`
+         RangeIndex.empty
+
+--  context "defaultFromFor" $ do

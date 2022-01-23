@@ -56,6 +56,7 @@ module TDF.DataFrame
   , rename
   , render
   , restrict
+  , series
   , shape
   , size
   , tail
@@ -85,13 +86,15 @@ import qualified Data.HashMap.Strict  as HashMap
 import qualified Data.List            as List
 import qualified Data.Row.Records     as Rec
 import           Data.String                     ( String )
---import qualified Data.Text            as Text
 import qualified Data.Vector          as Vector
 import qualified GHC.DataSize         as Data
 import qualified TDF.Types.Table      as Table
 import           TDF.Types.ToField               ( ToField )
---import           TDF.Types.RangeIndex            ( RangeIndex )
 import qualified TDF.Types.SAI        as SA
+import           TDF.Series                      ( Series )
+import qualified TDF.Series           as Series
+
+import qualified Data.Row.Internal
 
 data DataFrame idx a = DataFrame
   { dfIndex :: SA.Index idx
@@ -157,7 +160,7 @@ construct Options {..} = DataFrame dfIndex d
     d :: Forall a Unconstrained1 => Rec (Map Vector a)
     d = Rec.distribute optData
 
-empty :: DataFrame () Empty
+empty :: DataFrame Int Empty
 empty = construct $ Options
   { optIndex = SA.defaultFor v
   , optData  = v
@@ -550,6 +553,25 @@ render df@(DataFrame _idx rv) = Table.render . Table.fromTexts $ headers:rows
 
     vr :: Vector (Rec a)
     vr = Rec.sequence rv
+
+series :: forall idx k r rest v.
+          ( r ≈ k .== v
+          , Disjoint r rest
+          , (Map Vector r .! k) ~ Vector (r .! k)
+          , KnownSymbol k
+          , (Map Vector
+              ('Data.Row.Internal.R '[ k 'Data.Row.Internal.:-> v] .+ rest)
+              .! k)
+            ~ Vector v
+          )
+       => Label k
+       -> DataFrame idx (r .+ rest)
+       -> Series idx v
+series k df@DataFrame {..} = Series.construct $ Series.Options
+  { optIndex = dfIndex
+  , optData  = columnVector k df
+  , optName  = Just (show k)
+  }
 
 shape :: ( Enum idx
          , Forall a ToField

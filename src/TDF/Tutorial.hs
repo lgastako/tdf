@@ -6,8 +6,10 @@ module TDF.Tutorial where
 
 import TDF.Prelude
 
-import           TDF.DataFrame        ( DataFrame )
 import qualified TDF.CSV       as CSV
+import           TDF.DataFrame           ( DataFrame )
+import qualified TDF.DataFrame as DF
+import qualified TDF.Series    as Series
 
 type PersonFields = NameFields .+ AgeFields
 
@@ -44,3 +46,15 @@ readExamplesIO :: IO (DataFrame Int PersonFields)
 readExamplesIO = either explode identity <$> CSV.fromHeadedCSV "example.csv"
   where
     explode error = panic . show $ error
+
+seriesFromDF :: IO ()
+seriesFromDF = do
+  (examples :: DataFrame Int PersonFields) <- readExamplesIO
+  nl
+  DF.display examples
+  let series = DF.series #age examples
+  nl
+  Series.display series
+
+nl :: IO ()
+nl = putText ""

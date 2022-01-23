@@ -39,22 +39,16 @@ instance NFData idx => NFData (Index idx)
 fromList :: [idx] -> Index idx
 fromList = ListIdx
 
-defaultFor :: ( Bounded idx
-              , Enum idx
-              , Foldable f
-              )
+defaultFor :: Foldable f
            => f a
-           -> Index idx
-defaultFor = defaultFromFor minBound
+           -> Index Int
+defaultFor = defaultFromFor 0
 
-defaultFromFor :: ( Bounded idx
-                  , Enum idx
-                  , Foldable f
-                  )
-               => idx
+defaultFromFor :: Foldable f
+               => Int
                -> f a
-               -> Index idx
-defaultFromFor k xs = RangeIdx $ RangeIndex.defaultFromFor k xs
+               -> Index Int
+defaultFromFor n = RangeIdx . RangeIndex.defaultFromFor n
 
 -- ================================================================ --
 --   Combinators

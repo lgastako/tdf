@@ -28,7 +28,6 @@ import           TDF.Prelude              hiding ( drop
                                                  , take
                                                  , toList
                                                  )
-import qualified TDF.Prelude     as P
 
 import qualified Data.List       as List
 import           TDF.Types.Index                 ( Index )
@@ -52,33 +51,21 @@ instance NFData idx => NFData (RangeIndex idx)
 --  Constructors
 -- ================================================================--
 
-defaultFor :: ( Bounded idx
-              , Enum idx
-              , Foldable f
-              )
+defaultFor :: Foldable f
            => f a
-           -> RangeIndex idx
-defaultFor = defaultFromFor minBound
+           -> RangeIndex Int
+defaultFor = defaultFromFor 0
 
-defaultFromFor :: ( Bounded idx
-                  , Enum idx
-                  , Foldable f
-                  )
-               => idx
+defaultFromFor :: Foldable f
+               => Int
                -> f a
-               -> RangeIndex idx
+               -> RangeIndex Int
 defaultFromFor start xs = RangeIndex
   { start = start
-  , stop  = fromMaybe error
-            . lastMay
-            . zipWith const [toEnum 0 ..]
-            . P.toList
-            $ xs
-  , step  = minBound
+  , stop  = List.length xs
+  , step  = 1
   , name  = Nothing
   }
-  where
-    error = panic "defaultFromFor.1"
 
 stepping :: a -> a -> a -> RangeIndex a
 stepping a b c = RangeIndex a b c Nothing
