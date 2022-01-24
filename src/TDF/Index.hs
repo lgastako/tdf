@@ -4,6 +4,7 @@
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module TDF.Index
@@ -15,6 +16,7 @@ module TDF.Index
   , fromVec
   -- Combinators
   , drop
+  , tail
   , take
   -- Eliminators
   , index
@@ -81,6 +83,12 @@ drop :: forall n m idx.
      => Index m idx
      -> Index n idx
 drop (Index v) = Index (Vec.drop v)
+
+tail :: forall n m idx.
+        LE n m
+     => Index m idx
+     -> Index n idx
+tail (Index v) = Index (Vec.take v)  -- TODO
 
 take :: forall n m idx.
         LE n m

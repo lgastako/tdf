@@ -43,6 +43,7 @@ import Data.Type.Nat     as X ( Nat( S
                               , Nat7
                               , Nat8
                               , Nat9
+                              , Plus
                               , SNatI
                               )
 import Data.Type.Nat.LE  as X ( LE )

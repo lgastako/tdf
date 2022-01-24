@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module TDF.Options
   ( Options( optData

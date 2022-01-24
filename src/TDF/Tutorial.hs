@@ -1,8 +1,11 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE KindSignatures    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE OverloadedLabels    #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module TDF.Tutorial where
 
@@ -51,14 +54,20 @@ readExamplesIO = either explode identity <$> CSV.fromHeadedCSV "example.csv"
     explode error = panic . show $ error
 
 seriesFromDF :: IO ()
-seriesFromDF = readExamplesIO >>= \case
-  Nothing -> panic "invalid csv - maybe not 7 rows (6 + header)?"
-  Just (examples :: DataFrame Nat6 Int PersonFields) -> do
+seriesFromDF = withExamples $
+  \(examples :: DataFrame Nat6 Int PersonFields) -> do
     nl
     DF.display examples
     let series = DF.series #age examples
     nl
     Series.display series
+
+withExamples :: SNatI n
+             => (DataFrame n Int PersonFields -> IO ())
+             -> IO ()
+withExamples f = readExamplesIO >>= \case
+  Nothing -> panic "invalid csv - maybe not 7 rows (6 + header)?"
+  Just examples -> f examples
 
 nl :: IO ()
 nl = putText ""

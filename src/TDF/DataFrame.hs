@@ -247,11 +247,11 @@ head DataFrame {..} = DataFrame
     f = Vec.take
 
 head_ :: ( Forall a Unconstrained1
-         , LE n ('S ('S ('S ('S ('S n)))))
+         , LE Nat5 n
          , SNatI n
          )
-      => DataFrame ('S ('S ('S ('S ('S n))))) idx a
-      -> DataFrame n idx a
+      => DataFrame n idx a
+      -> DataFrame Nat5 idx a
 head_ = head
 
 onVec :: forall n m idx a b.
@@ -366,41 +366,55 @@ restrict DataFrame {..}= DataFrame
              => Rec (Map (Vec n) b)
     _dfData' = Rec.distribute vrec'
 
+-- head :: forall n m idx a.
+--         ( Forall a Unconstrained1
+--         , LE m n
+--         , SNatI n
+--         , SNatI m
+--         )
+--      => DataFrame n idx a
+--      -> DataFrame m idx a
+-- head DataFrame {..} = DataFrame
+--   { dfIndex = Index.take dfIndex
+--   , dfData  = under_ f dfData
+--   }
+--   where
+--     f :: Forall a Unconstrained1 => Vec n (Rec a) -> Vec m (Rec a)
+--     f = Vec.take
+
+-- head_ :: ( Forall a Unconstrained1
+--          , LE Nat5 n
+--          , SNatI n
+--          )
+--       => DataFrame n idx a
+--       -> DataFrame Nat5 idx a
+-- head_ = head
+
 tail :: forall n m idx a.
-        ( Enum idx
-        , Eq idx
-        , Forall a Unconstrained1
+        ( Forall a Unconstrained1
         , LE m n
-        , Num idx
         , SNatI n
         , SNatI m
         )
      => DataFrame n idx a
      -> DataFrame m idx a
-tail _df@DataFrame {..} = DataFrame
-  { dfIndex = Index.drop dfIndex
-  , dfData  = panic "DF.tail.2" --under_ f dfData
+tail DataFrame {..} = DataFrame
+  { dfIndex = Index.tail dfIndex
+  , dfData  = under_ f dfData
   }
   where
-    -- f :: Forall a Unconstrained1 => Vec n (Rec a) -> Vec n (Rec a)
-    -- f = Vec.drop
-
-    -- n = panic "DF.tail -reify n"
-
-    -- m | n >= 0    = nrows df - n
-    --   | otherwise = negate n
+    f :: Vec n (Rec a)
+      -> Vec m (Rec a)
+    f = Vec.drop
 
 -- TODO replace the 'S's with math
 
-tail_ :: ( Enum idx
-         , Eq idx
-         , Forall a Unconstrained1
-         , LE n ('S ('S ('S ('S ('S n)))))
-         , Num idx
+tail_ :: ( Forall a Unconstrained1
+         , LE Nat5 n
          , SNatI n
          )
-      => DataFrame ('S ('S ('S ('S ('S n))))) idx a
-      -> DataFrame n idx a
+      => DataFrame n idx a
+      -> DataFrame Nat5 idx a
 tail_ = tail
 
 under :: forall n m idx a b.

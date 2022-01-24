@@ -19,18 +19,18 @@ spec_Tables = do
     it "should render properly" $
       Table.render t
         `shouldBe` Text.unlines
-          [ "name     | age val"
-          , "Jonathan | 46     "
-          , "Dave     | 52     "
+          [ "    name | age val"
+          , "Jonathan |      46"
+          , "    Dave |      52"
           ]
 
     it "should promote properly" $
       (Table.render . fromMaybe (panic "ahh!") . Table.promoteHeader $ t)
         `shouldBe` Text.unlines
-          [ "name     | age val"
+          [ "    name | age val"
           , "---------+--------"
-          , "Jonathan | 46     "
-          , "Dave     | 52     "
+          , "Jonathan |      46"
+          , "    Dave |      52"
           ]
 
   context "with example1 with headers" $ do
@@ -39,8 +39,8 @@ spec_Tables = do
     it "should render properly" $ do
       Table.render t
         `shouldBe` Text.unlines
-          [ "name     | age val"
+          [ "    name | age val"
           , "---------+--------"
-          , "Jonathan | 46     "
-          , "Dave     | 52     "
+          , "Jonathan |      46"
+          , "    Dave |      52"
           ]

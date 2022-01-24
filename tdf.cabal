@@ -62,7 +62,6 @@ test-suite tdf-test
   other-modules:
       CSVTest
       DataFrameTest
-      RangeIndexTest
       TableTest
       WidthsTest
       Paths_tdf

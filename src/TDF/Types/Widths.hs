@@ -25,7 +25,7 @@ pad :: Widths -> [Text] -> [Text]
 pad = zipWith padN . unWidths
 
 padN :: Int -> Text -> Text
-padN n s = s <> Text.replicate (n - Text.length s) " "
+padN n s = Text.replicate (n - Text.length s) " " <> s
 
 total :: Widths -> Int
 total = sum . unWidths

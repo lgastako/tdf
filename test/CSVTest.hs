@@ -8,7 +8,7 @@ import           TDF.Prelude
 
 import           Test.Tasty.Hspec
 
-import qualified Data.Vector      as Vector
+import qualified Data.Vec.Lazy    as Vec
 import qualified TDF.CSV          as CSV
 import           TDF.DataFrame              ( DataFrame )
 import qualified TDF.DataFrame    as DF
@@ -17,16 +17,17 @@ import           TDF.Examples               ( PersonFields )
 spec_CSV :: Spec
 spec_CSV = do
   context "with example.csv" $ do
-    df <- runIO $ (fromRight explode <$> CSV.fromHeadedCSV "example.csv")
-    let _ = df :: DataFrame Int PersonFields
+    df <- fromMaybe (panic "spec_CSV.1")
+          <$> runIO (fromRight explode <$> CSV.fromHeadedCSV "example.csv")
+    let _ = df :: DataFrame Nat6 Int PersonFields
 
     it "should have the right number of rows" $
       DF.nrows df `shouldBe` 6
 
     it "should have the right toVector" $
-      DF.toVector df
+      Just (DF.toVec df)
         `shouldBe`
-          Vector.fromList
+          Vec.fromList
             [ #age .== 46 .+ #name .== "John"
             , #age .== 21 .+ #name .== "Kaialynn"
             , #age .== 51 .+ #name .== "Zeke"

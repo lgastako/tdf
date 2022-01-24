@@ -54,7 +54,7 @@ example1 =
 
 expected1 :: [[Text]]
 expected1 =
-  [ ["name    ", "age val"]
-  , ["Jonathan", "46     "]
-  , ["Dave    ", "52     "]
+  [ ["    name", "age val"]
+  , ["Jonathan", "     46"]
+  , ["    Dave", "     52"]
   ]
