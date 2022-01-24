@@ -209,5 +209,5 @@ capitalize = DF.extendWith #capsName (\r -> Text.toUpper $ r .! #name)
 examples :: DataFrame Nat6 Int PersonFields
 examples = unsafePerformIO $ CSV.fromHeadedCSV "example.csv" >>= \case
   Left error      -> panic $ "Examples.examples.1: " <> show error
-  Right Nothing   -> panic $ "Examples.examples.2: Nothing"
+  Right Nothing   -> panic   "Examples.examples.2: Nothing"
   Right (Just df) -> pure df

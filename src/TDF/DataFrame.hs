@@ -164,7 +164,7 @@ fromList :: ( Forall a Unconstrained1
             )
          => [Rec a]
          -> Maybe (DataFrame n Int a)
-fromList = (fromVec =<<) . Vec.fromList
+fromList = fromVec <=< Vec.fromList
 
 fromNativeVec :: forall n t.
                  ( Rec.FromNative t
