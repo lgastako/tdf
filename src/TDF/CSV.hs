@@ -38,18 +38,20 @@ data Error
 fromHeadedCSV :: ( AllUniqueLabels a
                  , Forall a FromField
                  , Forall a Unconstrained1
+                 , SNatI n
                  )
               => FilePath
-              -> IO (Either Error (DataFrame Int a))
+              -> IO (Either Error (Maybe (DataFrame n Int a)))
 fromHeadedCSV path = (recFromCSV <$> readFile path)
   <&> either (Left . FromCSVError)
              (Right . DF.fromList)
 
 toHeadedCSV :: ( Forall a ToField
                , Forall a Unconstrained1
+               , SNatI n
                )
             => FilePath
-            -> DataFrame idx a
+            -> DataFrame n idx a
             -> IO ()
 toHeadedCSV path = writeFile path . recToCSV . DF.toList
 

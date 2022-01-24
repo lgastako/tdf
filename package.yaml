@@ -19,15 +19,21 @@ ghc-options:
 - -Wall
 
 dependencies:
-- base            # >= 4.7 && < 5
+- base            >= 4.7 && < 5
 - deepseq
-- ghc-datasize
+- fin
 - protolude
-#- row-extras
-- row-types       >= 1.0.0.0
+- row-types
 - text
 - unordered-containers
-- vector
+- vec
+
+# - ghc-datasize
+# - ghc-heap      == 8.10.7
+
+# - fixed-vector
+# - row-types       >= 1.0.0.0
+# - vector
 
 library:
   source-dirs: src

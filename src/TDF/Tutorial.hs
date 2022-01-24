@@ -1,4 +1,6 @@
 {-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TypeOperators     #-}
 
@@ -13,13 +15,13 @@ import qualified TDF.Series    as Series
 
 type PersonFields = NameFields .+ AgeFields
 
-type VecPersonFields =
-  (  "name" .== Vector Text
-  .+ "age"  .== Vector Int
+type VecPersonFields (n :: Nat) =
+  (  "name" .== Vec n Text
+  .+ "age"  .== Vec n Int
   )
 
-type    Person = Rec    PersonFields
-type VecPerson = Rec VecPersonFields
+type    Person   = Rec     PersonFields
+type VecPerson n = Rec (VecPersonFields n)
 
 type PlayerFields =
   (  "name" .== Text
@@ -42,19 +44,21 @@ type FullPerson = Rec FullPersonFields
 
 type NameRec = Rec NameFields
 
-readExamplesIO :: IO (DataFrame Int PersonFields)
+readExamplesIO :: SNatI n
+               => IO (Maybe (DataFrame n Int PersonFields))
 readExamplesIO = either explode identity <$> CSV.fromHeadedCSV "example.csv"
   where
     explode error = panic . show $ error
 
 seriesFromDF :: IO ()
-seriesFromDF = do
-  (examples :: DataFrame Int PersonFields) <- readExamplesIO
-  nl
-  DF.display examples
-  let series = DF.series #age examples
-  nl
-  Series.display series
+seriesFromDF = readExamplesIO >>= \case
+  Nothing -> panic "invalid csv - maybe not 7 rows (6 + header)?"
+  Just (examples :: DataFrame Nat6 Int PersonFields) -> do
+    nl
+    DF.display examples
+    let series = DF.series #age examples
+    nl
+    Series.display series
 
 nl :: IO ()
 nl = putText ""

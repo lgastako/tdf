@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedLabels  #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -15,24 +16,24 @@ import           TDF.Prelude                hiding ( drop
 
 import qualified Data.Row.Records as Rec
 import qualified Data.Text        as Text
-import qualified Data.Vector      as Vector
+import qualified Data.Vec.Lazy    as Vec
 import           TDF.DataFrame                     ( Axes
                                                    , DataFrame
                                                    )
-import qualified TDF.DataFrame    as DF
 import qualified TDF.CSV          as CSV
-import qualified TDF.Types.SAI    as SA
+import qualified TDF.DataFrame    as DF
+import qualified TDF.Options      as Options
 import           System.IO.Unsafe                  ( unsafePerformIO )
 
 type PersonFields = NameFields .+ AgeFields
 
-type VecPersonFields =
-  (  "name" .== Vector Text
-  .+ "age"  .== Vector Int
+type VecPersonFields (n :: Nat) =
+  (  "name" .== Vec n Text
+  .+ "age"  .== Vec n Int
   )
 
-type    Person = Rec    PersonFields
-type VecPerson = Rec VecPersonFields
+type    Person   = Rec     PersonFields
+type VecPerson n = Rec (VecPersonFields n)
 
 type PlayerFields =
   (  "name" .== Text
@@ -79,13 +80,14 @@ greet :: (r ≈ "name" .== Text)
       -> Text
 greet = ("Hello " <>) . (.! #name)
 
-df1 :: DataFrame Int PersonFields
+df1 :: DataFrame Nat2 Int PersonFields
 df1 = DF.fromList
   [ person
   , person2
   ]
+  & fromMaybe (panic "Examples.df1")
 
-df1Renamed :: DataFrame Int FullPersonFields
+df1Renamed :: DataFrame Nat2 Int FullPersonFields
 df1Renamed = DF.rename #name #fullName df1
 
 -- TODO can we make it easy to do the same thing with just "age" (or #age) to
@@ -93,62 +95,60 @@ df1Renamed = DF.rename #name #fullName df1
 --      type of "age" is in in df1?  maybe we don't want to lose the type info?
 --      so perhaps DF.restrict replaces both select_types and whatever other
 --      subsetting facilities? let's assume so for now.
-ages :: DataFrame Int ("age" .== Int)
+ages :: DataFrame Nat2 Int ("age" .== Int)
 ages = DF.restrict df1
 
 df1Axes :: Axes Int
 df1Axes = DF.axes df1
 
 -- Neat.
-df1Restricted :: DataFrame Int NameFields
+df1Restricted :: DataFrame Nat2 Int NameFields
 df1Restricted = DF.restrict df1
 
-df1' :: DataFrame Int PersonFields
+df1' :: DataFrame Nat2 Int PersonFields
 df1' = DF.reindex [0, 1] df1
 
 -- λ> DF.memSize df1'
 -- 1096
 -- Yeesh that's a lot of overhead for [{name:Alex,age:23},{name:Dave,age:45}]
 
-df1'' :: DataFrame Int (PersonFields .+ "foo" .== Text)
+df1'' :: DataFrame Nat2 Int (PersonFields .+ "foo" .== Text)
 df1'' = DF.map (\x -> x .+ #foo .== ("bar" ::Text)) df1'
 
-df2 :: DataFrame Int NameFields
+df2 :: DataFrame Nat2 Int NameFields
 df2 = DF.map justName df1
 
-df3' :: DataFrame Int (PersonFields .+ "fullName" .== Text)
+df3' :: DataFrame Nat2 Int (PersonFields .+ "fullName" .== Text)
 df3' = DF.map plusFull df1
 
-df3 :: DataFrame Int NameFields
+df3 :: DataFrame Nat2 Int NameFields
 df3 = DF.column #name df1
 
-df6 :: DataFrame Int PersonFields
-df6 = DF.fromNativeVector nativeVector
+-- df6 :: DataFrame Int PersonFields
+-- df6 = DF.fromNativeVector nativeVector
 
-nativeVector :: Vector Person'
-nativeVector = Vector.fromList
+nativeVector :: Vec Nat3 Person'
+nativeVector = Vec.fromList
   [ Person' "bob"  86
   , Person' "dave" 55
   , Person' "john" 46
   ]
+  & fromMaybe (panic "nativeVector")
 
-something :: VecPerson
-something = Rec.distribute . DF.toVector $ df6
+-- something :: VecPerson
+-- something = Rec.distribute . DF.toVec $ df6
 
-person's :: [Person']
-person's = Vector.toList . DF.toNativeVector $ df6
+-- person's :: [Person']
+-- person's = Vec.toList . DF.toNativeVec $ df6
 
 -- Example from
 --   https://pandas.pydata.org/pandas-docs/version/0.23.0/generated/pandas.Series.tail.html
-animals :: DataFrame Int ("animal" .== Text)
-animals = DF.construct o
+animals :: DataFrame Nat9 Int ("animal" .== Text)
+animals = DF.construct $ Options.fromVec v
   where
-    o = DF.opts
-      { DF.optData  = Vector.fromList . map mkRec $ animalNames
-      -- TODO make this the default construction logic
-      --  .. TODO improve construction in general
-      , DF.optIndex = SA.defaultFor animalNames
-      }
+    v :: Vec Nat9 (Rec ("animal" .== Text))
+    v = (Vec.fromList . map mkRec $ animalNames)
+          & fromMaybe (panic "Examples.animals.1")
 
     mkRec a = #animal .== a
 
@@ -183,7 +183,7 @@ toTexts' :: Rec NameFields -> [Text]
 toTexts' rp = [ rp .! #name ]
 
 indexTest :: Bool
-indexTest = DF.index df1 == Vector.fromList [0, 1]
+indexTest = Just (DF.index df1) == Vec.fromList [0, 1]
 
 rd :: IO ()
 rd = putStr rendered
@@ -191,7 +191,7 @@ rd = putStr rendered
 displayDf1 :: IO ()
 displayDf1 = DF.display df1
 
-flagged :: DataFrame Int (PersonFields .+ "flagged" .== Bool)
+flagged :: DataFrame Nat2 Int (PersonFields .+ "flagged" .== Bool)
 flagged = DF.extend #flagged False df1
 
 plusFull :: Rec PersonFields
@@ -200,15 +200,14 @@ plusFull r = Rec.extend #fullName fname r
   where
     fname = r .! #name
 
-capitalize :: DataFrame Int PersonFields
-           -> DataFrame Int (PersonFields .+ "capsName" .== Text)
+capitalize :: SNatI n
+           => DataFrame n Int PersonFields
+           -> DataFrame n Int (PersonFields .+ "capsName" .== Text)
 capitalize = DF.extendWith #capsName (\r -> Text.toUpper $ r .! #name)
 
 {-# NOINLINE examples #-}
-examples :: DataFrame Int PersonFields
-examples = unsafePerformIO (f <$> CSV.fromHeadedCSV "example.csv")
-  where
-    f :: Either CSV.Error (DataFrame Int PersonFields)
-      -> DataFrame Int PersonFields
-    f (Right x) = x
-    f (Left error) = panic .show $ error
+examples :: DataFrame Nat6 Int PersonFields
+examples = unsafePerformIO $ CSV.fromHeadedCSV "example.csv" >>= \case
+  Left error      -> panic $ "Examples.examples.1: " <> show error
+  Right Nothing   -> panic $ "Examples.examples.2: Nothing"
+  Right (Just df) -> pure df

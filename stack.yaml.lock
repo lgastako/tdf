@@ -5,36 +5,16 @@
 
 packages:
 - completed:
-    hackage: constraints-0.12@sha256:7edf1e72a92d0a6761da634f08be9123dfcc0dcec11c269cbf465a09721c3481,2322
-    pantry-tree:
-      size: 867
-      sha256: c3422b7121927dd912d2b2b40d12f8addd991b83933d9f1415dfac883ada0c46
-  original:
-    hackage: constraints-0.12@sha256:7edf1e72a92d0a6761da634f08be9123dfcc0dcec11c269cbf465a09721c3481,2322
-- completed:
-    hackage: ghc-datasize-0.2.2@sha256:3c2afb582a1cf0702c2ccdb0465dad090695e397179848b78b24cc24f02351bd,1140
-    pantry-tree:
-      size: 216
-      sha256: f4993b300a3c23c9b7efef2f21aee737ce0570e20e958f10bb732e076255971b
-  original:
-    hackage: ghc-datasize-0.2.2@sha256:3c2afb582a1cf0702c2ccdb0465dad090695e397179848b78b24cc24f02351bd,1140
-- completed:
     hackage: row-types-1.0.1.2@sha256:5c56e91d30b61f275eaee0d97b015d5332d95d7599e57582d6e62a43aa388087,2948
     pantry-tree:
       size: 1060
       sha256: 5fb893f6e14aff59d6f2be39b4b288c66d53551f746c44edd0d069487ce167bd
   original:
-    hackage: row-types-1.0.1.2
-- completed:
-    hackage: type-equality-1@sha256:bb3a34a93ad02866763b325e889ea9f5aa31f7428e32dcaa1cf14015bd21b9cb,1597
-    pantry-tree:
-      size: 313
-      sha256: ea121a8b58ce43a4f1f7556cc73e8c2b8b71950d9ccf35252fd3e9c3514c8798
-  original:
-    hackage: type-equality-1@sha256:bb3a34a93ad02866763b325e889ea9f5aa31f7428e32dcaa1cf14015bd21b9cb,1597
+    hackage: row-types-1.0.1.2@sha256:5c56e91d30b61f275eaee0d97b015d5332d95d7599e57582d6e62a43aa388087,2948
 snapshots:
 - completed:
-    size: 524996
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/14/27.yaml
-    sha256: 7ea31a280c56bf36ff591a7397cc384d0dff622e7f9e4225b47d8980f019a0f0
-  original: lts-14.27
+    size: 586120
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/22.yaml
+    sha256: f9970d6f25c63e3e4265aa8e9c69a047ba8919d1107e4996bdd7555b75aad0eb
+  original:
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/22.yaml

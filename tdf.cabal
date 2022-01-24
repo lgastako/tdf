@@ -30,12 +30,13 @@ library
       TDF.CSV
       TDF.DataFrame
       TDF.Examples
+      TDF.Index
+      TDF.Options
       TDF.Prelude
       TDF.Series
       TDF.Tutorial
       TDF.Types.FromField
       TDF.Types.Positive
-      TDF.Types.SII
       TDF.Types.Table
       TDF.Types.ToField
       TDF.Types.Widths
@@ -45,14 +46,14 @@ library
       src
   ghc-options: -Wall
   build-depends:
-      base
+      base >=4.7 && <5
     , deepseq
-    , ghc-datasize
+    , fin
     , protolude
-    , row-types >=1.0.0.0
+    , row-types
     , text
     , unordered-containers
-    , vector
+    , vec
   default-language: Haskell2010
 
 test-suite tdf-test
@@ -69,11 +70,11 @@ test-suite tdf-test
       test
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base
+      base >=4.7 && <5
     , deepseq
-    , ghc-datasize
+    , fin
     , protolude
-    , row-types >=1.0.0.0
+    , row-types
     , tasty
     , tasty-discover
     , tasty-hedgehog
@@ -82,5 +83,5 @@ test-suite tdf-test
     , tdf
     , text
     , unordered-containers
-    , vector
+    , vec
   default-language: Haskell2010
