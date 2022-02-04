@@ -14,6 +14,7 @@ We take vectors of rows as input and turn it into rows of vectors to operate on.
 ** BIG TODO: mutability **
 
 - TODO List:
+  - Add usecols and nrows functionality to CSV reader
   - Tests to ensure indexes are properly preserved along the lines of
     whatever Pandas does
   - Add rows

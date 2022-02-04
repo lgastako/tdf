@@ -1,8 +1,17 @@
 help:
 	@cat Makefile
 
+DOCKER_TAG?=latest
+DOCKER_IMAGE:=tdf
+
+DOCKER:=docker
+DOCKER_URI:=$(DOCKER_IMAGE):$(DOCKER_TAG)
 PYTHON3=python3
 PIP=pip
+
+PWD_MOUNT?=$(PWD)
+
+.PHONY: test
 
 # To activate the python virtual env (after appropriate steps below)
 #
@@ -15,6 +24,12 @@ install-virtualenv:
 
 create-env:
 	$(PYTHON3) -m venv env
+
+build-ihaskell:
+	docker build . -t $(DOCKER_URI)
+
+ihaskell:
+	$(DOCKER) run --rm -p 8888:8888 -v $(PWD_MOUNT):/home/jovyan/pwd --name ihaskell_notebook $(DOCKER_URI) jupyter lab --LabApp.token=''
 
 install-pandas:
 	$(PIP) install pandas
@@ -34,5 +49,3 @@ watch:
 hl: hlint
 t: test
 w: watch
-
-.PHONY: test
