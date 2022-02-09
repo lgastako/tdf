@@ -1,3 +1,4 @@
+{-# LANGUAGE AllowAmbiguousTypes  #-}
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE FlexibleContexts     #-}
@@ -14,6 +15,8 @@
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+{-# OPTIONS_GHC -Wno-unticked-promoted-constructors #-}
+
 module TDF.DataFrame
   ( Axes( Axes
         , columnLabels
@@ -23,6 +26,7 @@ module TDF.DataFrame
   , Verbosity(..)
   , at
   , axes
+  , colMap
   , column
   , columnVec
   , columns
@@ -63,9 +67,11 @@ module TDF.DataFrame
   , toTexts
   , toVec
   , under
+  , valueCounts
   ) where
 
 import           TDF.Prelude              hiding ( empty
+                                                 , foldr
                                                  , head
                                                  , map
                                                  , toList
@@ -80,6 +86,11 @@ import           Data.Dynamic                    ( Dynamic
 import           Data.HashMap.Strict             ( HashMap )
 import qualified Data.HashMap.Strict  as HashMap
 import qualified Data.List            as List
+import qualified Data.Map.Strict      as Map
+-- import           Data.Row.Internal               ( Row( R )
+--                                                  , LT( (:->) )
+-- --                                                 , Rec( (.\\) )
+--                                                  )
 import qualified Data.Row.Records     as Rec
 import           Data.String                     ( String )
 import qualified Data.Vec.Lazy        as Vec
@@ -92,8 +103,7 @@ import           TDF.Types.ToField               ( ToField )
 import           TDF.Series                      ( Series )
 import qualified TDF.Series           as Series
 
-import qualified Data.Row.Internal
---import  qualified GHC.DataSize         as Data
+import Data.Row.Internal
 
 data DataFrame (n :: Nat) idx a = DataFrame
   { dfIndex :: Index n idx
@@ -140,6 +150,25 @@ column :: forall n r idx k v rest.
        -> DataFrame n idx (r .+ rest)
        -> DataFrame n idx r
 column _ = map Rec.restrict
+
+colMap :: forall n idx a b k v v' r r' rest.
+          ( Disjoint r rest
+          , Disjoint rest r'
+          , Forall a Unconstrained1
+          , Forall b Unconstrained1
+          , KnownSymbol k
+          , a ~ (r .+ rest)
+          , b ~ (rest .+ r')
+          , r  ≈ k .== v
+          , r' ≈ k .== v'
+          )
+       => (Rec a -> Rec b)
+       -> DataFrame n idx a
+       -> DataFrame n idx b
+colMap f df = map f df
+  where
+    _ = f  :: Rec a -> Rec b
+    _ = df :: DataFrame n idx a
 
 -- https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame
 construct :: forall n idx a.
@@ -254,6 +283,15 @@ head_ :: ( Forall a Unconstrained1
       -> DataFrame Nat5 idx a
 head_ = head
 
+map :: forall n idx a b.
+       ( Forall a Unconstrained1
+       , Forall b Unconstrained1
+       )
+    => (Rec a -> Rec b)
+    -> DataFrame n idx a
+    -> DataFrame n idx b
+map f = onVec (Vec.map f)
+
 onVec :: forall n m idx a b.
          ( Forall a Unconstrained1
          , Forall b Unconstrained1
@@ -274,15 +312,6 @@ onVec _f DataFrame {- {..} -} {} = DataFrame
 
   --   -- TODO update indexes instead of dfLength' above
   --   dfIndex' = dfIndex
-
-map :: forall n idx a b.
-       ( Forall a Unconstrained1
-       , Forall b Unconstrained1
-       )
-    => (Rec a -> Rec b)
-    -> DataFrame n idx a
-    -> DataFrame n idx b
-map f = onVec (Vec.map f)
 
 over :: forall n idx a b.
         ( Forall a Unconstrained1
@@ -583,10 +612,7 @@ series :: forall n idx k r rest v.
           , Disjoint r rest
           , (Map (Vec n) r .! k) ~ Vec n (r .! k)
           , KnownSymbol k
-          , (Map (Vec n)
-              ('Data.Row.Internal.R '[ k 'Data.Row.Internal.:-> v] .+ rest)
-              .! k)
-            ~ Vec n v
+          , (Map (Vec n) (R '[ k :-> v] .+ rest) .! k) ~ Vec n v
           )
        => Label k
        -> DataFrame n idx (r .+ rest)
@@ -654,6 +680,31 @@ toVec :: ( Forall a Unconstrained1
       => DataFrame n idx a
       -> Vec n (Rec a)
 toVec DataFrame {..} = Rec.sequence dfData
+
+valueCounts :: forall n idx r k v rest.
+               ( r ≈ k .== v
+               , Disjoint r rest
+               , KnownSymbol k
+               , Ord v
+               , (Map (Vec n) (R '[ k :-> v] .+ rest) .! k) ~ Vec n v
+               )
+            => Label k
+            -> DataFrame n idx (r .+ rest)
+            -> Map.Map v Int
+valueCounts k = colFoldr k (flip (Map.insertWith (+)) 1) mempty
+
+colFoldr :: forall n idx r k v rest b.
+            ( r ≈ k .== v
+            , Disjoint r rest
+            , KnownSymbol k
+            , (Map (Vec n) ('R '[ k :-> v] .+ rest) .! k) ~ Vec n v
+            )
+         => Label k
+         -> (v -> b -> b)
+         -> b
+         -> DataFrame n idx (r .+ rest)
+         -> b
+colFoldr k f z df = Vec.foldr f z ( columnVec k df )
 
 -- ================================================================ --
 --  Helpers

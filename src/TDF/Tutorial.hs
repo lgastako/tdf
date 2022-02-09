@@ -47,20 +47,35 @@ type FullPerson = Rec FullPersonFields
 
 type NameRec = Rec NameFields
 
+seriesFromDF :: IO ()
+seriesFromDF = withExamples
+  $ \(examples :: DataFrame Nat6 Int PersonFields) -> do
+        nl
+        DF.display examples
+        let series = DF.series #age examples
+        nl
+        Series.display series
+        nl
+
+headDemo :: IO ()
+headDemo = withExamples
+  $ \(examples :: DataFrame Nat6 Int PersonFields) -> do
+        nl
+        DF.display examples
+        let top3 :: DataFrame Nat3 Int PersonFields
+            top3 = DF.head examples
+        nl
+        DF.display top3
+        nl
+
+-- ================================================================ --
+--  Helpers
+-- ================================================================ --
 readExamplesIO :: SNatI n
                => IO (Maybe (DataFrame n Int PersonFields))
 readExamplesIO = either explode identity <$> CSV.fromHeadedCSV "example.csv"
   where
     explode error = panic . show $ error
-
-seriesFromDF :: IO ()
-seriesFromDF = withExamples $
-  \(examples :: DataFrame Nat6 Int PersonFields) -> do
-    nl
-    DF.display examples
-    let series = DF.series #age examples
-    nl
-    Series.display series
 
 withExamples :: SNatI n
              => (DataFrame n Int PersonFields -> IO ())

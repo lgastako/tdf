@@ -124,8 +124,8 @@ df3' = DF.map plusFull df1
 df3 :: DataFrame Nat2 Int NameFields
 df3 = DF.column #name df1
 
--- df6 :: DataFrame Int PersonFields
--- df6 = DF.fromNativeVector nativeVector
+df6 :: DataFrame Nat3 Int PersonFields
+df6 = DF.fromNativeVec nativeVector
 
 nativeVector :: Vec Nat3 Person'
 nativeVector = Vec.fromList
@@ -135,11 +135,11 @@ nativeVector = Vec.fromList
   ]
   & fromMaybe (panic "nativeVector")
 
--- something :: VecPerson
--- something = Rec.distribute . DF.toVec $ df6
+something :: VecPerson Nat3
+something = Rec.distribute . DF.toVec $ df6
 
--- person's :: [Person']
--- person's = Vec.toList . DF.toNativeVec $ df6
+person's :: [Person']
+person's = Vec.toList . DF.toNativeVec $ df6
 
 -- Example from
 --   https://pandas.pydata.org/pandas-docs/version/0.23.0/generated/pandas.Series.tail.html
