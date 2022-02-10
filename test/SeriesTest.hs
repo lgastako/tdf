@@ -1,16 +1,12 @@
-{-# LANGUAGE MonomorphismRestriction #-}
-{-# LANGUAGE NoImplicitPrelude       #-}
-{-# LANGUAGE OverloadedStrings       #-}
-{-# LANGUAGE ScopedTypeVariables     #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module SeriesTest where
 
 import           TDF.Prelude
 
-import qualified Data.Set         as Set
 import           Orphans                    ()
 import           Test.Tasty.Hspec
-import           Test.QuickCheck
 import qualified TDF.Index        as Index
 import           TDF.Series                 ( Series )
 import qualified TDF.Series       as Series
@@ -30,18 +26,15 @@ spec_Series = do
     it "should self append" $
       length ss `shouldBe` 6
 
-prop_Append_NonOverlappingIndices :: Series Nat2 Int Bool
-                                  -> Series Nat3 Int Bool
-                                  -> Property
-prop_Append_NonOverlappingIndices a b =
-  Set.size idxSet
-  ===
-  length ab
-  where
-    idxSet = Set.fromList . Vec.toList $ uniqIdxes
+    it "should produce these exact indexes" $ do
+      let ab :: Series Nat3 Int Bool
+          ab = Series.append a b
 
-    uniqIdxes :: Vec Nat5 Int
-    uniqIdxes = Index.toVec idx
+          a :: Series Nat1 Int Bool
+          Just a = Series.fromList [True]
 
-    idx = Series.index ab
-    ab  = Series.append a b
+          b :: Series Nat2 Int Bool
+          Just b = Series.fromList [False, False]
+
+      (Vec.toList . Index.toVec . Series.index $ ab)
+        `shouldBe` [0, 1, 2]

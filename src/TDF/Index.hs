@@ -84,33 +84,39 @@ append :: forall n m idx.
        => Index n idx
        -> Index m idx
        -> Index (Plus n m) idx
-append (Index a) (Index b) = Index $ (Vec.++) a b'
+append (Index a) (Index b) = Index
+  . (Vec.++) a
+  . Vec.map (+offset)
+  $ b
   where
-    b' :: Vec m idx
-    b' = Vec.map adjust b
-
-    adjust :: idx -> idx
-    adjust = (+offset)
-
     offset :: idx
-    offset = delta
-    -- offset | delta > 0 = delta
-    --        | otherwise = 0
+    offset | delta >= 1 = 0
+           | otherwise = maxLeft - minRight + 1
 
-    delta = maxLeft - minRight
-
+    delta    = minRight - maxLeft
     maxLeft  = maximum a
     minRight = minimum b
 
--- append (Index as) (Index bbs) = Index . (Vec.++) as $ bs'
---   where
---     bs' :: Vec m idx
---     bs' = undefined
+--  (0, 2)       (3, 5)
+--  [0, 1, 2]    [3, 4, 5]
+--
+--    maxLeft=2
+--    minRight=3
 
---     -- bs' | Vec.null b = b
---     --     | otherwise  = panic "ah"
+--  (0, 2)       (0, 2)
+--  [0, 1, 2]    [0, 1, 2]
+--
+--    maxLeft=2
+--    minRight=0
 
---     (b, bs) = (Vec.head bbs, Vec.tail bbs)
+--  (0, 2)       (1, 3)
+--  [0, 1, 2]    [1, 2, 3]
+--
+--    maxLeft=2
+--    minRight=1
+--    delta = 2
+
+
 
 drop :: forall n m idx.
         ( LE n m

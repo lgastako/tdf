@@ -63,6 +63,7 @@ test-suite tdf-test
   other-modules:
       CSVTest
       DataFrameTest
+      IndexTest
       Orphans
       SeriesTest
       TableTest
