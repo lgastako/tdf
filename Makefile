@@ -9,6 +9,11 @@ DOCKER_URI:=$(DOCKER_IMAGE):$(DOCKER_TAG)
 PYTHON3=python3
 PIP=pip
 
+IHASKELL_HOST_PORT=$(IHASKELL_CONTAINER_PORT)
+IHASKELL_CONTAINER_PORT=8888   # Probably should not change this
+
+PASSWORD?=""
+
 PWD_MOUNT?=$(PWD)
 
 .PHONY: test
@@ -29,7 +34,13 @@ build-ihaskell:
 	docker build . -t $(DOCKER_URI)
 
 ihaskell:
-	$(DOCKER) run --rm -p 8888:8888 -v $(PWD_MOUNT):/home/jovyan/pwd --name ihaskell_notebook $(DOCKER_URI) jupyter lab --LabApp.token=''
+	$(DOCKER) run \
+		--rm \
+		-p 8888:8888 \
+		-v $(PWD_MOUNT):/home/jovyan/pwd \
+		--name ihaskell_notebook \
+		$(DOCKER_URI) jupyter lab \
+		--LabApp.token=${PASSWORD}
 
 install-pandas:
 	$(PIP) install pandas
