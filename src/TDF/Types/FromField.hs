@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module TDF.Types.FromField
@@ -36,6 +37,9 @@ instance FromField LByteString where
 
 instance FromField String where
   fromField = Right . cs
+
+instance FromField Float where
+  fromField = Right . fromMaybe (panic "boom") . readMaybe . cs
 
 genericReadFF :: ( Read b
                  , StringConv a String

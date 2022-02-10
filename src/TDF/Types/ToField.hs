@@ -28,3 +28,7 @@ instance ToField Int where
 
 instance ToField String where
   toField = Text.pack
+
+-- TODO uhhhh
+instance ToField Float where
+  toField = Text.pack . show

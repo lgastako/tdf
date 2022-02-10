@@ -26,7 +26,7 @@ module TDF.DataFrame
   , Verbosity(..)
   , at
   , axes
-  , colMap
+--  , colMap
   , column
   , columnVec
   , columns
@@ -77,9 +77,6 @@ import           TDF.Prelude              hiding ( empty
                                                  , toList
                                                  )
 
--- import           Control.DeepSeq                 ( ($!!)
---                                                  , NFData
---                                                  )
 import           Data.Dynamic                    ( Dynamic
                                                  , fromDynamic
                                                  )
@@ -87,10 +84,6 @@ import           Data.HashMap.Strict             ( HashMap )
 import qualified Data.HashMap.Strict  as HashMap
 import qualified Data.List            as List
 import qualified Data.Map.Strict      as Map
--- import           Data.Row.Internal               ( Row( R )
---                                                  , LT( (:->) )
--- --                                                 , Rec( (.\\) )
---                                                  )
 import qualified Data.Row.Records     as Rec
 import           Data.String                     ( String )
 import qualified Data.Vec.Lazy        as Vec
@@ -151,25 +144,6 @@ column :: forall n r idx k v rest.
        -> DataFrame n idx r
 column _ = map Rec.restrict
 
-colMap :: forall n idx a b k v v' r r' rest.
-          ( Disjoint r rest
-          , Disjoint rest r'
-          , Forall a Unconstrained1
-          , Forall b Unconstrained1
-          , KnownSymbol k
-          , a ~ (r .+ rest)
-          , b ~ (rest .+ r')
-          , r  ≈ k .== v
-          , r' ≈ k .== v'
-          )
-       => (Rec a -> Rec b)
-       -> DataFrame n idx a
-       -> DataFrame n idx b
-colMap f df = map f df
-  where
-    _ = f  :: Rec a -> Rec b
-    _ = df :: DataFrame n idx a
-
 -- https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame
 construct :: forall n idx a.
              Forall a Unconstrained1
@@ -178,9 +152,6 @@ construct :: forall n idx a.
 construct opts = DataFrame dfIndex d
   where
     dfIndex = Options.optIndex opts
-
-    -- dfIndexes :: [idx]
-    -- dfIndexes = indexesOver optIndexes optData
 
     d :: Forall a Unconstrained1 => Rec (Map (Vec n) a)
     d = Rec.distribute . Options.optData $ opts
@@ -299,16 +270,22 @@ onVec :: forall n m idx a b.
       => (Vec n (Rec a) -> Vec m (Rec b))
       -> DataFrame n idx a
       -> DataFrame m idx b
-onVec _f DataFrame {- {..} -} {} = DataFrame
-  { dfIndex = panic "DF.onVec.1"
-  , dfData  = panic "DF.onVec.2"
+onVec _f DataFrame {} {-{..}-} = DataFrame
+  { dfIndex = dfIndex'
+  , dfData  = dfData'
   }
-  -- where
+  where
+    dfIndex' = identity dfIndex'  -- TODO
+    dfData'  = panic "onVec.dfData'"
+
   --   _ = dfData :: Rec (Map (Vec n) a)
-  --   (dfData', _dfLength') = ((,) <$> Rec.distribute <*> Vec.length)
-  --                           . f
-  --                           . Rec.sequence
-  --                           $ dfData
+
+    -- (dfData', dfIndex') = ((,) <$> Rec.distribute <*> reindex')
+    --                         . f
+    --                         . Rec.sequence
+    --                         $ dfData
+
+    -- reindex' = panic "reindex'"
 
   --   -- TODO update indexes instead of dfLength' above
   --   dfIndex' = dfIndex
