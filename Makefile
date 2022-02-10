@@ -2,7 +2,7 @@ help:
 	@cat Makefile
 
 DOCKER_TAG?=latest
-DOCKER_IMAGE:=tdf
+DOCKER_IMAGE:=gibiansky/ihaskell
 
 DOCKER:=docker
 DOCKER_URI:=$(DOCKER_IMAGE):$(DOCKER_TAG)
@@ -30,14 +30,11 @@ install-virtualenv:
 create-env:
 	$(PYTHON3) -m venv env
 
-build-ihaskell:
-	docker build . -t $(DOCKER_URI)
-
 ihaskell:
 	$(DOCKER) run \
 		--rm \
-		-p 8888:8888 \
-		-v $(PWD_MOUNT):/home/jovyan/pwd \
+		-p $(IHASKELL_HOST_PORT):$(IHASKELL_CONTAINER_PORT) \
+		-v $(PWD_MOUNT):/home/jovyan/src \
 		--name ihaskell_notebook \
 		$(DOCKER_URI) jupyter lab \
 		--LabApp.token=${PASSWORD}

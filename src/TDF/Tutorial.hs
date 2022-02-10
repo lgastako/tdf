@@ -73,7 +73,7 @@ headDemo = withExamples
 -- ================================================================ --
 readExamplesIO :: SNatI n
                => IO (Maybe (DataFrame n Int PersonFields))
-readExamplesIO = either explode identity <$> CSV.fromHeadedCSV "example.csv"
+readExamplesIO = either explode identity <$> CSV.fromHeadedCSV "data/example.csv"
   where
     explode error = panic . show $ error
 
