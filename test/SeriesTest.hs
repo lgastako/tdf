@@ -38,7 +38,6 @@ prop_Append_NonOverlappingIndices a b =
   ===
   length ab
   where
-    idxSet :: Set Int
     idxSet = Set.fromList . Vec.toList $ uniqIdxes
 
     uniqIdxes :: Vec Nat5 Int
