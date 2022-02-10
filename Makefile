@@ -2,7 +2,8 @@ help:
 	@cat Makefile
 
 DOCKER_TAG?=latest
-DOCKER_IMAGE:=gibiansky/ihaskell
+DOCKER_IMAGE:=tdf
+#DOCKER_IMAGE:=gibiansky/ihaskell
 
 DOCKER:=docker
 DOCKER_URI:=$(DOCKER_IMAGE):$(DOCKER_TAG)
@@ -10,7 +11,8 @@ PYTHON3=python3
 PIP=pip
 
 IHASKELL_HOST_PORT=$(IHASKELL_CONTAINER_PORT)
-IHASKELL_CONTAINER_PORT=8888   # Probably should not change this
+# Don't change IHASKELL_CONTAINER_PORT unless you know what you are doing
+IHASKELL_CONTAINER_PORT=8888
 
 PASSWORD?=""
 
@@ -30,6 +32,9 @@ install-virtualenv:
 create-env:
 	$(PYTHON3) -m venv env
 
+build-ihaskell:
+	docker build . -t $(DOCKER_URI)
+
 ihaskell:
 	$(DOCKER) run \
 		--rm \
@@ -37,7 +42,7 @@ ihaskell:
 		-v $(PWD_MOUNT):/home/jovyan/src \
 		--name ihaskell_notebook \
 		$(DOCKER_URI) jupyter lab \
-		--LabApp.token=${PASSWORD}
+		--ServerApp.token=${PASSWORD}
 
 install-pandas:
 	$(PIP) install pandas

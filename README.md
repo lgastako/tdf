@@ -32,6 +32,8 @@ We take vectors of rows as input and turn it into rows of vectors to operate on.
   - TODOs in code... in particular:
     - eliminating the Forall on column counts and the like
 
+  - Look into https://hackage.haskell.org/package/accelerate-1.3.0.0/docs/Data-Array-Accelerate.html
+
 ## More
 
 Possibly good thing to try for comparison:
