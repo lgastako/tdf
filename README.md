@@ -43,4 +43,3 @@ We take vectors of rows as input and turn it into rows of vectors to operate on.
 
 Possibly good thing to try for comparison:
 - https://www.architecture-performance.fr/ap_blog/loading-data-into-a-pandas-dataframe-a-performance-study/
-
