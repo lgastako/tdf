@@ -9,8 +9,10 @@ You can see some examples of manipulating CSV files with data frames on the
 following pages:
 
 https://pypancsv.github.io/pypancsv/quickexamples/#first-the-csv-files-within-the-examples
+https://www.geeksforgeeks.org/python-pandas-dataframe/
 
-You can find the CSV files from those sites in the `test/fixtures` directory.
+You can find some of the CSV files from those sites in the `test/fixtures`
+directory.
 
 ## Notes
 

@@ -8,6 +8,14 @@ RUN apt-get update -y -q && apt-get install -y neovim
 
 ADD . $SRC
 RUN $FP $SRC
+
+USER $NB_UID
+
+WORKDIR $SRC
+RUN stack install
+
+USER root
+
 RUN cp $IH/stack.yaml $IH/stack.yaml.orig
 RUN cp $IH/ihaskell.cabal $IH/ihaskell.cabal.orig
 
