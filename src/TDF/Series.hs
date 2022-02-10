@@ -19,9 +19,11 @@ module TDF.Series
 
 import           TDF.Prelude
 
-import           TDF.Index            ( Index )
-import qualified TDF.Index     as Idx
-import qualified Data.Vec.Lazy as Vec
+import qualified Data.List       as List
+import qualified Data.Vec.Lazy   as Vec
+import           TDF.Index                ( Index )
+import qualified TDF.Index       as Idx
+import qualified TDF.Types.Table as Table
 
 -- See https://pandas.pydata.org/docs/reference/api/pandas.Series.html
 
@@ -76,7 +78,23 @@ fromVec optData = f <$> Idx.defaultIntsFor optData
 -- ================================================================ --
 
 display :: (Show idx, Show a) => Series n idx a -> IO ()
-display = print -- for now
+display = putStr
+  . Table.render
+  . fromMaybe explode
+  . Table.fromHeadedRows
+  . List.map Table.Row
+  . toTexts
+  where
+    explode = panic "display explode"
+
+toTextsVia :: forall n idx a. (a -> Text) -> Series n idx a -> [[Text]]
+toTextsVia tt = map pure . f . toVec
+  where
+    f :: Vec n a -> [Text]
+    f = ("series":) . Vec.toList . Vec.map tt
+
+toTexts :: Show a => Series n idx a -> [[Text]]
+toTexts = toTextsVia show
 
 toVec :: Series n idx a -> Vec n a
 toVec Series {..} = sData
@@ -86,15 +104,11 @@ toVec Series {..} = sData
 -- ================================================================ --
 
 _s1 :: Series Nat3 Int Int
---_s1 = undefined
 _s1 = construct $ opts <$> Idx.defaultIntsFor v
   & fromMaybe (panic "invalid series size probably")
   where
     opts :: Index Nat3 Int -> Options Nat3 Int Int
     opts idx = Options idx v Nothing
 
-    vMay :: Maybe (Vec Nat3 Int)
-    vMay = Vec.fromList [10, 20, 30]
-
     v :: Vec Nat3 Int
-    v = fromMaybe (panic "_s1.1") vMay
+    v = fromMaybe (panic "_s1.1") . Vec.fromList $ [10, 20, 30]
