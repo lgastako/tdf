@@ -106,7 +106,7 @@ df1Restricted :: DataFrame Nat2 Int NameFields
 df1Restricted = DF.restrict df1
 
 df1' :: DataFrame Nat2 Int PersonFields
-df1' = DF.reindex [0, 1] df1
+df1' = df1 -- undefined -- DF.reindex [0, 1] df1
 
 -- λ> DF.memSize df1'
 -- 1096

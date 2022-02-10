@@ -52,7 +52,7 @@ module TDF.DataFrame
   , onColumn
   , onVec
   , over
-  , reindex
+--  , reindex
   , rename
   , render
   , restrict
@@ -137,6 +137,7 @@ column :: forall n r idx k v rest.
           , Forall r Unconstrained1
           , Forall (r .+ rest) Unconstrained1
           , KnownSymbol k
+          , SNatI n
           , r ≈ k .== v
           )
        => Label k
@@ -230,7 +231,9 @@ extendWith :: forall n idx k v r.
            -> DataFrame n idx (Rec.Extend k v r)
 extendWith k f = under $ Vec.map (Rec.extend k =<< f)
 
-head :: forall n m idx a.
+-- TODO: Put the last size variable first to make TypeApplications concise
+-- TODO: for all functions that return a dataframe of a new size.
+head :: forall m n idx a.
         ( Forall a Unconstrained1
         , LE m n
         , SNatI n
@@ -246,7 +249,8 @@ head DataFrame {..} = DataFrame
     f :: Forall a Unconstrained1 => Vec n (Rec a) -> Vec m (Rec a)
     f = Vec.take
 
-head_ :: ( Forall a Unconstrained1
+head_ :: forall n idx a.
+         ( Forall a Unconstrained1
          , LE Nat5 n
          , SNatI n
          )
@@ -257,38 +261,33 @@ head_ = head
 map :: forall n idx a b.
        ( Forall a Unconstrained1
        , Forall b Unconstrained1
+       , SNatI n
        )
     => (Rec a -> Rec b)
     -> DataFrame n idx a
     -> DataFrame n idx b
 map f = onVec (Vec.map f)
 
-onVec :: forall n m idx a b.
+onVec :: forall m n idx a b.
          ( Forall a Unconstrained1
          , Forall b Unconstrained1
+         , SNatI n
          )
       => (Vec n (Rec a) -> Vec m (Rec b))
       -> DataFrame n idx a
       -> DataFrame m idx b
-onVec _f DataFrame {} {-{..}-} = DataFrame
+onVec f DataFrame {..} = DataFrame
   { dfIndex = dfIndex'
   , dfData  = dfData'
   }
   where
-    dfIndex' = identity dfIndex'  -- TODO
-    dfData'  = panic "onVec.dfData'"
+    (dfData', dfIndex') = ((,) <$> Rec.distribute <*> reindex')
+                            . f
+                            . Rec.sequence
+                            $ dfData
 
-  --   _ = dfData :: Rec (Map (Vec n) a)
-
-    -- (dfData', dfIndex') = ((,) <$> Rec.distribute <*> reindex')
-    --                         . f
-    --                         . Rec.sequence
-    --                         $ dfData
-
-    -- reindex' = panic "reindex'"
-
-  --   -- TODO update indexes instead of dfLength' above
-  --   dfIndex' = dfIndex
+    reindex' :: Vec m (Rec b) -> Index m idx
+    reindex' = panic "reindex'"
 
 over :: forall n idx a b.
         ( Forall a Unconstrained1
@@ -299,15 +298,15 @@ over :: forall n idx a b.
      -> DataFrame n idx b
 over f = under (Vec.map f)
 
--- TODO: questionable to expose? at least with this interface... doing it for
---       now for Examples.hs
-reindex :: [idx']
-        -> DataFrame n idx a
-        -> DataFrame n idx' a
-reindex = panic "DF.reindex"
--- reindex ixs DataFrame {..} = DataFrame dfIndex' dfData
---   where
---     dfIndex' = Index.fromList ixs
+-- -- TODO: questionable to expose? at least with this interface... doing it for
+-- --       now for Examples.hs
+-- reindex :: [idx']
+--         -> DataFrame n idx a
+--         -> DataFrame n idx' a
+-- reindex = panic "DF.reindex"
+-- -- reindex ixs DataFrame {..} = DataFrame dfIndex' dfData
+-- --   where
+-- --     dfIndex' = Index.fromList ixs
 
 rename :: forall n k k' idx a b.
           ( Forall a Unconstrained1
@@ -337,7 +336,7 @@ rename k k' DataFrame {..} = DataFrame
     dfData' :: Forall b Unconstrained1 => Rec (Map (Vec n) b)
     dfData' = Rec.distribute dfDataI'
 
-restrict :: forall n m idx a b.
+restrict :: forall m n idx a b.
             ( Forall a Unconstrained1
             , Forall b Unconstrained1
             , LE m n
@@ -396,7 +395,7 @@ restrict DataFrame {..}= DataFrame
 --       -> DataFrame Nat5 idx a
 -- head_ = head
 
-tail :: forall n m idx a.
+tail :: forall m n idx a.
         ( Forall a Unconstrained1
         , LE m n
         , SNatI n
@@ -413,8 +412,6 @@ tail DataFrame {..} = DataFrame
       -> Vec m (Rec a)
     f = Vec.drop
 
--- TODO replace the 'S's with math
-
 tail_ :: ( Forall a Unconstrained1
          , LE Nat5 n
          , SNatI n
@@ -423,21 +420,19 @@ tail_ :: ( Forall a Unconstrained1
       -> DataFrame Nat5 idx a
 tail_ = tail
 
-under :: forall n m idx a b.
+under :: forall m n idx a b.
          ( Forall a Unconstrained1
          , Forall b Unconstrained1
          )
       => (Vec n (Rec a) -> Vec m (Rec b))
       -> DataFrame n idx a
       -> DataFrame m idx b
-under _f DataFrame {-{..}-} {} = DataFrame
-  { dfIndex = panic "DF.under.1" -- dfIndex'
-  , dfData  = panic "DF.under.2" -- dfData'
+under f DataFrame {..} = DataFrame
+  { dfIndex = dfIndex'
+  , dfData  = dfData'
   }
-  -- where
-  --   (_dfLength', dfData') = underL_ f dfData
-  --   -- TODO: update indexes instead of dfLength
-  --   dfIndex' = dfIndex
+  where
+    (dfIndex', dfData') = underL_ f dfData
 
 -- TODO: merge (however python does it)
 --  ~ merge :: DataFrame idx a -> DataFrame idx b -> Extend a b
@@ -745,15 +740,27 @@ lookup k DataFrame {..} = rMay
 -- TODO move above to Vec.Extra.find? and then reimplement above as
 --      instance of Vec.Extra.find
 
-_recDistributeL :: ( Forall r Unconstrained1
-                  , Foldable f
-                  , Functor f
-                  )
-               => f (Rec r)
-               -> (Int, Rec (Map f r))
-_recDistributeL v = (len, Rec.distribute v)
-  where
-    len = length v
+-- recDistributeL :: ( Forall r Unconstrained1
+--                   , Foldable f
+--                   , Functor f
+--                   )
+--                => f (Rec r)
+--                -> ( Index m (Rec (Map f r))
+--                   , Rec (Map f r)
+--                   )
+-- recDistributeL v = (idx, Rec.distribute v)
+--   where
+--     idx = panic "recDistributeL.idx"
+
+-- recDistributeL :: ( Forall r Unconstrained1
+--                   , Foldable f
+--                   , Functor f
+--                   )
+--                => f (Rec r)
+--                -> (Int, Rec (Map f r))
+-- recDistributeL v = (len, Rec.distribute v)
+--   where
+--     len = length v
 
 toFields :: ( Forall a ToField
             , Forall a Typeable
@@ -768,16 +775,40 @@ toFields headers r = List.map f headers
     f :: Text -> Text
     f k = getValue k dm
 
-_underL_ :: forall n m a b.
-         ( Forall a Unconstrained1
-         , Forall b Unconstrained1
-         , SNatI n
-         , SNatI m
-         )
-      => (Vec n (Rec a) -> Vec m (Rec b))
-      -> Rec (Map (Vec n) a)
-      -> (Int, Rec (Map (Vec m) b))
-_underL_ f = _recDistributeL . f . Rec.sequence
+
+underL_ :: (Vec n (Rec a) -> Vec m (Rec b))
+        -> Rec (Map (Vec n) a)
+        -> ( Index m idx
+           , Rec (Map (Vec m) b)
+           )
+underL_ _f _r = (idx, r')
+  where
+    idx = panic "underL_.idx"
+    r'  = panic "underL_.r'"
+
+-- underL_ :: forall n m a b.
+--            ( Forall a Unconstrained1
+--            , Forall b Unconstrained1
+--            , SNatI n
+--            , SNatI m
+--            )
+--         => (Vec n (Rec a) -> Vec m (Rec b))
+--         -> Rec (Map (Vec n) a)
+--         -> ( Index m (Rec b)
+--            , Rec (Map (Vec m) b)
+--            )
+-- underL_ f = recDistributeL . f . Rec.sequence
+
+-- underL_ :: forall n m a b.
+--            ( Forall a Unconstrained1
+--            , Forall b Unconstrained1
+--            , SNatI n
+--            , SNatI m
+--            )
+--         => (Vec n (Rec a) -> Vec m (Rec b))
+--         -> Rec (Map (Vec n) a)
+--         -> (Int, Rec (Map (Vec m) b))
+-- underL_ f = _recDistributeL . f . Rec.sequence
 
 under_ :: forall n m a b.
          ( Forall a Unconstrained1
@@ -800,10 +831,7 @@ under_ f = Rec.distribute . f . Rec.sequence
 -- TODO: explain select_dtypes
 -- TODO: explain values replaced by toVector
 -- TODO: explain to_numpy replaced by toVector
-
--- TODO
--- locLabel :: label -> DataFrame n idx a
--- locLabel = undefined
+-- TODO: loc/locLabel
 
 -- swapCols :: forall idx k tmp k' v v' a b rest.
 --             ( a ≈ k .== v
