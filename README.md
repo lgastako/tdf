@@ -38,5 +38,9 @@ We take vectors of rows as input and turn it into rows of vectors to operate on.
 
 ## More
 
+- https://www.youtube.com/watch?v=iYie42M1ZyU
+- https://www.kdnuggets.com/2021/03/pandas-big-data-better-options.html
+
 Possibly good thing to try for comparison:
 - https://www.architecture-performance.fr/ap_blog/loading-data-into-a-pandas-dataframe-a-performance-study/
+
