@@ -19,4 +19,4 @@ USER $NB_UID
 
 RUN stack build
 
-WORKDIR /home/$NB_UID
+WORKDIR /home/$NB_USER

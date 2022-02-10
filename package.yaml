@@ -29,26 +29,8 @@ dependencies:
 - unordered-containers
 - vec
 
-# - ghc-datasize
-# - ghc-heap      == 8.10.7
-
-# - fixed-vector
-# - row-types       >= 1.0.0.0
-# - vector
-
 library:
   source-dirs: src
-
-# executables:
-#   tdf:
-#     main:                Main.hs
-#     source-dirs:         app
-#     ghc-options:
-#     - -threaded
-#     - -rtsopts
-#     - -with-rtsopts=-N
-#     dependencies:
-#     - tdf
 
 tests:
   tdf-test:
