@@ -1,7 +1,8 @@
-{-# LANGUAGE DeriveFunctor       #-}
-{-# LANGUAGE DeriveFoldable      #-}
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveFoldable      #-}
+{-# LANGUAGE DeriveFunctor       #-}
 {-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DeriveTraversable   #-}
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -15,6 +16,7 @@ module TDF.Index
   , fromList
   , fromVec
   -- Combinators
+  , append
   , drop
   , tail
   , take
@@ -34,7 +36,7 @@ import qualified Data.Foldable    as F
 import qualified Data.Vec.Lazy    as Vec
 
 newtype Index n idx = Index { toVec :: Vec n idx }
-  deriving (Foldable, Functor, Eq, Generic, Ord, Show)
+  deriving (Foldable, Functor, Eq, Generic, Ord, Show, Traversable)
 
 instance NFData idx => NFData (Index n idx)
 
@@ -74,6 +76,41 @@ fromVec = Index
 -- ================================================================ --
 -- Combinators
 -- ================================================================ --
+
+append :: forall n m idx.
+          ( Num idx
+          , Ord idx
+          )
+       => Index n idx
+       -> Index m idx
+       -> Index (Plus n m) idx
+append (Index a) (Index b) = Index $ (Vec.++) a b'
+  where
+    b' :: Vec m idx
+    b' = Vec.map adjust b
+
+    adjust :: idx -> idx
+    adjust = (+offset)
+
+    offset :: idx
+    offset = delta
+    -- offset | delta > 0 = delta
+    --        | otherwise = 0
+
+    delta = maxLeft - minRight
+
+    maxLeft  = maximum a
+    minRight = minimum b
+
+-- append (Index as) (Index bbs) = Index . (Vec.++) as $ bs'
+--   where
+--     bs' :: Vec m idx
+--     bs' = undefined
+
+--     -- bs' | Vec.null b = b
+--     --     | otherwise  = panic "ah"
+
+--     (b, bs) = (Vec.head bbs, Vec.tail bbs)
 
 drop :: forall n m idx.
         ( LE n m

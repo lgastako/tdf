@@ -48,15 +48,13 @@ type AgeFields = "age" .== Int
 
 type AgeRec = Rec AgeFields
 
-type NameFields = "name" .== Text
-
+type NameFields     = "name" .== Text
 type FullNameFields = "fullName" .== Text
 
 type FullPersonFields = FullNameFields .+ AgeFields
 
 type FullPerson = Rec FullPersonFields
-
-type NameRec = Rec NameFields
+type NameRec    = Rec NameFields
 
 data Person' = Person'
   { name :: Text
@@ -184,8 +182,8 @@ toTexts rp =
 toTexts' :: Rec NameFields -> [Text]
 toTexts' rp = [ rp .! #name ]
 
-indexTest :: Bool
-indexTest = Just (DF.index df1) == Vec.fromList [0, 1]
+indexesTest :: Bool
+indexesTest = Just (DF.indexes df1) == Vec.fromList [0, 1]
 
 rd :: IO ()
 rd = putStr rendered

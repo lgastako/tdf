@@ -1,5 +1,9 @@
 {-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE DeriveFoldable       #-}
+{-# LANGUAGE DeriveFunctor        #-}
+{-# LANGUAGE DeriveTraversable    #-}
 {-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE InstanceSigs         #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE KindSignatures       #-}
@@ -11,8 +15,11 @@
 module TDF.Series
   ( Options(..)
   , Series
+  , append
   , construct
   , display
+  , index
+  , fromList
   , fromVec
   , toVec
   ) where
@@ -27,12 +34,13 @@ import qualified TDF.Types.Table as Table
 
 -- See https://pandas.pydata.org/docs/reference/api/pandas.Series.html
 
+-- | One-dimensional series of data with axis labels
 data Series (n :: Nat) idx a = Series
   { sIndex  :: Index n idx
   , sData   :: Vec n a
   , sLength :: Int
   , sName   :: Maybe Text
-  } deriving (Eq, Ord, Generic, Show)
+  } deriving (Eq, Foldable, Functor, Generic, Ord, Traversable, Show)
 
 instance (NFData idx, NFData a) => NFData (Series n idx a)
 
@@ -40,9 +48,7 @@ data Options (n :: Nat) idx a = Options
   { optIndex :: Index n idx
   , optData  :: Vec n a
   , optName  :: Maybe Text
-  } deriving (Generic)
-
-deriving instance (Show a, Show idx) => Show (Options n idx a)
+  } deriving (Eq, Foldable, Functor, Generic, Ord, Traversable, Show)
 
 -- ================================================================ --
 --   Constructors
@@ -55,6 +61,11 @@ construct Options {..} = Series
   , sLength = Vec.length optData
   , sName   = optName
   }
+
+fromList :: forall n a. ( SNatI n )
+         => [a]
+         -> Maybe (Series n Int a)
+fromList = fromVec <=< Vec.fromList
 
 fromVec :: forall n a. ( SNatI n )
         => Vec n a
@@ -73,6 +84,20 @@ fromVec optData = f <$> Idx.defaultIntsFor optData
 --   Combinators
 -- ================================================================ --
 
+append :: forall m n idx a.
+          ( Num idx
+          , Ord idx
+          )
+       => Series n idx a
+       -> Series m idx a
+       -> Series (Plus n m) idx a
+append a b = Series
+    { sIndex  = Idx.append (sIndex a) (sIndex b)
+    , sData   = (Vec.++) (sData a) (sData b)
+    , sLength = sLength a + sLength b
+    , sName   = sName a  -- TODO
+    }
+
 -- ================================================================ --
 --   Eliminators
 -- ================================================================ --
@@ -86,6 +111,9 @@ display = putStr
   . toTexts
   where
     explode = panic "display explode"
+
+index :: Series n idx a -> Index n idx
+index = sIndex
 
 toTextsVia :: forall n idx a. (a -> Text) -> Series n idx a -> [[Text]]
 toTextsVia tt = map pure . f . toVec

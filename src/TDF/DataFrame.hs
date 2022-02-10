@@ -42,6 +42,7 @@ module TDF.DataFrame
   , head
   , head_
   , index
+  , indexes
   -- , info
   , isEmpty
   , map
@@ -500,18 +501,21 @@ display = putStr
   where
     explode = panic "display explode"
 
+index :: DataFrame n idx a -> Index n idx
+index = dfIndex
+
 -- | The index (row labels) of the DataFrame.
-index :: forall n idx a.
-         ( Enum idx
-         , Eq idx
-         , Forall a Unconstrained1
-         , LE n n
-         , Num idx
-         , SNatI n
-         )
-      => DataFrame n idx a
-      -> Vec n idx
-index DataFrame {..} = Vec.map fst . Index.index dfIndex $ rows
+indexes :: forall n idx a.
+           ( Enum idx
+           , Eq idx
+           , Forall a Unconstrained1
+           , LE n n
+           , Num idx
+           , SNatI n
+           )
+        => DataFrame n idx a
+        -> Vec n idx
+indexes DataFrame {..} = Vec.map fst . Index.index dfIndex $ rows
   where
     rows :: Vec n (Rec a)
     rows = Rec.sequence dfData

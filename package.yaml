@@ -41,9 +41,11 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
+    - QuickCheck
     - tdf
     - tasty
     - tasty-quickcheck
     - tasty-discover
     - tasty-hedgehog
     - tasty-hspec
+    - quickcheck-text
