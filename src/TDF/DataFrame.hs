@@ -26,7 +26,6 @@ module TDF.DataFrame
   , Verbosity(..)
   , at
   , axes
---  , colMap
   , column
   , columnVec
   , columns
@@ -38,6 +37,7 @@ module TDF.DataFrame
   , fromList
   , fromNativeVec
   , fromScalarList
+  , fromSeries
   , fromVec
   , head
   , head_
@@ -188,7 +188,10 @@ fromScalarList :: SNatI n
                -> Maybe (DataFrame n Int ("value" .== a))
 fromScalarList = fromList . List.map (\x -> #value .== x)
 
--- TODO fromSeries
+fromSeries :: forall n a. ( SNatI n )
+           => Series n Int a
+           -> Maybe (DataFrame n Int ("value" .== a))
+fromSeries = fromVec . Vec.map (#value .==) . Series.toVec
 
 fromVec :: forall n a.
            ( Forall a Unconstrained1

@@ -10,20 +10,22 @@
 
 module TDF.Examples where
 
-import           TDF.Prelude                hiding ( drop
-                                                   , take
-                                                   )
+import           TDF.Prelude          hiding ( drop
+                                             , take
+                                             )
 
 import qualified Data.Row.Records as Rec
 import qualified Data.Text        as Text
 import qualified Data.Vec.Lazy    as Vec
-import           TDF.DataFrame                     ( Axes
-                                                   , DataFrame
-                                                   )
+import           TDF.DataFrame               ( Axes
+                                             , DataFrame
+                                             )
 import qualified TDF.CSV          as CSV
 import qualified TDF.DataFrame    as DF
 import qualified TDF.Options      as Options
-import           System.IO.Unsafe                  ( unsafePerformIO )
+import           TDF.Series                  ( Series )
+import qualified TDF.Series       as Series
+import           System.IO.Unsafe            ( unsafePerformIO )
 
 type PersonFields = NameFields .+ AgeFields
 
@@ -204,6 +206,13 @@ capitalize :: SNatI n
            => DataFrame n Int PersonFields
            -> DataFrame n Int (PersonFields .+ "capsName" .== Text)
 capitalize = DF.extendWith #capsName (\r -> Text.toUpper $ r .! #name)
+
+s1 :: Series Nat3 Int Float
+s1 = fromMaybe (panic "s1.boom.2")
+  . Series.fromVec
+  . fromMaybe (panic "s1.boom.1")
+  . Vec.fromList
+  $ [ 1.1, 2.2, 3.3 ]
 
 {-# NOINLINE examples #-}
 examples :: DataFrame Nat6 Int PersonFields
