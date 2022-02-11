@@ -46,6 +46,7 @@ module TDF.DataFrame
   -- , info
   , isEmpty
   , map
+  , melt
   -- , memSize
   , ndims
   , ncols
@@ -227,7 +228,6 @@ extendWith :: forall n idx k v r.
               ( Forall r Unconstrained1
               , Forall (Rec.Extend k v r) Unconstrained1
               , KnownSymbol k
-              , Monoid v
               )
            => Label k
            -> (Rec r -> v)
@@ -272,6 +272,11 @@ map :: forall n idx a b.
     -> DataFrame n idx b
 map f = onVec (Vec.map f)
 
+melt :: forall m n idx a b.
+        DataFrame n idx a
+     -> DataFrame m idx b
+melt = panic "melt"
+
 onVec :: forall m n idx a b.
          ( Forall a Unconstrained1
          , Forall b Unconstrained1
@@ -285,10 +290,11 @@ onVec f DataFrame {..} = DataFrame
   , dfData  = dfData'
   }
   where
-    (dfData', dfIndex') = ((,) <$> Rec.distribute <*> reindex')
-                            . f
-                            . Rec.sequence
-                            $ dfData
+    (dfData', dfIndex') =
+      ((,) <$> Rec.distribute <*> reindex')
+        . f
+        . Rec.sequence
+        $ dfData
 
     reindex' :: Vec m (Rec b) -> Index m idx
     reindex' = panic "reindex'"

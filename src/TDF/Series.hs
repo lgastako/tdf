@@ -119,7 +119,7 @@ filterWithIndex :: forall n idx a.
                 -> Vector a
 filterWithIndex p s = Vector.map snd
                     . vecFilter p
-                    . (Vec.zipWith (,) (Index.toVec . sIndex $ s))
+                    . Vec.zipWith (,) (Index.toVec . sIndex $ s)
                     . toVec
                     $ s
 
