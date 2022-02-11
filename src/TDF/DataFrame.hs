@@ -35,6 +35,7 @@ module TDF.DataFrame
   , extend
   , extendFrom
   , extendWith
+  , filterIndexes
   , fromList
   , fromNativeVec
   , fromScalarList
@@ -69,7 +70,8 @@ module TDF.DataFrame
   , toNativeVec
   , toTexts
   , toVec
-  , under
+--   , under
+  , underIndexed
   , valueCounts
   ) where
 
@@ -223,7 +225,7 @@ extend :: forall n idx k v r.
        -> v
        -> DataFrame n idx r
        -> DataFrame n idx (Rec.Extend k v r)
-extend k v = under $ Vec.map (Rec.extend k v)
+extend _k _v = panic "extend" -- under $ Vec.map (Rec.extend k v)
 
 extendFrom :: forall src dst n idx v v' a b.
               ( Forall a Unconstrained1
@@ -249,7 +251,7 @@ extendWith :: forall n idx k v r.
            -> (Rec r -> v)
            -> DataFrame n idx r
            -> DataFrame n idx (Extend k v r)
-extendWith k f = under $ Vec.map (Rec.extend k =<< f)
+extendWith _k _f = panic "extendWith" -- under $ Vec.map (Rec.extend k =<< f)
 
 -- TODO: Put the last size variable first to make TypeApplications concise
 -- TODO: for all functions that return a dataframe of a new size.
@@ -318,11 +320,24 @@ onVec f DataFrame {..} = DataFrame
 over :: forall n idx a b.
         ( Forall a Unconstrained1
         , Forall b Unconstrained1
+        , SNatI n
         )
      => (Rec a -> Rec b)
      -> DataFrame n idx a
      -> DataFrame n idx b
-over f = under (Vec.map f)
+over f DataFrame {..} = DataFrame
+  { dfIndex = dfIndex
+  , dfData  = dfData'
+  }
+  where
+    seqd :: Vec n (Rec a)
+    seqd = Rec.sequence dfData
+
+    mapd :: Vec n (Rec b)
+    mapd = Vec.map f seqd
+
+    dfData' :: Rec (Map (Vec n) b)
+    dfData' = Rec.distribute mapd
 
 -- -- TODO: questionable to expose? at least with this interface... doing it for
 -- --       now for Examples.hs
@@ -362,64 +377,15 @@ rename k k' DataFrame {..} = DataFrame
     dfData' :: Forall b Unconstrained1 => Rec (Map (Vec n) b)
     dfData' = Rec.distribute dfDataI'
 
-restrict :: forall m n idx a b.
+restrict :: forall n idx a b.
             ( Forall a Unconstrained1
             , Forall b Unconstrained1
-            , LE m n
             , Rec.Subset b a
             , SNatI n
-            , SNatI m
             )
          => DataFrame n idx a
-         -> DataFrame m idx b
-restrict DataFrame {..}= DataFrame
-  { dfIndex = dfIndex'
-  , dfData  = panic "DF.restrict.2" -- dfData'
-  }
-  where
-    _ = dfData :: Rec (Map (Vec n) a)
-
-    dfIndex' :: Index.Index m idx
-    dfIndex' = panic "restrict.dfIndex'"
-
-    vrec :: Forall a Unconstrained1 => Vec n (Rec a)
-    vrec = Rec.sequence dfData
-
-    vrec' :: ( Forall a Unconstrained1
-             , Forall b Unconstrained1
-             )
-          => Vec n (Rec b)
-    vrec' = Vec.map Rec.restrict vrec
-
-    _dfData' :: ( Forall a Unconstrained1
-                , Forall b Unconstrained1
-                )
-             => Rec (Map (Vec n) b)
-    _dfData' = Rec.distribute vrec'
-
--- head :: forall n m idx a.
---         ( Forall a Unconstrained1
---         , LE m n
---         , SNatI n
---         , SNatI m
---         )
---      => DataFrame n idx a
---      -> DataFrame m idx a
--- head DataFrame {..} = DataFrame
---   { dfIndex = Index.take dfIndex
---   , dfData  = under_ f dfData
---   }
---   where
---     f :: Forall a Unconstrained1 => Vec n (Rec a) -> Vec m (Rec a)
---     f = Vec.take
-
--- head_ :: ( Forall a Unconstrained1
---          , LE Nat5 n
---          , SNatI n
---          )
---       => DataFrame n idx a
---       -> DataFrame Nat5 idx a
--- head_ = head
+         -> DataFrame n idx b
+restrict = over Rec.restrict
 
 tail :: forall m n idx a.
         ( Forall a Unconstrained1
@@ -446,19 +412,19 @@ tail_ :: ( Forall a Unconstrained1
       -> DataFrame Nat5 idx a
 tail_ = tail
 
-under :: forall m n idx a b.
-         ( Forall a Unconstrained1
-         , Forall b Unconstrained1
-         )
-      => (Vec n (Rec a) -> Vec m (Rec b))
-      -> DataFrame n idx a
-      -> DataFrame m idx b
-under f DataFrame {..} = DataFrame
-  { dfIndex = dfIndex'
-  , dfData  = dfData'
-  }
-  where
-    (dfIndex', dfData') = underL_ f dfData
+-- under :: forall m n idx a b.
+--          ( Forall a Unconstrained1
+--          , Forall b Unconstrained1
+--          )
+--       => (Vec n (Rec a) -> Vec m (Rec b))
+--       -> DataFrame n idx a
+--       -> DataFrame m idx b
+-- under f DataFrame {..} = DataFrame
+--   { dfIndex = dfIndex'
+--   , dfData  = dfData'
+--   }
+--   where
+--     (dfIndex', dfData') = underL_ f dfData
 
 -- TODO: merge (however python does it)
 --  ~ merge :: DataFrame idx a -> DataFrame idx b -> Extend a b
@@ -804,15 +770,87 @@ toFields headers r = List.map f headers
     f :: Text -> Text
     f k = getValue k dm
 
-underL_ :: (Vec n (Rec a) -> Vec m (Rec b))
-        -> Rec (Map (Vec n) a)
-        -> ( Index m idx
-           , Rec (Map (Vec m) b)
-           )
-underL_ _f _r = (idx, r')
+underIndexed :: forall m n idx a b.
+                ( Forall a Unconstrained1
+                , Forall b Unconstrained1
+                , SNatI n
+                )
+             => (Vec n (idx, Rec a) -> Vec m (idx, Rec b))
+             -> DataFrame n idx a
+             -> DataFrame m idx b
+underIndexed f DataFrame {..} = DataFrame
+  { dfIndex = Index.fromVec  $ Vec.map fst indexed'
+  , dfData  = Rec.distribute $ Vec.map snd indexed'
+  }
   where
-    idx = panic "underL_.idx"
-    r'  = panic "underL_.r'"
+    indexed' = f (Vec.zipWith (,) idxVec . Rec.sequence $ dfData)
+    idxVec   = Index.toVec dfIndex
+
+filterIndexes :: forall m n idx a.
+                ( Forall a Unconstrained1
+                , Ord idx
+                , SNatI n
+                )
+             => (Vec n idx -> Vec m idx)
+             -> DataFrame n idx a
+             -> DataFrame m idx a
+filterIndexes f DataFrame {..} = DataFrame
+  { dfIndex = dfIndex'
+  , dfData  = dfData'
+  }
+  where
+    dfIndex' :: Index m idx
+    dfIndex' = Index.fromVec . f . Index.toVec $ dfIndex
+
+    dfData' :: Rec (Map (Vec m) a)
+    dfData' = restoreByIndexes  @_ @_ @_ @a dfIndex dfIndex' dfData
+
+restoreByIndexes :: forall m n idx a.
+                    ( Forall a Unconstrained1
+                    , Ord idx
+                    , SNatI n
+                    )
+                 => Index n idx
+                 -> Index m idx
+                 -> Rec (Map (Vec n) a)
+                 -> Rec (Map (Vec m) a)
+restoreByIndexes idx idx' r = Rec.distribute
+  . Vec.map (indexed Map.!)
+  . Index.toVec
+  $ idx'
+  where
+    indexed :: Map.Map idx (Rec a)
+    indexed = Map.fromList
+              . Vec.toList
+              . Vec.zipWith (,) (Index.toVec idx)
+              . Rec.sequence
+              $ r
+
+-- underL_ :: a
+-- underL_ = panic "underL_"
+
+-- underL_ :: (Vec n (Rec a) -> Vec m (Rec b))
+--         -> Rec (Map (Vec n) a)
+--         -> ( Index m idx
+--            , Rec (Map (Vec m) b)
+--            )
+-- underL_ f r = (idx, r')
+--   where
+--     idx = panic "underL_.idx"
+--     r'  = panic "underL_.r'"
+
+--     _g = liftIdx f
+
+-- liftIdx :: forall m n idx a b.
+--            (Vec n (Rec a) -> Vec m (Rec b))
+--         -> (Vec n (idx, Rec a) -> Vec m (idx, Rec b))
+-- liftIdx f = panic "liftIdx"
+--   where
+--     -- g :: Vec n (idx, Rec a) -> Vec m (idx, Rec b)
+--     -- g = fmap something f
+
+--     -- something :: Vec m (Rec b) -> Vec m (idx, Rec b)
+--     -- something = undefined
 
 -- underL_ :: forall n m a b.
 --            ( Forall a Unconstrained1

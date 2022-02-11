@@ -15,6 +15,7 @@ import           TDF.Prelude          hiding ( drop
                                              )
 
 import qualified Data.Row.Records as Rec
+import qualified Data.List        as List
 import qualified Data.Text        as Text
 import qualified Data.Vec.Lazy    as Vec
 import           TDF.DataFrame               ( Axes
@@ -215,6 +216,14 @@ withNameLens = DF.extendFrom #name #nameLen Text.length
 
 nameLengthed :: DataFrame Nat2 Int (PersonFields .+ "nameLen" .== Int)
 nameLengthed = withNameLens df1
+
+filteredByIndexes :: DataFrame Nat4 Int ("animal" .== Text)
+filteredByIndexes = DF.filterIndexes f animals
+  where
+    f =  Vec.toList
+     >>> List.filter odd
+     >>> Vec.fromList
+     >>> fromMaybe (panic "wrong size!")
 
 s1 :: Series Nat3 Int Float
 s1 = fromMaybe (panic "s1.boom.2")

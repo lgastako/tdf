@@ -10,6 +10,8 @@ import Protolude         as X hiding ( Map
                                      , Nat
                                      )
 
+import Control.Arrow     as X ( (>>>) )
+import Data.Fin          as X ( Fin )
 import Data.Row          as X ( Disjoint
                               , Empty
                               , Forall
