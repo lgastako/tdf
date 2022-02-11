@@ -205,6 +205,17 @@ capitalize :: SNatI n
            -> DataFrame n Int (PersonFields .+ "capsName" .== Text)
 capitalize = DF.extendWith #capsName (\r -> Text.toUpper $ r .! #name)
 
+capitalizedDf1 :: DataFrame Nat2 Int (PersonFields .+ "capsName" .== Text)
+capitalizedDf1 = capitalize df1
+
+withNameLens :: SNatI n
+             => DataFrame n Int PersonFields
+             -> DataFrame n Int (PersonFields .+ "nameLen" .== Int)
+withNameLens = DF.extendFrom #name #nameLen Text.length
+
+nameLengthed :: DataFrame Nat2 Int (PersonFields .+ "nameLen" .== Int)
+nameLengthed = withNameLens df1
+
 s1 :: Series Nat3 Int Float
 s1 = fromMaybe (panic "s1.boom.2")
   . Series.fromVec

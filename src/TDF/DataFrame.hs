@@ -33,6 +33,7 @@ module TDF.DataFrame
   , display
   , empty
   , extend
+  , extendFrom
   , extendWith
   , fromList
   , fromNativeVec
@@ -224,15 +225,30 @@ extend :: forall n idx k v r.
        -> DataFrame n idx (Rec.Extend k v r)
 extend k v = under $ Vec.map (Rec.extend k v)
 
+extendFrom :: forall src dst n idx v v' a b.
+              ( Forall a Unconstrained1
+              , Forall b Unconstrained1
+              , KnownSymbol src
+              , KnownSymbol dst
+              , (a .! src) ~ v
+              , b ~ Extend dst v' a
+              )
+           => Label src
+           -> Label dst
+           -> (v -> v')
+           -> DataFrame n idx a
+           -> DataFrame n idx b
+extendFrom src dst f = extendWith dst (\r -> f (r .! src))
+
 extendWith :: forall n idx k v r.
               ( Forall r Unconstrained1
-              , Forall (Rec.Extend k v r) Unconstrained1
+              , Forall (Extend k v r) Unconstrained1
               , KnownSymbol k
               )
            => Label k
            -> (Rec r -> v)
            -> DataFrame n idx r
-           -> DataFrame n idx (Rec.Extend k v r)
+           -> DataFrame n idx (Extend k v r)
 extendWith k f = under $ Vec.map (Rec.extend k =<< f)
 
 -- TODO: Put the last size variable first to make TypeApplications concise
@@ -324,7 +340,7 @@ rename :: forall n k k' idx a b.
           , KnownSymbol k
           , KnownSymbol k'
           , SNatI n
-          , b ~ Rec.Extend k' (a .! k) (a .- k)
+          , b ~ Extend k' (a .! k) (a .- k)
           )
        => Label k
        -> Label k'
@@ -787,7 +803,6 @@ toFields headers r = List.map f headers
 
     f :: Text -> Text
     f k = getValue k dm
-
 
 underL_ :: (Vec n (Rec a) -> Vec m (Rec b))
         -> Rec (Map (Vec n) a)
