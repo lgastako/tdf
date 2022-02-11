@@ -55,6 +55,7 @@ library
     , text
     , unordered-containers
     , vec
+    , vector
   default-language: Haskell2010
 
 test-suite tdf-test
@@ -90,4 +91,5 @@ test-suite tdf-test
     , text
     , unordered-containers
     , vec
+    , vector
   default-language: Haskell2010

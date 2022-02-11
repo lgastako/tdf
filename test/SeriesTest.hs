@@ -26,6 +26,10 @@ spec_Series = do
     it "should self append" $
       length ss `shouldBe` 6
 
+    it "should filter" $
+      toList (Series.filter (<2.0) s)
+        `shouldBe` [1.1]
+
     it "should produce these exact indexes" $ do
       let ab :: Series Nat3 Int Bool
           ab = Series.append a b

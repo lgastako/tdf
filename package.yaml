@@ -28,6 +28,7 @@ dependencies:
 - text
 - unordered-containers
 - vec
+- vector
 
 library:
   source-dirs: src

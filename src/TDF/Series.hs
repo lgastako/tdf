@@ -16,18 +16,25 @@ module TDF.Series
   , append
   , construct
   , display
+  , filter
+  , filterByIndex
+  , filterWithIndex
   , index
   , fromList
   , fromVec
+  , toList
   , toVec
   ) where
 
-import           TDF.Prelude
+import           TDF.Prelude        hiding ( filter
+                                           , toList
+                                           )
 
 import qualified Data.List       as List
 import qualified Data.Vec.Lazy   as Vec
-import           TDF.Index                ( Index )
-import qualified TDF.Index       as Idx
+import qualified Data.Vector     as Vector
+import           TDF.Index                 ( Index )
+import qualified TDF.Index       as Index
 import qualified TDF.Types.Table as Table
 
 -- See https://pandas.pydata.org/docs/reference/api/pandas.Series.html
@@ -68,7 +75,7 @@ fromList = fromVec <=< Vec.fromList
 fromVec :: forall n a. ( SNatI n )
         => Vec n a
         -> Maybe (Series n Int a)
-fromVec optData = f <$> Idx.defaultIntsFor optData
+fromVec optData = f <$> Index.defaultIntsFor optData
   where
     f:: Index n Int -> Series n Int a
     f idx = Series
@@ -90,11 +97,40 @@ append :: forall m n idx a.
        -> Series m idx a
        -> Series (Plus n m) idx a
 append a b = Series
-    { sIndex  = Idx.append (sIndex a) (sIndex b)
+    { sIndex  = Index.append (sIndex a) (sIndex b)
     , sData   = (Vec.++) (sData a) (sData b)
     , sLength = sLength a + sLength b
     , sName   = sName a  -- TODO
     }
+
+filter :: (a -> Bool)
+       -> Series n idx a
+       -> Vector a
+filter p = filterWithIndex (\(_, x) -> p x)
+
+filterByIndex :: (idx -> Bool)
+              -> Series n idx a
+              -> Vector a
+filterByIndex p = filterWithIndex (\(idx, _) -> p idx)
+
+filterWithIndex :: forall n idx a.
+                   ((idx, a) -> Bool)
+                -> Series n idx a
+                -> Vector a
+filterWithIndex p s = Vector.map snd
+                    . vecFilter p
+                    . (Vec.zipWith (,) (Index.toVec . sIndex $ s))
+                    . toVec
+                    $ s
+
+vecFilter :: forall n a.
+             (a -> Bool)
+          -> Vec n a
+          -> Vector a
+vecFilter p = Vec.foldr f Vector.empty
+  where
+    f x acc | p x       = Vector.cons x acc
+            | otherwise =               acc
 
 -- ================================================================ --
 --   Eliminators
@@ -119,6 +155,9 @@ toTextsVia tt = map pure . f . toVec
     f :: Vec n a -> [Text]
     f = ("series":) . Vec.toList . Vec.map tt
 
+toList :: Series n idx a -> [a]
+toList = Vec.toList . toVec
+
 toTexts :: Show a => Series n idx a -> [[Text]]
 toTexts = toTextsVia show
 
@@ -130,7 +169,7 @@ toVec Series {..} = sData
 -- ================================================================ --
 
 _s1 :: Series Nat3 Int Int
-_s1 = construct $ opts <$> Idx.defaultIntsFor v
+_s1 = construct $ opts <$> Index.defaultIntsFor v
   & fromMaybe (panic "invalid series size probably")
   where
     opts :: Index Nat3 Int -> Options Nat3 Int Int
