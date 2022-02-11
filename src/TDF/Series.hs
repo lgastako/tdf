@@ -89,6 +89,11 @@ fromVec optData = f <$> Index.defaultIntsFor optData
 --   Combinators
 -- ================================================================ --
 
+-- TODO this way of appending indexes is proably wrong -- should instead do
+-- what
+-- https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.append.html
+-- does and only append rows that aren't in the target already (presumably
+-- via idx)
 append :: forall m n idx a.
           ( Num idx
           , Ord idx
@@ -97,11 +102,11 @@ append :: forall m n idx a.
        -> Series m idx a
        -> Series (Plus n m) idx a
 append a b = Series
-    { sIndex  = Index.append (sIndex a) (sIndex b)
-    , sData   = (Vec.++) (sData a) (sData b)
-    , sLength = sLength a + sLength b
-    , sName   = sName a  -- TODO
-    }
+  { sIndex  = Index.append (sIndex a) (sIndex b)
+  , sData   = (Vec.++) (sData a) (sData b)
+  , sLength = sLength a + sLength b
+  , sName   = sName a  -- TODO
+  }
 
 filter :: (a -> Bool)
        -> Series n idx a
