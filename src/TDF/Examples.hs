@@ -1,16 +1,18 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedLabels  #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeFamilies      #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedLabels      #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
 
 module TDF.Examples where
 
-import           TDF.Prelude          hiding ( drop
+import           TDF.Prelude          hiding ( Product
+                                             , drop
                                              , take
                                              )
 
@@ -238,3 +240,28 @@ examples = unsafePerformIO $ CSV.fromHeadedCSV "data/example.csv" >>= \case
   Left error      -> panic $ "Examples.examples.1: " <> show error
   Right Nothing   -> panic   "Examples.examples.2: Nothing"
   Right (Just df) -> pure df
+
+
+-- product=pd.DataFrame({
+--     'Product_ID':[101,102,103,104,105,106,107],
+--     'Product_name':['Watch','Bag','Shoes','Smartphone','Books','Oil','Laptop'],
+--     'Category':['Fashion','Fashion','Fashion','Electronics','Study','Grocery','Electronics'],
+--     'Price':[299.0,1350.50,2999.0,14999.0,145.0,110.0,79999.0],
+--     'Seller_City':['Delhi','Mumbai','Chennai','Kolkata','Delhi','Chennai','Bengalore']
+-- })
+
+data Product = Product
+  { id       :: Int
+  , name     :: Text
+  , category :: Text
+  , price    :: Float
+  , city     :: Text
+  } deriving (Eq, Generic, Ord, Show)
+
+product :: [Product]
+product = DF.fromTexts productTexts
+  where
+    productTexts = undefined
+
+productTexts :: [(Text, [Text])]
+productTexts = undefined

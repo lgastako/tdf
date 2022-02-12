@@ -168,17 +168,3 @@ toTexts = toTextsVia show
 
 toVec :: Series n idx a -> Vec n a
 toVec Series {..} = sData
-
--- ================================================================ --
---   Helpers / Temp
--- ================================================================ --
-
-_s1 :: Series Nat3 Int Int
-_s1 = construct $ opts <$> Index.defaultIntsFor v
-  & fromMaybe (panic "invalid series size probably")
-  where
-    opts :: Index Nat3 Int -> Options Nat3 Int Int
-    opts idx = Options idx v Nothing
-
-    v :: Vec Nat3 Int
-    v = fromMaybe (panic "_s1.1") . Vec.fromList $ [10, 20, 30]

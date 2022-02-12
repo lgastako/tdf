@@ -17,6 +17,9 @@ import qualified Data.Text   as Text
 class ToField a where
   toField :: a -> Text
 
+instance ToField Bool where
+  toField = show
+
 instance ToField Text where
   toField = identity
 

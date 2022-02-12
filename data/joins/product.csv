@@ -1,0 +1,7 @@
+product=pd.DataFrame({
+    'Product_ID':[101,102,103,104,105,106,107],
+    'Product_name':['Watch','Bag','Shoes','Smartphone','Books','Oil','Laptop'],
+    'Category':['Fashion','Fashion','Fashion','Electronics','Study','Grocery','Electronics'],
+    'Price':[299.0,1350.50,2999.0,14999.0,145.0,110.0,79999.0],
+    'Seller_City':['Delhi','Mumbai','Chennai','Kolkata','Delhi','Chennai','Bengalore']
+})

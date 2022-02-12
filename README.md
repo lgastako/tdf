@@ -10,6 +10,7 @@ following pages:
 
 https://pypancsv.github.io/pypancsv/quickexamples/#first-the-csv-files-within-the-examples
 https://www.geeksforgeeks.org/python-pandas-dataframe/
+https://www.analyticsvidhya.com/blog/2020/02/joins-in-pandas-master-the-different-types-of-joins-in-python/
 
 You can find some of the CSV files from those sites in the `test/fixtures`
 directory.
