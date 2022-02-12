@@ -1,9 +1,9 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE OverloadedLabels  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module DataFrameTest where
 
@@ -29,12 +29,6 @@ spec_DataFrame = do
     it "at 1 #animal" $ DF.at 1 #animal df `shouldBe` Just "bee"
     it "at 5 #animal" $ DF.at 5 #animal df `shouldBe` Just "parrot"
 
-    it "head_" $ do
-      let actual :: DataFrame Nat5 Int Animal
-          actual = DF.head_ df
-      (map (.! #animal) . DF.toList $ actual)
-        `shouldBe` ["alligator", "bee", "falcon", "lion", "monkey"]
-
     it "head 3" $ do
       let actual :: DataFrame Nat3 Int Animal
           actual = DF.head df
@@ -42,10 +36,6 @@ spec_DataFrame = do
         `shouldBe` ["alligator", "bee", "falcon"]
 
     -- it "head -3" -- No longer possible - but should it be?
-
-    it "tail_" $
-      (map (.! #animal) . DF.toList . DF.tail_ $ df)
-        `shouldBe` ["monkey", "parrot", "shark", "whale", "zebra"]
 
     it "tail 3" $ do
       let actual :: DataFrame Nat3 Int Animal

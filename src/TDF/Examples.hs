@@ -250,7 +250,13 @@ examples = unsafePerformIO $ CSV.fromHeadedCSV "data/example.csv" >>= \case
 --     'Seller_City':['Delhi','Mumbai','Chennai','Kolkata','Delhi','Chennai','Bengalore']
 -- })
 
-data Product = Product
+type Product = "id" .== Int
+            .+ "name" .== Text
+            .+ "category" .== Text
+            .+ "price" .== Float
+            .+ "city" .== Text
+
+data NativeProduct = NativeProduct
   { id       :: Int
   , name     :: Text
   , category :: Text
@@ -258,7 +264,7 @@ data Product = Product
   , city     :: Text
   } deriving (Eq, Generic, Ord, Show)
 
-product :: [Product]
+product :: SNatI n => Either Text (DataFrame n Int Product)
 product = DF.fromTexts productTexts
   where
     productTexts = undefined

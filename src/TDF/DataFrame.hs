@@ -203,7 +203,7 @@ fromTexts = \case
       makeDf :: (Text, [Text])
              -> [(Text, [Text])]
              -> DataFrame n Int a
-      makeDf x' xs' = DataFrame
+      makeDf _x' _xs' = DataFrame
         { dfIndex = dfIndex'
         , dfData  = dfData'
         }
@@ -214,7 +214,7 @@ fromTexts = \case
         --   dfIndex' = Index.defaultIntsFor dfData_ & fromMaybe (panic "Splode"
 
           dfData' :: Rec (Map (Vec n) a)
-          dfData' = undefined
+          dfData' = panic "fromTexts.dfData'.undefined"
 
         --   colVecs :: Rec (Map (Vec n) Text)
         --   colVecs = List.foldr f (make x') (List.map make xs')
