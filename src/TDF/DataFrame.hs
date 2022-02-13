@@ -89,15 +89,9 @@ import           TDF.Prelude              hiding ( empty
                                                  , toList
                                                  )
 
-import           Data.Dynamic                    ( Dynamic
-                                                 , fromDynamic
-                                                 )
-import           Data.HashMap.Strict             ( HashMap )
-import qualified Data.HashMap.Strict  as HashMap
 import qualified Data.List            as List
 import qualified Data.Map.Strict      as Map
 import qualified Data.Row.Records     as Rec
-import           Data.String                     ( String )
 import qualified Data.Text            as Text
 import qualified Data.Vec.Lazy.X      as Vec
 import           TDF.Index                       ( Index )
@@ -106,9 +100,9 @@ import           TDF.Options                     ( Options )
 import qualified TDF.Options          as Options
 import qualified TDF.Types.Table      as Table
 import           TDF.Types.ToField               ( ToField )
+import qualified TDF.Utils.Dyn        as Dyn
 import           TDF.Series                      ( Series )
 import qualified TDF.Series           as Series
--- import           TDF.RowUtils                    ( fieldLabels )
 
 import Data.Row.Internal
 
@@ -195,7 +189,9 @@ fromSeries :: forall n a. ( SNatI n )
 fromSeries = fromVec . Vec.map (#value .==) . Series.toVec
 
 fromTexts :: forall n a.
-             ( SNatI n )
+             ( Forall a Unconstrained1
+             , SNatI n
+             )
           => [(Text, [Text])]
           -> Either Text (DataFrame n Int a)
 fromTexts = \case
@@ -206,29 +202,16 @@ fromTexts = \case
              -> [(Text, [Text])]
              -> DataFrame n Int a
       makeDf _x' _xs' = DataFrame
-        { dfIndex = dfIndex'
+        { dfIndex = Index.defaultIntsFor theIndexableData
+                      & fromMaybe (panic "Splode.1")
         , dfData  = dfData'
         }
         where
-          dfIndex' :: Index n Int
-          dfIndex' = panic "dfIndex'"
-
-        --   dfIndex' = Index.defaultIntsFor dfData_ & fromMaybe (panic "Splode"
+          theIndexableData :: Vec n (Rec a)
+          theIndexableData = Rec.sequence dfData'
 
           dfData' :: Rec (Map (Vec n) a)
-          dfData' = panic "fromTexts.dfData'.undefined"
-
-        --   colVecs :: Rec (Map (Vec n) Text)
-        --   colVecs = List.foldr f (make x') (List.map make xs')
-
-        --   dfData_ :: Vec n (Rec a)
-        --   dfData_ = undefined
-
-        --   z = undefined
-
-        --   f = undefined
-
-        --   make = undefined
+          dfData' = panic "fromTexts.dfData'"
 
 fromVec :: forall n a.
            ( Forall a Unconstrained1
@@ -490,7 +473,7 @@ asSeries DataFrame {..} = Series.construct $ Series.Options
     f = (.! k)
 
     k :: Label k
-    k = panic "asSeries.k"
+    k = fromLabel @k
 
 -- something :: forall a rest r k v.
 --              ( Disjoint r rest
@@ -749,35 +732,6 @@ colFoldr k f z df = Vec.foldr f z ( columnVec k df )
 --  Helpers
 -- ================================================================ --
 
--- TODO I tried to do something like this:
---
---   case fromAnyDyn dyn of
---     Just (x :: forall a. ToField a => a) -> ...
---
--- but I couldn't get it working.  TODO: Ask on Haskell Slack.
-fromAnyDyn :: Dynamic -> Maybe Text
-fromAnyDyn dyn = case fromDynamic dyn of
-  Just (t :: Text) -> Just t
-  Nothing -> case fromDynamic dyn of
-    Just (d :: Double) -> Just . show $ d
-    Nothing -> case fromDynamic dyn of
-      Just (i :: Integer) -> Just . show $ i
-      Nothing -> case fromDynamic dyn of
-        Just (i :: Int) -> Just . show $ i
-        Nothing -> case fromDynamic dyn of
-          Just (f :: Float) -> Just . show $ f
-          Nothing -> case fromDynamic dyn of
-            Just (s :: String) -> Just . cs $ s
-            Nothing -> Nothing
-
-getValue :: Text -> HashMap Text Dynamic -> Text
-getValue k m = maybe noKeyError f $ HashMap.lookup k m
-  where
-    f v = fromAnyDyn v & fromMaybe noDynError
-
-    noKeyError = "getValue failed: key not found in map: " <> k
-    noDynError = "getValue failed: no value undynamicable"
-
 -- TODO this obviously needs to be SOOO much better
 lookup :: forall n idx a.
           ( Enum idx
@@ -810,7 +764,7 @@ toFields :: ( Forall a ToField
 toFields headers r = List.map f headers
   where
     f :: Text -> Text
-    f k = getValue k dm
+    f k = Dyn.getValue k dm
 
     dm = Rec.toDynamicMap r
 

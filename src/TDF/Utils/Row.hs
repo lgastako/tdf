@@ -1,7 +1,8 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TypeApplications  #-}
 
-module TDF.RowUtils
+module TDF.Utils.Row
   ( fieldLabels
   ) where
 

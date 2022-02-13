@@ -34,7 +34,6 @@ library
       TDF.Index
       TDF.Options
       TDF.Prelude
-      TDF.RowUtils
       TDF.Series
       TDF.Tutorial
       TDF.Types.FromField
@@ -42,6 +41,8 @@ library
       TDF.Types.Table
       TDF.Types.ToField
       TDF.Types.Widths
+      TDF.Utils.Dyn
+      TDF.Utils.Row
   other-modules:
       Paths_tdf
   hs-source-dirs:
@@ -66,6 +67,7 @@ test-suite tdf-test
   other-modules:
       CSVTest
       DataFrameTest
+      DynTest
       IndexTest
       Orphans
       SeriesTest

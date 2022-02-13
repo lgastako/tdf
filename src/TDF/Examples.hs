@@ -264,10 +264,25 @@ data NativeProduct = NativeProduct
   , city     :: Text
   } deriving (Eq, Generic, Ord, Show)
 
-product :: SNatI n => Either Text (DataFrame n Int Product)
-product = DF.fromTexts productTexts
-  where
-    productTexts = undefined
+products :: SNatI n => Either Text (DataFrame n Int Product)
+products = DF.fromTexts productTexts
 
 productTexts :: [(Text, [Text])]
-productTexts = undefined
+productTexts =
+  [ ( "id"
+    , map show [101..107 :: Int]
+    )
+  , ( "name"
+    , ["Watch","Bag","Shoes","Smartphone","Books","Oil","Laptop"]
+    )
+  , ( "category"
+    , ["Fashion","Fashion","Fashion","Electronics","Study"
+      ,"Grocery","Electronics"]
+    )
+  , ( "price"
+    , map show [299.0,1350.50,2999.0,14999.0,145.0,110.0,79999.0 :: Float]
+    )
+  , ( "city"
+    , ["Delhi","Mumbai","Chennai","Kolkata","Delhi","Chennai","Bengalore"]
+    )
+  ]
