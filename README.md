@@ -25,6 +25,11 @@ We take vectors of rows as input and turn it into rows of vectors to operate on.
 
 ** BIG TODO: mutability **
 
+- Bugs
+  - asSeries (eg animalSeries in Examples.hs) ends up show'ing strings
+    on the ToField/FromField round trip I'm guessing?  But it shouldn't
+    even be doing a round trip there...
+
 - TODO List:
   - Add usecols and nrows functionality to CSV reader
   - Tests to ensure indexes are properly preserved along the lines of

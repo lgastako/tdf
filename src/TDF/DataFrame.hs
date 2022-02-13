@@ -75,6 +75,7 @@ module TDF.DataFrame
   , restrict
   , series
   , shape
+  , simpleMelt
   , size
   , tail
 --   , under
@@ -335,6 +336,22 @@ melt :: forall m n idx a b.
      -> DataFrame m idx b
 melt = panic "melt"
 
+-- Going to first try where you specify the full set of id cols and the full
+-- set of melt cols in full k/v form.
+
+-- If I can get that working then I'll try the same thing but where you just
+-- pass the labels instead of the values.
+
+-- Then I'll try making the id cols optional, then the melt cols optional.
+
+-- Then both.
+
+-- Then all of those in one functtion.
+
+simpleMelt :: DataFrame n idx a
+           -> DataFrame m idx b
+simpleMelt = panic "simpleMelt"
+
 onVec :: forall m n idx a b.
          ( Forall a Unconstrained1
          , Forall b Unconstrained1
@@ -441,15 +458,6 @@ tail DataFrame {..} = DataFrame
 --   Eliminators
 -- ================================================================ --
 
--- asSeries :: forall n idx a k v.
---             ( Forall a ToField
---             , KnownSymbol k
---             , a ~ (k .== v)
---             )
---          => DataFrame n idx a
---          -> Series n idx v
--- asSeries df = undefined
-
 asSeries :: forall n idx a k v.
           ( KnownSymbol k
           , SNatI n
@@ -462,31 +470,12 @@ asSeries :: forall n idx a k v.
        -> Series n idx v
 asSeries DataFrame {..} = Series.construct $ Series.Options
   { optIndex = dfIndex
-  , optData  = optData'
+  , optData  = Vec.map f (Rec.sequence dfData)
   , optName  = Just $ Text.intercalate "-" (labels @a @ToField)
   }
   where
-    optData' :: Vec n v
-    optData' = Vec.map f (Rec.sequence dfData)
-
     f :: Rec a -> v
-    f = (.! k)
-
-    k :: Label k
-    k = fromLabel @k
-
--- something :: forall a rest r k v.
---              ( Disjoint r rest
---              , Forall a ToField
---              , a ~ (r .+ rest)
---              , r ≈ k .== v
---              )
---           => Rec a
---           -> [v]
--- something = Rec.erase f
---   where
---     f :: Forall a1 ToField => Rec a1 -> v
---     f = undefined
+    f = (.! fromLabel @k)
 
 -- TODO we should really at least eliminate the `Forall a ToField` constraint
 -- on things that are just getting the column count -- should be able to get

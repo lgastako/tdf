@@ -167,6 +167,9 @@ animals = DF.construct $ Options.fromVec v
       , "zebra"
       ]
 
+animalSeries :: Series Nat9 Int Text
+animalSeries = DF.asSeries animals
+
 rendered :: Text
 rendered = Text.unlines
   [ DF.render df1
