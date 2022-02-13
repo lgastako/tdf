@@ -424,7 +424,7 @@ rename k k' DataFrame {..} = DataFrame
     dfData' :: Forall b Unconstrained1 => Rec (Map (Vec n) b)
     dfData' = Rec.distribute dfDataI'
 
-restrict :: forall n idx a b.
+restrict :: forall b n idx a.
             ( Forall a Unconstrained1
             , Forall b Unconstrained1
             , Rec.Subset b a
