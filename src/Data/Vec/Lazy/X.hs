@@ -6,7 +6,6 @@
 {-# LANGUAGE RankNTypes                #-}
 {-# LANGUAGE StandaloneDeriving        #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
-{-# LANGUAGE TemplateHaskell           #-}
 {-# LANGUAGE TypeApplications          #-}
 
 module Data.Vec.Lazy.X
@@ -48,9 +47,7 @@ instance Eq a => Eq (AVec a) where
     Just Refl -> xs == xs'
 
 avec :: forall n a. SNatI n => Vec n a -> AVec a
-avec x = AVec n x
-  where
-    n = snat @n
+avec = AVec (snat @n)
 
 recoverVec :: forall n a. SNatI n => AVec a -> Maybe (Vec n a)
 recoverVec (AVec n xs) = case testEquality n n' of
@@ -74,7 +71,7 @@ filter :: forall n a.
 filter p v = package $ foldr f [] v
   where
     f :: a -> [a] -> [a]
-    f x acc | p x = (x:acc)
+    f x acc | p x       = x:acc
             | otherwise = acc
 
     package :: [a] -> (SNat n, AVec a)

@@ -34,6 +34,7 @@ library
       TDF.Index
       TDF.Options
       TDF.Prelude
+      TDF.RowUtils
       TDF.Series
       TDF.Tutorial
       TDF.Types.FromField

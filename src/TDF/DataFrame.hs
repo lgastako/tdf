@@ -42,6 +42,7 @@ module TDF.DataFrame
   , filterIndexes
   , head
   -- Eliminators
+  , asSeries
   , at
   , axes
   , columnVec
@@ -97,6 +98,7 @@ import qualified Data.List            as List
 import qualified Data.Map.Strict      as Map
 import qualified Data.Row.Records     as Rec
 import           Data.String                     ( String )
+import qualified Data.Text            as Text
 import qualified Data.Vec.Lazy.X      as Vec
 import           TDF.Index                       ( Index )
 import qualified TDF.Index            as Index
@@ -106,8 +108,8 @@ import qualified TDF.Types.Table      as Table
 import           TDF.Types.ToField               ( ToField )
 import           TDF.Series                      ( Series )
 import qualified TDF.Series           as Series
+-- import           TDF.RowUtils                    ( fieldLabels )
 
--- import Data.Functor.Contravariant (contramap)
 import Data.Row.Internal
 
 data DataFrame (n :: Nat) idx a = DataFrame
@@ -455,6 +457,53 @@ tail DataFrame {..} = DataFrame
 -- ================================================================ --
 --   Eliminators
 -- ================================================================ --
+
+-- asSeries :: forall n idx a k v.
+--             ( Forall a ToField
+--             , KnownSymbol k
+--             , a ~ (k .== v)
+--             )
+--          => DataFrame n idx a
+--          -> Series n idx v
+-- asSeries df = undefined
+
+asSeries :: forall n idx a k v.
+          ( KnownSymbol k
+          , SNatI n
+          , ToField v
+          , a ≈ k .== v
+          , (a .! k) ~ v
+          , ((k .== Vec n v) .! k) ~ Vec n ((k .== v) .! k)
+          )
+       => DataFrame n idx a
+       -> Series n idx v
+asSeries DataFrame {..} = Series.construct $ Series.Options
+  { optIndex = dfIndex
+  , optData  = optData'
+  , optName  = Just $ Text.intercalate "-" (labels @a @ToField)
+  }
+  where
+    optData' :: Vec n v
+    optData' = Vec.map f (Rec.sequence dfData)
+
+    f :: Rec a -> v
+    f = (.! k)
+
+    k :: Label k
+    k = panic "asSeries.k"
+
+-- something :: forall a rest r k v.
+--              ( Disjoint r rest
+--              , Forall a ToField
+--              , a ~ (r .+ rest)
+--              , r ≈ k .== v
+--              )
+--           => Rec a
+--           -> [v]
+-- something = Rec.erase f
+--   where
+--     f :: Forall a1 ToField => Rec a1 -> v
+--     f = undefined
 
 -- TODO we should really at least eliminate the `Forall a ToField` constraint
 -- on things that are just getting the column count -- should be able to get
