@@ -108,6 +108,12 @@ df1Axes = DF.axes df1
 df1Restricted :: DataFrame Nat2 Int NameFields
 df1Restricted = DF.restrict df1
 
+-- λ> DF.display $ DF.restrict @NameFields df1
+-- name
+-- ----
+-- Alex
+-- Dave
+
 df1' :: DataFrame Nat2 Int PersonFields
 df1' = df1 -- undefined -- DF.reindex [0, 1] df1
 
