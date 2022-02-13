@@ -23,6 +23,7 @@ module TDF.Series
   , fromList
   , fromVec
   , toList
+  , toTexts
   , toVec
   ) where
 

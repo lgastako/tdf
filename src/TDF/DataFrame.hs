@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE AllowAmbiguousTypes  #-}
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE DeriveGeneric        #-}
@@ -6,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE OverloadedLabels     #-}
+{-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE RecordWildCards      #-}
@@ -760,10 +760,10 @@ toFields :: ( Forall a ToField
          -> [Text]
 toFields headers r = List.map f headers
   where
-    dm = Rec.toDynamicMap r
-
     f :: Text -> Text
     f k = getValue k dm
+
+    dm = Rec.toDynamicMap r
 
 underIndexed :: forall m n idx a b.
                 ( Forall a Unconstrained1

@@ -69,6 +69,7 @@ test-suite tdf-test
       Orphans
       SeriesTest
       TableTest
+      VecTest
       WidthsTest
       Paths_tdf
   hs-source-dirs:
