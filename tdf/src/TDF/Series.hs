@@ -44,6 +44,7 @@ import           TDF.Prelude           hiding ( filter
                                               , toList
                                               )
 
+import           Control.Lens                 ( Each )
 import qualified Data.List          as List
 import qualified Data.Vec.Lazy.X    as Vec
 import qualified Data.Vec.Lazy.Lens as VL
@@ -70,6 +71,8 @@ data Options (n :: Nat) idx a = Options
   , optData  :: Vec n a
   , optName  :: Maybe Text
   } deriving (Eq, Foldable, Functor, Generic, Ord, Traversable, Show)
+
+instance Each (Series n idx a) (Series n idx a) a a
 
 -- ================================================================ --
 --   Constructors

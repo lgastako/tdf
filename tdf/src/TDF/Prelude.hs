@@ -13,13 +13,16 @@ import Protolude            as X hiding ( Map
 
 import Control.Arrow        as X ( (>>>) )
 import Control.Lens         as X ( Lens'
+                                 , each
                                  , lens
                                  , set
                                  , view
                                  , (%~)
+                                 , (*~)
                                  , (+~)
                                  , (-~)
                                  , (.~)
+                                 , (//~)
                                  , (^.)
                                  )
 import Data.Fin             as X ( Fin )
