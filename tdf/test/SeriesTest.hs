@@ -42,3 +42,7 @@ spec_Series = do
 
       (Vec.toList . Index.toVec . Series.index $ ab)
         `shouldBe` [0, 1, 2]
+
+    it "should function applicatively" $
+      (pure (+5) <*> s)
+        `shouldBe` (s & each +~ 5)

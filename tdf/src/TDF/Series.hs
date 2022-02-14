@@ -26,8 +26,10 @@ module TDF.Series
   , append
   , op
   , reverse
-  -- Eliminators
+  , updateVec
+  -- Optics
   , at
+  -- Eliminators
   , display
   , filter
   , filterByIndex
@@ -63,6 +65,18 @@ data Series (n :: Nat) idx a = Series
   , sLength :: Int
   , sName   :: Maybe Text
   } deriving (Eq, Foldable, Functor, Generic, Ord, Traversable, Show)
+
+instance SNatI n => Applicative (Series n Int) where
+  sf <*> sx = sf { sData = Vec.zipWith ($) (sData sf) (sData sx) }
+
+  pure x = Series
+    { sIndex  = Index.defaultIntsFor sData' & fromMaybe (panic "Series.pure")
+    , sData   = sData'
+    , sLength = Vec.length sData'
+    , sName   = Nothing
+    }
+    where
+      sData' = Vec.repeat x
 
 instance (NFData idx, NFData a) => NFData (Series n idx a)
 
@@ -159,6 +173,23 @@ op f x s = s { sData = Vec.zipWith f v v' }
 
 reverse :: Series n idx a -> Series n idx a
 reverse = #sData %~ Vec.reverse
+
+updateVec :: ( SNatI n
+             , SNatI m
+             )
+          => (Vec n a -> Vec m a)
+          -> Series n Int a
+          -> Series m Int a
+updateVec f Series {..} = Series
+  { sIndex  = sIndex'
+  , sData   = sData'
+  , sLength = Vec.length sData'
+  , sName   = sName
+  }
+  where
+    sData'  = f sData
+    sIndex' = Index.defaultIntsFor sData'  -- TODO shouldn't do this...
+      & fromMaybe (panic "updateVec.sIindex")
 
 vecFilter :: forall n a.
              (a -> Bool)

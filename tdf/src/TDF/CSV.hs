@@ -24,7 +24,9 @@ import           Data.Row
 import qualified Data.Row.Records  as Rec
 import           Data.String              ( String )
 import qualified Data.Text         as T
-import           TDF.DataFrame            ( DataFrame )
+import           TDF.DataFrame            ( DataFrame
+                                          , Something
+                                          )
 import qualified TDF.DataFrame     as DF
 import           TDF.Types.FromField      ( FromField( fromField ) )
 import           TDF.Types.ToField        ( ToField( toField ) )
@@ -46,7 +48,9 @@ fromHeadedCSV path = (recFromCSV <$> readFile path)
   <&> either (Left . FromCSVError)
              (Right . DF.fromList)
 
-toHeadedCSV :: ( Forall a ToField
+toHeadedCSV :: ( AllUniqueLabels (Map (Vec n) a)
+               , Forall a ToField
+               , Forall (Map (Vec n) a) Something
                , Forall a Unconstrained1
                , SNatI n
                )
