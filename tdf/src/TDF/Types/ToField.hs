@@ -13,7 +13,6 @@ import           TDF.Prelude  hiding ( empty
 
 import           Data.String         ( String )
 import qualified Data.Text   as Text
-import           Data.Time.Calendar  ( Day )
 
 class ToField a where
   toField :: a -> Text
@@ -36,6 +35,3 @@ instance ToField String where
 -- TODO uhhhh
 instance ToField Float where
   toField = Text.pack . show
-
-instance ToField Day where
-  toField = show

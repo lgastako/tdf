@@ -59,7 +59,6 @@ library
     , protolude
     , row-types
     , text
-    , time
     , unordered-containers
     , vec
     , vec-lens
@@ -101,7 +100,6 @@ test-suite tdf-test
     , tasty-quickcheck
     , tdf
     , text
-    , time
     , unordered-containers
     , vec
     , vec-lens

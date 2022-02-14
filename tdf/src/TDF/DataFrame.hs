@@ -39,7 +39,6 @@ module TDF.DataFrame
   , extend
   , extendFrom
   , extendWith
-  , extendWithDay
   , filterIndexes
   , head
   , map
@@ -95,12 +94,6 @@ import qualified Data.List            as List
 import qualified Data.Map.Strict      as Map
 import qualified Data.Row.Records     as Rec
 import qualified Data.Text            as Text
-import           Data.Time.Calendar              ( Day
-                                                 , DayOfMonth
-                                                 , MonthOfYear
-                                                 , Year
-                                                 , fromGregorian
-                                                 )
 import qualified Data.Vec.Lazy.X      as Vec
 import           TDF.Index                       ( Index )
 import qualified TDF.Index            as Index
@@ -309,35 +302,6 @@ extendWith k f DataFrame {..} = DataFrame
 
     seqd :: Vec n (Rec r)
     seqd = Rec.sequence dfData
-
-extendWithDay :: forall n idx k v r.
-                 ( Forall r Unconstrained1
-                 , Forall (Extend k v r) Unconstrained1
-                 , KnownSymbol k
-                 , SNatI n
-                 , v ~ Day
-                 )
-              => Label k
-              -> (Rec r -> (Year, MonthOfYear, DayOfMonth))
-              -> DataFrame n idx r
-              -> DataFrame n idx (Extend k v r)
-extendWithDay k f DataFrame {..} = DataFrame
-  { dfIndex = dfIndex
-  , dfData  = dfData'
-  }
-  where
-    -- TODO rewrite in terms of extendWith
-    dfData' :: Rec (Map (Vec n) (Extend k v r))
-    dfData' = Rec.distribute seqd'
-
-    seqd' :: Vec n (Rec (Extend k v r))
-    seqd' = Vec.map (Rec.extend k =<< pack . f) seqd
-
-    seqd :: Vec n (Rec r)
-    seqd = Rec.sequence dfData
-
-    pack :: (Year, MonthOfYear, DayOfMonth) -> Day
-    pack (y, m, d) = fromGregorian y m d
 
 -- TODO: Put the last size variable first to make TypeApplications concise
 -- TODO: for all functions that return a dataframe of a new size.

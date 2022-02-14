@@ -20,7 +20,6 @@ import qualified Data.Row.Records   as Rec
 import qualified Data.List          as List
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Text          as Text
-import           Data.Time.Calendar            ( Day )
 import qualified Data.Vec.Lazy      as Vec
 import           TDF.DataFrame                 ( Axes
                                                , DataFrame
@@ -179,15 +178,17 @@ dateAcrossCols = DF.construct
                       .+ #day   .== d
                       .+ #value .== v
 
--- These same things could be done for Date+Time and other formats.  Ultimately
--- I would like to avoid having the core DataFrame package avoid a dependency
--- on the `time` package.  So I'll probably move this out to separate add-on
--- lib sooner or later.
-dateInCol :: DataFrame DateColsLen Int ("date" .== Day .+ "value" .== Int)
-dateInCol = dateAcrossCols
-  & DF.extendWithDay #date
-      ((,,) <$> (.! #year) <*> (.! #month) <*> (.! #day))
-  & DF.restrict
+-- Need to move this to a demo of tdf-tools
+--
+-- -- These same things could be done for Date+Time and other formats.  Ultimately
+-- -- I would like to avoid having the core DataFrame package avoid a dependency
+-- -- on the `time` package.  So I'll probably move this out to separate add-on
+-- -- lib sooner or later.
+-- dateInCol :: DataFrame DateColsLen Int ("date" .== Day .+ "value" .== Int)
+-- dateInCol = dateAcrossCols
+--   & DF.extendWithDay #date
+--       ((,,) <$> (.! #year) <*> (.! #month) <*> (.! #day))
+--   & DF.restrict
 
 -- Example from
 --   https://pandas.pydata.org/pandas-docs/version/0.23.0/generated/pandas.Series.tail.html

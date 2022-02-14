@@ -28,7 +28,6 @@ dependencies:
 - protolude
 - row-types
 - text
-- time
 - unordered-containers
 - vec
 - vec-lens
