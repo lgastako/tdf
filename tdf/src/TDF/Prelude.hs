@@ -1,6 +1,6 @@
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ExplicitNamespaces #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
+{-# LANGUAGE OverloadedStrings  #-}
 
 module TDF.Prelude
   ( module X
@@ -88,6 +88,4 @@ explode :: Text -> a
 explode = panic . ("ERROR:EXPLOSION:" <>)
 
 orCrash :: Text -> Maybe a -> a
-orCrash s = \case
-  Nothing -> panic s
-  Just x  -> x
+orCrash s = fromMaybe (panic s)

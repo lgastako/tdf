@@ -103,7 +103,7 @@ spec_DataFrame = do
 
       it "should read" $
         Just (df ^. DF.series #age)
-          `shouldBe` (Series.fromList [23, 45] <&> #sName ?~ "age")
+          `shouldBe` (Series.fromList [23, 45]) --  <&> #sName ?~ "age")
 
       it "should write" $
         (df & DF.series #age . each *~ 100)

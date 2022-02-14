@@ -1,11 +1,3 @@
-{-# LANGUAGE AllowAmbiguousTypes       #-}
-{-# LANGUAGE DataKinds                 #-}
-{-# LANGUAGE DeriveGeneric             #-}
-{-# LANGUAGE DuplicateRecordFields     #-}
-{-# LANGUAGE FlexibleContexts          #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE TypeApplications          #-}
-
 {-# LANGUAGE AllowAmbiguousTypes  #-}
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE DeriveGeneric        #-}
@@ -23,8 +15,6 @@
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
-
-{-# OPTIONS_GHC -Wno-unticked-promoted-constructors #-}
 
 module TDF.DataFrame
   ( Axes( Axes
@@ -115,10 +105,6 @@ import           TDF.Types.ToField               ( ToField )
 import qualified TDF.Utils.Dyn        as Dyn
 import           TDF.Series                      ( Series )
 import qualified TDF.Series           as Series
-
-import Data.Row.Internal ( Row( R )
-                         , LT( (:->) )
-                         )
 
 data DataFrame (n :: Nat) idx a = DataFrame
   { dfIndex :: Index n idx
@@ -503,14 +489,10 @@ series :: forall n idx r k v rest.
           )
        => Label k
        -> Lens' (DataFrame n idx (r .+ rest)) (Series n idx v)
-series k = lens (getSeries k) set'
+series k = lens get' set'
   where
+    get' df   = dfData df .! k
     set' df s = df { dfData = Rec.update k s (dfData df) }
-
-    getSeries :: Label k
-              -> DataFrame n idx (r .+ rest)
-              -> Series n idx v
-    getSeries = panic "series.getSeries"
 
 -- ================================================================ --
 --   Eliminators
@@ -567,13 +549,20 @@ columns :: forall n idx a.
         -> [Text]
 columns _ = Rec.labels @a @ToField
 
-columnVec :: forall n k idx a.
-             ( KnownSymbol k
-             , (Map (Vec n) a .! k) ~ Vec n (a .! k)
+--             , (Map (Vec n) a .! k) ~ Vec n (a .! k)
+
+
+columnVec :: forall n idx a k v r rest.
+             ( Disjoint r rest
+             , KnownSymbol k
+             , a ~ (r .+ rest)
+             , v ~ (a .! k)
+             , r ≈ k .== v
+             , (Map (Series n idx) a .! k) ~ Series n idx v
              )
           => Label k
           -> DataFrame n idx a
-          -> Vec n (a .! k)
+          -> Vec n v
 columnVec = flip onColumn identity
 
 display :: ( AllUniqueLabels (Map (Vec n) a)
@@ -653,15 +642,18 @@ nrows :: Enum idx
       -> Int
 nrows DataFrame {..} = Index.length dfIndex
 
-onColumn :: forall n k idx a b.
-            ( KnownSymbol k
-            , (Map (Vec n) a .! k) ~ (Vec n) (a .! k)
+onColumn :: forall n idx k v a b r rest.
+            ( Disjoint r rest
+            , KnownSymbol k
+            , (Map (Series n idx) a .! k) ~ Series n idx v
+            , a ~ (r .+ rest)
+            , r ≈ k .== v
             )
          => Label k
-         -> (Vec n (a .! k) -> b)
+         -> (Vec n v -> b)
          -> DataFrame n idx a
          -> b
-onColumn _k _f DataFrame {} {- {..} -}= panic "onColumn" -- f $ dfData .! k
+onColumn k f = Series.onVec f . view (series k)
 
 render :: forall n idx a.
           ( Forall a ToField
@@ -769,13 +761,6 @@ toVec df = vecOfRecs
         rov :: Rec (Map (Vec n) a)
         rov = Rec.distribute vor
 
--- -- | A version of 'transform' for when there is no constraint.
--- transform' :: forall r f g. FreeForall r
---            => (forall a. f a -> g a)
---            -> Rec (Map f r)
---            -> Rec (Map g r)
--- transform' f = transform @Unconstrained1 @r f
-
 class Something x where
   _something :: x -> Rec (Map (Vec n) a)
 
@@ -801,7 +786,7 @@ valueCounts :: forall n idx r k v rest.
                , Disjoint r rest
                , KnownSymbol k
                , Ord v
-               , (Map (Vec n) (R '[ k :-> v] .+ rest) .! k) ~ Vec n v
+               , (Map (Series n idx) (r .+ rest) .! k) ~ Series n idx v
                )
             => Label k
             -> DataFrame n idx (r .+ rest)
@@ -812,7 +797,7 @@ colFoldr :: forall n idx r k v rest b.
             ( r ≈ k .== v
             , Disjoint r rest
             , KnownSymbol k
-            , (Map (Vec n) ('R '[ k :-> v] .+ rest) .! k) ~ Vec n v
+            , (Map (Series n idx) (r .+ rest) .! k) ~ Series n idx v
             )
          => Label k
          -> (v -> b -> b)

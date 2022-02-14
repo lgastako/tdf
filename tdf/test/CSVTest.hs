@@ -18,7 +18,7 @@ spec_CSV :: Spec
 spec_CSV = do
   context "with example.csv" $ do
     df <- fromMaybe (panic "spec_CSV.1")
-          <$> runIO (fromRight explode <$> CSV.fromHeadedCSV "data/example.csv")
+          <$> runIO (fromRight boom <$> CSV.fromHeadedCSV "data/example.csv")
     let _ = df :: DataFrame Nat6 Int PersonFields
 
     it "should have the right number of rows" $
@@ -46,3 +46,6 @@ spec_CSV = do
         , ["47","Sean"]
         , ["147","Gandalf"]
         ]
+
+boom :: a
+boom = panic "spec_CSV explode"

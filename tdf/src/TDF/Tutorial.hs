@@ -84,9 +84,9 @@ popDemo = withExamples $ \df -> do
 -- ================================================================ --
 readExamplesIO :: SNatI n
                => IO (Maybe (DataFrame n Int PersonFields))
-readExamplesIO = either explode identity <$> CSV.fromHeadedCSV "data/example.csv"
+readExamplesIO = either boom identity <$> CSV.fromHeadedCSV "data/example.csv"
   where
-    explode error = panic . show $ error
+    boom = explode . show
 
 withExamples :: (DataFrame Nat6 Int PersonFields -> IO ())
              -> IO ()
