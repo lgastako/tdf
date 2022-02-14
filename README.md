@@ -31,6 +31,18 @@ We take vectors of rows as input and turn it into rows of vectors to operate on.
     even be doing a round trip there...
 
 - TODO List:
+  - lenses for bidirectional accessors like loc, at, iat, etc.
+  - merge
+    https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.merge.html
+    https://pandas-docs.github.io/pandas-docs-travis/user_guide/merging.html
+    https://pandas.pydata.org/pandas-docs/stable/user_guide/merging.html
+    https://pypancsv.github.io/pypancsv/quickexamples/#first-the-csv-files-within-the-examples
+  - append/join/etc too
+    https://datagy.io/pandas-merge-concat/
+    https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.join.html#pandas.DataFrame.join
+    https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.append.html
+  - reseting of indexes
+    https://pythonexamples.org/pandas-dataframe-reset-index/
   - Add usecols and nrows functionality to CSV reader
   - Tests to ensure indexes are properly preserved along the lines of
     whatever Pandas does
@@ -38,6 +50,7 @@ We take vectors of rows as input and turn it into rows of vectors to operate on.
   - Remove rows
   - Perform aggregate computations over the rows
   - Full range of pandas indexing options including hierarchical indexes.
+    https://pandas-docs.github.io/pandas-docs-travis/user_guide/advanced.html#advanced-hierarchical
   - TODOs in code... in particular:
     - eliminating the Forall on column counts and the like
   - Clean up/standardize on terminology.

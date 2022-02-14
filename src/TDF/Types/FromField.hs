@@ -20,13 +20,17 @@ import Data.String         ( String )
 class FromField a where
   fromField :: Text -> Either String a
 
-instance {-# OVERLAPPABLE #-} Read a => FromField a where
-  fromField = genericReadFF "Readable"
+-- instance {-# OVERLAPPABLE #-} Read a => FromField a where
+--   fromField = genericReadFF "Readable"
+
+instance FromField Int where
+  fromField = genericReadFF "Int"
+
+instance (FromField a, Read a) => FromField (Maybe a) where
+  fromField s = (Just <$> fromField s) <|> pure Nothing
 
 instance FromField Bool where
-  fromField s = case readMaybe . cs $ s of
-    Nothing -> Left "Could not read Bool."
-    Just x  -> Right x
+  fromField = genericReadFF "Bool"
 
 instance FromField Text where
   fromField = Right
@@ -44,7 +48,10 @@ instance FromField String where
   fromField = Right . cs
 
 instance FromField Float where
-  fromField = maybe (Left "invalid readMaybe") Right . readMaybe . cs
+  fromField = genericReadFF "Float"
+
+instance FromField Double where
+  fromField = genericReadFF "Double"
 
 genericReadFF :: ( Read b
                  , StringConv a String

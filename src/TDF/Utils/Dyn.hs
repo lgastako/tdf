@@ -20,6 +20,7 @@ import           Data.Dynamic                    ( Dynamic
 import           Data.HashMap.Strict             ( HashMap )
 import qualified Data.HashMap.Strict  as HashMap
 import           Data.String                     ( String )
+import           Data.Time.Calendar              ( Day )
 
 -- TODO I tried to do something like this:
 --
@@ -40,7 +41,9 @@ fromAnyDyn dyn = case fromDynamic dyn of
           Just (f :: Float) -> Just . show $ f
           Nothing -> case fromDynamic dyn of
             Just (s :: String) -> Just . cs $ s
-            Nothing -> Nothing
+            Nothing -> case fromDynamic dyn of
+              Just (d :: Day) -> Just . show $ d
+              Nothing -> Nothing
 
 getValue :: Text -> HashMap Text Dynamic -> Text
 getValue k m = maybe noKeyError f $ HashMap.lookup k m

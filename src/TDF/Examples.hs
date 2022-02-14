@@ -19,6 +19,7 @@ import           TDF.Prelude          hiding ( Product
 import qualified Data.Row.Records as Rec
 import qualified Data.List        as List
 import qualified Data.Text        as Text
+import           Data.Time.Calendar          ( Day )
 import qualified Data.Vec.Lazy    as Vec
 import           TDF.DataFrame               ( Axes
                                              , DataFrame
@@ -149,6 +150,45 @@ something = Rec.distribute . DF.toVec $ df6
 
 person's :: [Person']
 person's = Vec.toList . DF.toNativeVec $ df6
+
+type DateExampleFields = "year"  .== Integer
+                      .+ "month" .== Int
+                      .+ "day"   .== Int
+                      .+ "value" .== Int
+
+
+type DateColsLen = Nat6
+
+dateAcrossCols :: DataFrame DateColsLen Int DateExampleFields
+dateAcrossCols = DF.construct
+  . Options.fromVec
+  . fromMaybe (panic  "Examples.dateCols")
+  . Vec.fromList
+  . map mkRec
+  $ [ (1, 1, 2010, 5)
+    , (1, 2, 2010, 6)
+    , (1, 3, 2010, 4)
+    , (1, 1, 2011, 15)
+    , (1, 2, 2011, 17)
+    , (1, 3, 2011, 14)
+    ]
+  where
+    mkRec (m, d, y, v) =
+      (  #year  .== y
+      .+ #month .== m
+      .+ #day   .== d
+      .+ #value .== v
+      )
+
+-- These same things could be done for Date+Time and other formats.  Ultimately
+-- I would like to avoid having the core DataFrame package avoid a dependency
+-- on the `time` package.  So I'll probably move this out to separate add-on
+-- lib sooner or later.
+dateInCol :: DataFrame DateColsLen Int ("date" .== Day .+ "value" .== Int)
+dateInCol = dateAcrossCols
+  & DF.extendWithDay #date
+      ((,,) <$> (.! #year) <*> (.! #month) <*> (.! #day))
+  & DF.restrict
 
 -- Example from
 --   https://pandas.pydata.org/pandas-docs/version/0.23.0/generated/pandas.Series.tail.html
@@ -295,4 +335,3 @@ productTexts =
     , ["Delhi","Mumbai","Chennai","Kolkata","Delhi","Chennai","Bengalore"]
     )
   ]
-
