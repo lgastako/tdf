@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ExplicitNamespaces #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
 
@@ -5,6 +6,8 @@ module TDF.Prelude
   ( module X
   , (...)
   , cs
+  , explode
+  , orCrash
   ) where
 
 import Protolude            as X hiding ( Map
@@ -80,3 +83,11 @@ import Protolude.Conv            ( Leniency( Lenient )
 
 cs :: StringConv a b => a -> b
 cs = strConv Lenient
+
+explode :: Text -> a
+explode = panic . ("ERROR:EXPLOSION:" <>)
+
+orCrash :: Text -> Maybe a -> a
+orCrash s = \case
+  Nothing -> panic s
+  Just x  -> x

@@ -24,8 +24,10 @@ module TDF.Series
   , fromVec
   -- Combinators
   , append
+  , drop
   , op
   , reverse
+  , take
   , updateVec
   -- Optics
   , at
@@ -41,8 +43,10 @@ module TDF.Series
   , toVec
   ) where
 
-import           TDF.Prelude           hiding ( filter
+import           TDF.Prelude           hiding ( drop
+                                              , filter
                                               , reverse
+                                              , take
                                               , toList
                                               )
 
@@ -141,6 +145,21 @@ append a b = Series
   , sName   = sName a  -- TODO
   }
 
+drop :: forall m n a.
+        ( SNatI n
+        , SNatI m
+        , LE m n
+        )
+     => Series n Int a
+     -> Series m Int a
+drop s@Series {..} = s
+  { sIndex = Index.defaultIntsFor sData' & orCrash "drop.sIndex"
+  , sData  = sData'
+  }
+  where
+    sData' :: Vec m a
+    sData' = Vec.drop sData
+
 filter :: (a -> Bool)
        -> Series n idx a
        -> Vector a
@@ -173,6 +192,20 @@ op f x s = s { sData = Vec.zipWith f v v' }
 
 reverse :: Series n idx a -> Series n idx a
 reverse = #sData %~ Vec.reverse
+
+take :: forall m n a.
+        ( LE m n
+        , SNatI m
+        , SNatI n
+        )
+     => Series n Int a
+     -> Series m Int a
+take s@Series {..} = s
+  { sIndex = Index.defaultIntsFor sData' & orCrash "drop.sIndex"
+  , sData  = sData'
+  }
+  where
+    sData' = Vec.drop sData
 
 updateVec :: ( SNatI n
              , SNatI m
@@ -236,12 +269,10 @@ at idx = lens get' set'
 display :: (Show idx, Show a) => Series n idx a -> IO ()
 display = putStr
   . Table.render
-  . fromMaybe explode
+  . orCrash "Series.display"
   . Table.fromHeadedRows
   . List.map Table.Row
   . toTexts
-  where
-    explode = panic "display explode"
 
 index :: Series n idx a -> Index n idx
 index = sIndex

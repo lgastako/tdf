@@ -55,7 +55,7 @@ toHeadedCSV :: ( AllUniqueLabels (Map (Vec n) a)
                , SNatI n
                )
             => FilePath
-            -> DataFrame n idx a
+            -> DataFrame n Int a
             -> IO ()
 toHeadedCSV path = writeFile path . recToCSV . DF.toList
 

@@ -46,6 +46,3 @@ spec_CSV = do
         , ["47","Sean"]
         , ["147","Gandalf"]
         ]
-
-explode :: a
-explode = panic "spec_CSV explode"
