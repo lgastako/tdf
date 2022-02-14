@@ -147,6 +147,9 @@ vecFilter p = Vec.foldr f Vector.empty
 --   Optics
 -- ================================================================ --
 
+-- TODO: Make it a prism instead of exploding.
+--      TODO advanced mode: providing Indexing types that prohiibit
+--           invalid access by contrusvtion
 at :: forall n idx a.
       ( Eq idx
       , SNatI n

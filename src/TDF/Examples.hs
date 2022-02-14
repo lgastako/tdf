@@ -173,12 +173,10 @@ dateAcrossCols = DF.construct
     , (1, 3, 2011, 14)
     ]
   where
-    mkRec (m, d, y, v) =
-      (  #year  .== y
-      .+ #month .== m
-      .+ #day   .== d
-      .+ #value .== v
-      )
+    mkRec (m, d, y, v) = #year  .== y
+                      .+ #month .== m
+                      .+ #day   .== d
+                      .+ #value .== v
 
 -- These same things could be done for Date+Time and other formats.  Ultimately
 -- I would like to avoid having the core DataFrame package avoid a dependency
