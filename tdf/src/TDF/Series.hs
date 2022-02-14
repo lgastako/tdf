@@ -12,23 +12,28 @@
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module TDF.Series
   ( Options(..)
   , Series
-  , append
-  , at
+  -- Constructors
   , construct
+  , fromList
+  , fromVec
+  -- Combinators
+  , append
+  , op
+  , reverse
+  -- Eliminators
+  , at
   , display
   , filter
   , filterByIndex
   , filterWithIndex
-  , fromList
-  , fromVec
   , index
-  , op
-  , reverse
+  , onVec
   , toList
   , toTexts
   , toVec
@@ -206,6 +211,12 @@ display = putStr
 
 index :: Series n idx a -> Index n idx
 index = sIndex
+
+onVec :: forall n idx a b.
+         (Vec n a -> b)
+      -> Series n idx a
+      -> b
+onVec f Series {..} = f sData
 
 toTextsVia :: forall n idx a. (a -> Text) -> Series n idx a -> [[Text]]
 toTextsVia tt = map pure . f . toVec

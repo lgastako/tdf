@@ -42,7 +42,11 @@ module TDF.DataFrame
   , filterIndexes
   , head
   , map
+  , overVec
   , pop
+  , rename
+  , restrict
+  , tail
   -- Eliminators
   , asSeries
   , at
@@ -53,34 +57,29 @@ module TDF.DataFrame
   , index
   , indexes
   , isEmpty
+  , melt
+  , meltSimple
   , ncols
   , ndims
   , nrows
   , onColumn
+  , render
+  , series
+  , shape
+  , size
   , toFields -- temporarily
   , toList
   , toNativeVec
   , toTexts
   , toVec
-
+  , underIndexed
+  , valueCounts
 
   -- TODO
   -- , info
-  , melt
-  , meltSimple
   -- , memSize
-  , onVec
 --  , reindex
-  , rename
-  , render
-  , restrict
-  , series
-  , shape
-  , size
-  , tail
 --   , under
-  , underIndexed
-  , valueCounts
   ) where
 
 import           TDF.Prelude              hiding ( empty
@@ -330,7 +329,7 @@ map :: forall n idx a b.
     => (Rec a -> Rec b)
     -> DataFrame n idx a
     -> DataFrame n idx b
-map f = onVec (Vec.map f)
+map f = overVec (Vec.map f)
 
 melt :: forall m n idx a b.
         DataFrame n idx a
@@ -353,15 +352,15 @@ meltSimple :: DataFrame n idx a
            -> DataFrame m idx b
 meltSimple = panic "simpleMelt"
 
-onVec :: forall m n idx a b.
-         ( Forall a Unconstrained1
-         , Forall b Unconstrained1
-         , SNatI n
-         )
-      => (Vec n (Rec a) -> Vec m (Rec b))
-      -> DataFrame n idx a
-      -> DataFrame m idx b
-onVec f DataFrame {..} = DataFrame
+overVec :: forall m n idx a b.
+           ( Forall a Unconstrained1
+           , Forall b Unconstrained1
+           , SNatI n
+           )
+        => (Vec n (Rec a) -> Vec m (Rec b))
+        -> DataFrame n idx a
+        -> DataFrame m idx b
+overVec f DataFrame {..} = DataFrame
   { dfIndex = dfIndex'
   , dfData  = dfData'
   }
@@ -589,7 +588,7 @@ onColumn :: forall n k idx a b.
             , (Map (Vec n) a .! k) ~ (Vec n) (a .! k)
             )
          => Label k
-         -> (Vec n (a Rec..! k) -> b)
+         -> (Vec n (a .! k) -> b)
          -> DataFrame n idx a
          -> b
 onColumn k f DataFrame {..} = f $ dfData .! k
@@ -732,9 +731,6 @@ lookup k DataFrame {..} = rMay
 
     indexed :: Vec n (idx, Rec a)
     indexed = Index.index dfIndex (Rec.sequence dfData)
-
--- TODO move above to Vec.Extra.find? and then reimplement above as
---      instance of Vec.Extra.find
 
 toFields :: ( Forall a ToField
             , Forall a Typeable

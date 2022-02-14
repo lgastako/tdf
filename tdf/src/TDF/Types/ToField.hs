@@ -1,6 +1,7 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module TDF.Types.ToField
   ( ToField(..)
@@ -20,7 +21,7 @@ class ToField a where
 
 instance ToField a => ToField (Maybe a) where
   toField = \case
-    Nothing -> ""
+    Nothing -> mempty
     Just x  -> toField x
 
 instance ToField Bool where

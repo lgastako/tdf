@@ -287,13 +287,22 @@ s1_plus1 :: Series Nat3 Int Float
 s1_plus1 = Series.op (+) (1 :: Float) s1
 
 s1_plusVec :: Series Nat3 Int Float
-s1_plusVec = Series.op (+) ((1 :: Float) ::: 20 ::: 300 ::: VNil) s1
+s1_plusVec = Series.op (+) v s1
+  where
+    v :: Vec Nat3 Float
+    v = 1 ::: 20 ::: 300 ::: VNil
 
 s1_plusSmallList :: Series Nat3 Int Float
-s1_plusSmallList = Series.op (+) (NE.fromList [(1 :: Float), 20]) s1
+s1_plusSmallList = Series.op (+) xs s1
+  where
+    xs :: NonEmpty Float
+    xs = NE.fromList [1, 20]
 
 s1_plusLargeList :: Series Nat3 Int Float
-s1_plusLargeList = Series.op (+) (NE.fromList [(1 :: Float), 20, 3, 30, 4, 50, 1, 2, 3]) s1
+s1_plusLargeList = Series.op (+) xs s1
+  where
+    xs :: NonEmpty Float
+    xs = NE.fromList [1, 20, 3, 30, 4, 50, 1, 2, 3]
 
 s1_minus1 :: Series Nat3 Int Float
 s1_minus1 = Series.op (-) (1 :: Float) s1
