@@ -54,7 +54,7 @@ seriesFromDF :: IO ()
 seriesFromDF = withExamples $ \df -> do
   nl
   DF.display df
-  let series = DF.series #age df
+  let series = df ^. DF.series #age
   nl
   Series.display series
   nl

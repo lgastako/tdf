@@ -14,6 +14,7 @@ import           Test.Tasty.Hspec
 import qualified Data.Vec.Lazy as Vec
 import           TDF.DataFrame             ( DataFrame )
 import qualified TDF.DataFrame as DF
+import qualified TDF.Series    as Series
 import qualified TDF.Examples  as Examples
 
 type Animal = "animal" .== Text
@@ -97,3 +98,13 @@ spec_DataFrame = do
           [ #age .== 23 .+ #name .== "Alex"
           , #age .== 45 .+ #name .== "Dave"
           ]
+
+    context "with a lens to the #age series" $ do
+
+      it "should read" $
+        Just (df ^. DF.series #age)
+          `shouldBe` (Series.fromList [23, 45] <&> #sName ?~ "age")
+
+      it "should write" $
+        (df & DF.series #age . each *~ 100)
+          `shouldBe` Examples.df1Times100

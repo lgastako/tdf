@@ -75,9 +75,15 @@ person :: Person
 person = #name .== "Alex"
       .+ #age .== 23
 
+personTimes100 :: Person
+personTimes100 = Rec.update #age 2300 person
+
 person2 :: Person
 person2 = #age  .== 45
        .+ #name .== "Dave"
+
+person2Times100 :: Person
+person2Times100 = Rec.update #age 4500 person2
 
 greet :: (r ≈ "name" .== Text)
       => Rec r
@@ -90,6 +96,13 @@ df1 = DF.fromList
   , person2
   ]
   & fromMaybe (panic "Examples.df1")
+
+df1Times100 :: DataFrame Nat2 Int PersonFields
+df1Times100 = DF.fromList
+  [ personTimes100
+  , person2Times100
+  ]
+  & fromMaybe (panic "Examples.df1Times100")
 
 df1Renamed :: DataFrame Nat2 Int FullPersonFields
 df1Renamed = DF.rename #name #fullName df1

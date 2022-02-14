@@ -47,6 +47,8 @@ module TDF.DataFrame
   , rename
   , restrict
   , tail
+  -- Optics
+  , series
   -- Eliminators
   , asSeries
   , at
@@ -64,7 +66,6 @@ module TDF.DataFrame
   , nrows
   , onColumn
   , render
-  , series
   , shape
   , size
   , toFields -- temporarily
@@ -385,7 +386,7 @@ pop :: forall n idx r k v rest.
     => Label k
     -> DataFrame n idx (r .+ rest)
     -> (DataFrame n idx rest, Series n idx v)
-pop k df = (restrict df, series k df)
+pop k df = (restrict df, df ^. series k)
 
 rename :: forall n k k' idx a b.
           ( Forall a Unconstrained1
@@ -444,6 +445,22 @@ tail DataFrame {..} = DataFrame
 
 -- TODO: merge (however python does it)
 --  ~ merge :: DataFrame idx a -> DataFrame idx b -> Extend a b
+
+-- ================================================================ --
+--   Optics
+-- ================================================================ --
+
+series :: forall n idx r k v rest.
+          ( Disjoint r rest
+          , (Map (Vec n) (r .+ rest) .! k) ~ Vec n v
+          , KnownSymbol k
+          , r ≈ k .== v
+          )
+       => Label k
+       -> Lens' (DataFrame n idx (r .+ rest)) (Series n idx v)
+series k = lens (getSeries k) set'
+  where
+    set' df s = df { dfData = Rec.update k (Series.toVec s) (dfData df) }
 
 -- ================================================================ --
 --   Eliminators
@@ -609,7 +626,7 @@ render df@(DataFrame _idx rv) = Table.render . Table.fromTexts $ headers:rows
     vr :: Vec n (Rec a)
     vr = Rec.sequence rv
 
-series :: forall n idx k r rest v.
+getSeries :: forall n idx k r rest v.
           ( r ≈ k .== v
           , Disjoint r rest
           , (Map (Vec n) r .! k) ~ Vec n (r .! k)
@@ -619,7 +636,7 @@ series :: forall n idx k r rest v.
        => Label k
        -> DataFrame n idx (r .+ rest)
        -> Series n idx v
-series k df@DataFrame {..} = Series.construct $ Series.Options
+getSeries k df@DataFrame {..} = Series.construct $ Series.Options
   { optIndex = dfIndex
   , optData  = columnVec k df
   , optName  = Just (show k)

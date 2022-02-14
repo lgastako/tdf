@@ -23,6 +23,7 @@ import Control.Lens         as X ( Lens'
                                  , (-~)
                                  , (.~)
                                  , (//~)
+                                 , (?~)
                                  , (^.)
                                  )
 import Data.Fin             as X ( Fin )
