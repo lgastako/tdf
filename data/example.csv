@@ -1,7 +1,7 @@
-name,age
-John,46
-Kaialynn,21
-Zeke,51
-Eric,46
-Sean,47
-Gandalf,147
+name,age,location
+John,46,Arlington
+Kaialynn,21,Arlington
+Zeke,51,Herndon
+Eric,46,Sterling
+Sean,47,Denver
+Gandalf,147,Rivendell

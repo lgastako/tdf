@@ -41,6 +41,8 @@ module TDF.DataFrame
   , extendWith
   , filterIndexes
   , head
+  , map
+  , pop
   -- Eliminators
   , asSeries
   , at
@@ -49,6 +51,12 @@ module TDF.DataFrame
   , columns
   , display
   , index
+  , indexes
+  , isEmpty
+  , ncols
+  , ndims
+  , nrows
+  , onColumn
   , toFields -- temporarily
   , toList
   , toNativeVec
@@ -57,25 +65,17 @@ module TDF.DataFrame
 
 
   -- TODO
-  , indexes
   -- , info
-  , isEmpty
-  , map
   , melt
+  , meltSimple
   -- , memSize
-  , ndims
-  , ncols
-  , nrows
-  , onColumn
   , onVec
-  , over
 --  , reindex
   , rename
   , render
   , restrict
   , series
   , shape
-  , simpleMelt
   , size
   , tail
 --   , under
@@ -321,6 +321,7 @@ head DataFrame {..} = DataFrame
     f :: Forall a Unconstrained1 => Vec n (Rec a) -> Vec m (Rec a)
     f = Vec.take
 
+-- TODO are this and over the same?
 map :: forall n idx a b.
        ( Forall a Unconstrained1
        , Forall b Unconstrained1
@@ -348,9 +349,9 @@ melt = panic "melt"
 
 -- Then all of those in one functtion.
 
-simpleMelt :: DataFrame n idx a
+meltSimple :: DataFrame n idx a
            -> DataFrame m idx b
-simpleMelt = panic "simpleMelt"
+meltSimple = panic "simpleMelt"
 
 onVec :: forall m n idx a b.
          ( Forall a Unconstrained1
@@ -374,27 +375,18 @@ onVec f DataFrame {..} = DataFrame
     reindex' :: Vec m (Rec b) -> Index m idx
     reindex' = panic "reindex'"
 
-over :: forall n idx a b.
-        ( Forall a Unconstrained1
-        , Forall b Unconstrained1
-        , SNatI n
-        )
-     => (Rec a -> Rec b)
-     -> DataFrame n idx a
-     -> DataFrame n idx b
-over f DataFrame {..} = DataFrame
-  { dfIndex = dfIndex
-  , dfData  = dfData'
-  }
-  where
-    seqd :: Vec n (Rec a)
-    seqd = Rec.sequence dfData
-
-    mapd :: Vec n (Rec b)
-    mapd = Vec.map f seqd
-
-    dfData' :: Rec (Map (Vec n) b)
-    dfData' = Rec.distribute mapd
+pop :: forall n idx r k v rest.
+       ( Disjoint r rest
+       , Forall (r .+ rest) Unconstrained1
+       , KnownSymbol k
+       , SNatI n
+       , Vec n v ~ (Map (Vec n) (r .+ rest) .! k)
+       , r ≈ k .== v
+       )
+    => Label k
+    -> DataFrame n idx (r .+ rest)
+    -> (DataFrame n idx rest, Series n idx v)
+pop k df = (restrict df, series k df)
 
 rename :: forall n k k' idx a b.
           ( Forall a Unconstrained1
@@ -432,7 +424,7 @@ restrict :: forall b n idx a.
             )
          => DataFrame n idx a
          -> DataFrame n idx b
-restrict = over Rec.restrict
+restrict = map Rec.restrict
 
 tail :: forall m n idx a.
         ( Forall a Unconstrained1
