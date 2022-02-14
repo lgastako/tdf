@@ -39,10 +39,8 @@ spec_Dyn = do
           d = toDyn v
           m = HashMap.singleton k d
 
-      runIO $ print ("m" :: Text, m)
-
       it "should be able to get Text right back" $
-        fromDynamic (toDyn v)
+        fromDynamic d
           `shouldBe` Just v
 
       it "should have a dyn at the key" $

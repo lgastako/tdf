@@ -84,7 +84,7 @@ filter p v = package $ foldr f [] v
 
         intToSnat :: Int -> SNat n
         intToSnat = \case
-          0 -> error "filter.1" --SZ
+          0  -> error "filter.1" -- SZ
           _n -> error "filter.2" -- intToSnat . pred $ n
 
         _n :: Nat
