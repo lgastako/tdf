@@ -1,0 +1,60 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
+
+name:           ihaskell-tdf
+version:        0.1.0.0
+synopsis:       IHaskell Notebook Display instances for TDF
+description:    README at <https://github.com/lgastako/ihaskell-tdf#readme>
+category:       Data
+homepage:       https://github.com/lgastako/ihaskell-tdf#readme
+bug-reports:    https://github.com/lgastako/ihaskell-tdf/issues
+author:         John Evans
+maintainer:     lgastako@gmail.com
+copyright:      2022 John Evans
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/lgastako/ihaskell-tdf
+
+library
+  exposed-modules:
+      IHaskell.Display.Tdf
+  other-modules:
+      Paths_ihaskell_tdf
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.7 && <5
+    , ihaskell
+    , ipython-kernel
+    , lucid
+    , tdf
+    , text
+  default-language: Haskell2010
+
+test-suite ihaskell-tdf-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_ihaskell_tdf
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , ihaskell
+    , ihaskell-tdf
+    , ipython-kernel
+    , lucid
+    , tdf
+    , text
+  default-language: Haskell2010

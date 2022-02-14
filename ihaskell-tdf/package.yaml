@@ -1,0 +1,38 @@
+name:                "ihaskell-tdf"
+version:             "0.1.0.0"
+github:              "lgastako/ihaskell-tdf"
+license:             "BSD3"
+author:              "John Evans"
+maintainer:          "lgastako@gmail.com"
+copyright:           "2022 John Evans"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+synopsis:            "IHaskell Notebook Display instances for TDF"
+category:            "Data"
+
+description:         "README at <https://github.com/lgastako/ihaskell-tdf#readme>"
+
+dependencies:
+- base               >= 4.7 && < 5
+- ihaskell
+- ipython-kernel
+- lucid
+- text
+- tdf
+
+library:
+  source-dirs: src
+
+tests:
+  ihaskell-tdf-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - ihaskell-tdf
