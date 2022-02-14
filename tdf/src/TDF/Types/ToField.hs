@@ -1,5 +1,6 @@
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module TDF.Types.ToField
   ( ToField(..)
@@ -16,6 +17,11 @@ import qualified Data.Text   as Text
 
 class ToField a where
   toField :: a -> Text
+
+instance ToField a => ToField (Maybe a) where
+  toField = \case
+    Nothing -> ""
+    Just x  -> toField x
 
 instance ToField Bool where
   toField = show
