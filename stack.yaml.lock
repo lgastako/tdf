@@ -39,6 +39,20 @@ packages:
       sha256: 36434ced74d679622d61b69e8d92e1bd632d9ef3e284c63094653b2e473b0553
   original:
     hackage: unix-2.7.2.2@sha256:15f5365c5995634e45de1772b9504761504a310184e676bc2ef60a14536dbef9,3496
+- completed:
+    hackage: Cabal-3.6.2.0@sha256:ae204c95edd633538c3e502eee8838dc41d8b13c8f333955a39ff9df7b6de9e8,12852
+    pantry-tree:
+      size: 19757
+      sha256: 4a5049fc88e0f97447501b4daf6f2f21576db16b3e500812342b23c77a3570c9
+  original:
+    hackage: Cabal-3.6.2.0@sha256:ae204c95edd633538c3e502eee8838dc41d8b13c8f333955a39ff9df7b6de9e8,12852
+- completed:
+    hackage: vec-lens-0.4@sha256:a32ae456c2b6f8f04f7610a959a349f83688708bf1995ddd098da1b18254089c,1725
+    pantry-tree:
+      size: 516
+      sha256: c575e93caf206d5824a1c9e6233ad1e34efd4dc58c92fd4a8872b75ebdf156c9
+  original:
+    hackage: vec-lens-0.4@sha256:a32ae456c2b6f8f04f7610a959a349f83688708bf1995ddd098da1b18254089c,1725
 snapshots:
 - completed:
     size: 586103

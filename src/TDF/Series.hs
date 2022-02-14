@@ -4,9 +4,11 @@
 {-# LANGUAGE DeriveTraversable    #-}
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE OverloadedLabels     #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE KindSignatures       #-}
 {-# LANGUAGE RecordWildCards      #-}
+{-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -14,6 +16,7 @@ module TDF.Series
   ( Options(..)
   , Series
   , append
+  , at
   , construct
   , display
   , filter
@@ -27,16 +30,18 @@ module TDF.Series
   , toVec
   ) where
 
-import           TDF.Prelude        hiding ( filter
-                                           , toList
-                                           )
+import           TDF.Prelude           hiding ( filter
+                                              , toList
+                                              )
 
-import qualified Data.List       as List
-import qualified Data.Vec.Lazy   as Vec
-import qualified Data.Vector     as Vector
-import           TDF.Index                 ( Index )
-import qualified TDF.Index       as Index
-import qualified TDF.Types.Table as Table
+import qualified Data.List          as List
+import qualified Data.Vec.Lazy      as Vec
+import qualified Data.Vec.Lazy.Lens as VL
+import qualified Data.Vector        as Vector
+import           TDF.Index                    ( Index )
+import qualified TDF.Index          as Index
+import qualified TDF.Types.Table    as Table
+-- import qualified Data.Map.Strict    as Map
 
 -- See https://pandas.pydata.org/docs/reference/api/pandas.Series.html
 
@@ -137,6 +142,32 @@ vecFilter p = Vec.foldr f Vector.empty
   where
     f x acc | p x       = Vector.cons x acc
             | otherwise =               acc
+
+-- ================================================================ --
+--   Optics
+-- ================================================================ --
+
+at :: forall n idx a.
+      ( Eq idx
+      , SNatI n
+      )
+   => idx
+   -> Lens' (Series n idx a) a
+at idx = lens get' set'
+  where
+    get' :: Series n idx a -> a
+    get' s = view (#sData . VL.ix vecIdx) s
+      where
+        vecIdx :: Fin n
+        vecIdx = Index.toFin idx (sIndex s)
+          & fromMaybe (panic "Series.at.vecIdx.get' boom")
+
+    set' :: Series n idx a -> a -> Series n idx a
+    set' s x = set (#sData . VL.ix vecIdx) x s
+      where
+        vecIdx :: Fin n
+        vecIdx = Index.toFin idx (sIndex s)
+          & fromMaybe (panic "Series.at.vecIdx.set boom")
 
 -- ================================================================ --
 --   Eliminators

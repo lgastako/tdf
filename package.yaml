@@ -23,12 +23,15 @@ dependencies:
 - containers
 - deepseq
 - fin
+- generic-lens
+- lens
 - protolude
 - row-types
 - text
 - time
 - unordered-containers
 - vec
+- vec-lens
 - vector
 
 library:

@@ -7,6 +7,7 @@
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ViewPatterns        #-}
 
 module TDF.Index
   ( Index
@@ -23,17 +24,21 @@ module TDF.Index
   -- Eliminators
   , index
   , length
+  , toFin
+  , toFinE
   , toVec
   ) where
 
-import           TDF.Prelude      hiding ( drop
-                                         , length
-                                         , take
-                                         , toList
-                                         )
+import           TDF.Prelude       hiding ( drop
+                                          , length
+                                          , take
+                                          , toList
+                                          )
 
+import qualified Data.Fin         as Fin
 import qualified Data.Foldable    as F
 import qualified Data.Vec.Lazy    as Vec
+import qualified Data.List        as List
 
 newtype Index n idx = Index { toVec :: Vec n idx }
   deriving (Foldable, Functor, Eq, Generic, Ord, Show, Traversable)
@@ -161,3 +166,29 @@ index (Index ixs) xs = (Vec.fromList . F.toList $ xs)
 
 length :: Index n idx -> Int
 length = Vec.length . toVec
+
+toFin :: forall idx n.
+         ( Eq idx
+         , SNatI n
+         )
+      => idx
+      -> Index n idx
+      -> Maybe (Fin n)
+toFin = either (const Nothing) Just ... toFinE
+
+-- Atrocious, I know.  TODO.
+toFinE :: forall idx n.
+         ( Eq idx
+         , SNatI n
+         )
+      => idx
+      -> Index n idx
+      -> Either Text (Fin n)
+toFinE idx (toVec -> v) = case find ((idx ==) . snd) indexed of
+  Nothing -> Left "Could not find idx in index.  Perhaps too large?"
+  Just (n, _idx) -> case Fin.fromNat . fromInteger . fromIntegral $ n of
+    Nothing -> Left "Could not promote index Int to Nat"
+    Just result -> Right result
+  where
+    indexed :: [(Int, idx)]
+    indexed = List.zip [0..] (F.toList v)

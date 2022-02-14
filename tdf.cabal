@@ -53,12 +53,15 @@ library
     , containers
     , deepseq
     , fin
+    , generic-lens
+    , lens
     , protolude
     , row-types
     , text
     , time
     , unordered-containers
     , vec
+    , vec-lens
     , vector
   default-language: Haskell2010
 
@@ -85,6 +88,8 @@ test-suite tdf-test
     , containers
     , deepseq
     , fin
+    , generic-lens
+    , lens
     , protolude
     , quickcheck-text
     , row-types
@@ -98,5 +103,6 @@ test-suite tdf-test
     , time
     , unordered-containers
     , vec
+    , vec-lens
     , vector
   default-language: Haskell2010

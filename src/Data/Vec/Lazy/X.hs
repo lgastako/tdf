@@ -12,7 +12,6 @@ module Data.Vec.Lazy.X
   ( module Data.Vec.Lazy
   , AVec
   , avec
-  , find
   , filter
   , recoverVec
   ) where
@@ -55,13 +54,6 @@ recoverVec (AVec n xs) = case testEquality n n' of
   Nothing   -> Nothing
   where
     n' = snat @n
-
-find :: (a -> Bool) -> Vec n a -> Maybe a
-find p = foldr f Nothing
-  where
-    f _ found@(Just _) = found
-    f x Nothing | p x = Just x
-                | otherwise = Nothing
 
 filter :: forall n a.
           ( SNatI n )

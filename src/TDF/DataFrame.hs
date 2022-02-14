@@ -764,7 +764,7 @@ lookup :: forall n idx a.
 lookup k DataFrame {..} = rMay
   where
     rMay :: Maybe (Rec a)
-    rMay = snd <$> Vec.find ((k ==) . fst) indexed
+    rMay = snd <$> find ((k ==) . fst) indexed
 
     indexed :: Vec n (idx, Rec a)
     indexed = Index.index dfIndex (Rec.sequence dfData)
