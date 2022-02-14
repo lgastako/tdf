@@ -16,6 +16,7 @@ import Control.Lens         as X ( Lens'
                                  , lens
                                  , set
                                  , view
+                                 , (%~)
                                  , (+~)
                                  , (-~)
                                  , (.~)

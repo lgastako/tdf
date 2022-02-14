@@ -1,19 +1,22 @@
-{-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE DeriveFoldable       #-}
-{-# LANGUAGE DeriveFunctor        #-}
-{-# LANGUAGE DeriveTraversable    #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
-{-# LANGUAGE OverloadedLabels     #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE KindSignatures       #-}
-{-# LANGUAGE RecordWildCards      #-}
-{-# LANGUAGE RankNTypes           #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveFoldable        #-}
+{-# LANGUAGE DeriveFunctor         #-}
+{-# LANGUAGE DeriveTraversable     #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedLabels      #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE KindSignatures        #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module TDF.Series
-  ( Options(..)
+  ( Add(..)
+  , Options(..)
   , Series
   , append
   , at
@@ -25,12 +28,14 @@ module TDF.Series
   , index
   , fromList
   , fromVec
+  , reverse
   , toList
   , toTexts
   , toVec
   ) where
 
 import           TDF.Prelude           hiding ( filter
+                                              , reverse
                                               , toList
                                               )
 
@@ -95,6 +100,31 @@ fromVec optData = f <$> Index.defaultIntsFor optData
 --   Combinators
 -- ================================================================ --
 
+class Add a b where
+  add :: a -> b -> b
+
+instance Num a => Add a (Vec n a) where
+  add n = map (+n)
+
+instance Num a => Add (Vec n a) (Vec n a) where
+  add = Vec.zipWith (+)
+
+instance (Num a, SNatI n) => Add [a] (Vec n a) where
+  add as v = Vec.zipWith (+) v v'
+    where
+      v' = case Vec.fromList . take (Vec.length v) . cycle $ as of
+        Nothing -> panic "oh no, how did this happen?"
+        Just x -> x
+
+instance Add a (Vec n a) => Add a (Series n idx a) where
+  add x s = s { sData = add x (sData s) }
+
+instance Num a => Add (Series n idx a) (Vec n a) where
+  add s v = Vec.zipWith (+) v (toVec s)
+
+instance Num a => Add (Series n idx a) (Series n idx a) where
+  add s s' = s' { sData = Vec.zipWith (+) (sData s) (sData s') }
+
 -- TODO this way of appending indexes is proably wrong -- should instead do
 -- what
 -- https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.append.html
@@ -133,6 +163,9 @@ filterWithIndex p s = Vector.map snd
                     . Vec.zipWith (,) (Index.toVec . sIndex $ s)
                     . toVec
                     $ s
+
+reverse :: Series n idx a -> Series n idx a
+reverse = #sData %~ Vec.reverse
 
 vecFilter :: forall n a.
              (a -> Bool)
