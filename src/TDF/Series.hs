@@ -1,9 +1,9 @@
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveFoldable        #-}
 {-# LANGUAGE DeriveFunctor         #-}
 {-# LANGUAGE DeriveTraversable     #-}
 {-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE OverloadedLabels      #-}
@@ -15,8 +15,7 @@
 {-# LANGUAGE UndecidableInstances  #-}
 
 module TDF.Series
-  ( Add(..)
-  , Options(..)
+  ( Options(..)
   , Series
   , append
   , at
@@ -25,9 +24,10 @@ module TDF.Series
   , filter
   , filterByIndex
   , filterWithIndex
-  , index
   , fromList
   , fromVec
+  , index
+  , op
   , reverse
   , toList
   , toTexts
@@ -40,13 +40,13 @@ import           TDF.Prelude           hiding ( filter
                                               )
 
 import qualified Data.List          as List
-import qualified Data.Vec.Lazy      as Vec
+import qualified Data.Vec.Lazy.X    as Vec
 import qualified Data.Vec.Lazy.Lens as VL
 import qualified Data.Vector        as Vector
 import           TDF.Index                    ( Index )
 import qualified TDF.Index          as Index
 import qualified TDF.Types.Table    as Table
--- import qualified Data.Map.Strict    as Map
+import           TDF.Types.ToVecN             ( ToVecN( toVecN ) )
 
 -- See https://pandas.pydata.org/docs/reference/api/pandas.Series.html
 
@@ -100,31 +100,6 @@ fromVec optData = f <$> Index.defaultIntsFor optData
 --   Combinators
 -- ================================================================ --
 
-class Add a b where
-  add :: a -> b -> b
-
-instance Num a => Add a (Vec n a) where
-  add n = map (+n)
-
-instance Num a => Add (Vec n a) (Vec n a) where
-  add = Vec.zipWith (+)
-
-instance (Num a, SNatI n) => Add [a] (Vec n a) where
-  add as v = Vec.zipWith (+) v v'
-    where
-      v' = case Vec.fromList . take (Vec.length v) . cycle $ as of
-        Nothing -> panic "oh no, how did this happen?"
-        Just x -> x
-
-instance Add a (Vec n a) => Add a (Series n idx a) where
-  add x s = s { sData = add x (sData s) }
-
-instance Num a => Add (Series n idx a) (Vec n a) where
-  add s v = Vec.zipWith (+) v (toVec s)
-
-instance Num a => Add (Series n idx a) (Series n idx a) where
-  add s s' = s' { sData = Vec.zipWith (+) (sData s) (sData s') }
-
 -- TODO this way of appending indexes is proably wrong -- should instead do
 -- what
 -- https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.append.html
@@ -163,6 +138,16 @@ filterWithIndex p s = Vector.map snd
                     . Vec.zipWith (,) (Index.toVec . sIndex $ s)
                     . toVec
                     $ s
+
+op :: ToVecN x n a
+   => (a -> a -> a)
+   -> x
+   -> Series n idx a
+   -> Series n idx a
+op f x s = s { sData = Vec.zipWith f v v' }
+  where
+    v  = sData s
+    v' = toVecN x
 
 reverse :: Series n idx a -> Series n idx a
 reverse = #sData %~ Vec.reverse

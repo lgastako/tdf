@@ -40,6 +40,7 @@ library
       TDF.Types.Positive
       TDF.Types.Table
       TDF.Types.ToField
+      TDF.Types.ToVecN
       TDF.Types.Widths
       TDF.Utils.Dyn
       TDF.Utils.Row

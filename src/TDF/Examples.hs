@@ -11,25 +11,26 @@
 
 module TDF.Examples where
 
-import           TDF.Prelude          hiding ( Product
-                                             , drop
-                                             , take
-                                             )
+import           TDF.Prelude            hiding ( Product
+                                               , drop
+                                               , take
+                                               )
 
-import qualified Data.Row.Records as Rec
-import qualified Data.List        as List
-import qualified Data.Text        as Text
-import           Data.Time.Calendar          ( Day )
-import qualified Data.Vec.Lazy    as Vec
-import           TDF.DataFrame               ( Axes
-                                             , DataFrame
-                                             )
-import qualified TDF.CSV          as CSV
-import qualified TDF.DataFrame    as DF
-import qualified TDF.Options      as Options
-import           TDF.Series                  ( Series )
-import qualified TDF.Series       as Series
-import           System.IO.Unsafe            ( unsafePerformIO )
+import qualified Data.Row.Records   as Rec
+import qualified Data.List          as List
+import qualified Data.List.NonEmpty as NE
+import qualified Data.Text          as Text
+import           Data.Time.Calendar            ( Day )
+import qualified Data.Vec.Lazy      as Vec
+import           TDF.DataFrame                 ( Axes
+                                               , DataFrame
+                                               )
+import qualified TDF.CSV            as CSV
+import qualified TDF.DataFrame      as DF
+import qualified TDF.Options        as Options
+import           TDF.Series                    ( Series )
+import qualified TDF.Series         as Series
+import           System.IO.Unsafe              ( unsafePerformIO )
 
 type PersonFields = NameFields .+ AgeFields
 
@@ -280,6 +281,24 @@ s1 = fromMaybe (panic "s1.boom.2")
   . fromMaybe (panic "s1.boom.1")
   . Vec.fromList
   $ [ 1.1, 2.2, 3.3 ]
+
+s1_plus1 :: Series Nat3 Int Float
+s1_plus1 = Series.op (+) (1 :: Float) s1
+
+s1_plusVec :: Series Nat3 Int Float
+s1_plusVec = Series.op (+) ((1 :: Float) ::: 20 ::: 300 ::: VNil) s1
+
+s1_plusSmallList :: Series Nat3 Int Float
+s1_plusSmallList = Series.op (+) (NE.fromList [(1 :: Float), 20]) s1
+
+s1_plusLargeList :: Series Nat3 Int Float
+s1_plusLargeList = Series.op (+) (NE.fromList [(1 :: Float), 20, 3, 30, 4, 50, 1, 2, 3]) s1
+
+s1_minus1 :: Series Nat3 Int Float
+s1_minus1 = Series.op (-) (1 :: Float) s1
+
+s1_div2 :: Series Nat3 Int Float
+s1_div2 = Series.op (/) (2 :: Float) s1
 
 {-# NOINLINE examples #-}
 examples :: DataFrame Nat6 Int PersonFields

@@ -12,8 +12,10 @@ module Data.Vec.Lazy.X
   ( module Data.Vec.Lazy
   , AVec
   , avec
+  , dwimFromList
   , filter
   , recoverVec
+  , unsafeFromList
   ) where
 
 import           Prelude             hiding ( filter
@@ -21,17 +23,16 @@ import           Prelude             hiding ( filter
                                             )
 
 import qualified Data.List          as List
+import           Data.Maybe                 ( fromMaybe )
 import           Data.Type.Equality         ( (:~:)(Refl)
                                             , testEquality
                                             )
 import           Data.Type.Nat              ( Nat
                                             , Nat
-                                            , SNat( -- SS
-                                                  -- , SZ
-                                                  )
+                                            , SNat
                                             , SNatI
---                                             , fromNatural
                                             , snat
+                                            , snatToNat
                                             )
 import           Data.Vec.Lazy
 
@@ -84,3 +85,14 @@ filter p v = package $ foldr f [] v
 
         len :: Int
         len = List.length xs
+
+dwimFromList :: forall n a. SNatI n => [a] -> Vec n a
+dwimFromList = unsafeFromList . List.take m . List.cycle
+  where
+    m = fromIntegral . snatToNat $ snat @n
+
+unsafeFromList :: forall n a. SNatI n => [a] -> Vec n a
+unsafeFromList = fromMaybe (error msg) . fromList
+  where
+    msg = "unsafeFromList called on list of wrong size."
+

@@ -61,7 +61,10 @@ import Data.Type.Nat        as X ( Nat( S
                                  , SNatI
                                  )
 import Data.Type.Nat.LE     as X ( LE )
-import Data.Vec.Lazy        as X ( Vec )
+import Data.Vec.Lazy        as X ( Vec( (:::)
+                                      , VNil
+                                      )
+                                 )
 import Data.Vector          as X ( Vector )
 import Protolude.Conv       as X ( StringConv )
 import Protolude.Conv            ( Leniency( Lenient )
