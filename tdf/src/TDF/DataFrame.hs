@@ -5,7 +5,6 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE OverloadedLabels     #-}
-{-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE RecordWildCards      #-}
@@ -28,6 +27,7 @@ module TDF.DataFrame
   , empty
   , fromList
   , fromNativeVec
+  , fromScalar
   , fromScalarList
   , fromSeries
   , fromVec
@@ -48,9 +48,11 @@ module TDF.DataFrame
   -- Optics
   , series
   -- Eliminators
+  , asBool
   , asSeries
   , at
   , axes
+  , bool
   , columnVec
   , columns
   , display
@@ -80,12 +82,14 @@ module TDF.DataFrame
 --   , under
   ) where
 
-import           TDF.Prelude              hiding ( empty
+import           TDF.Prelude              hiding ( bool
+                                                 , empty
                                                  , foldr
                                                  , head
                                                  , map
                                                  , toList
                                                  )
+import qualified TDF.Prelude          as P
 
 import qualified Data.List            as List
 import qualified Data.Map.Strict      as Map
@@ -216,6 +220,12 @@ fromNativeVec values = DataFrame
     f' :: Rec (Map (Vec n) (Rec.NativeRow t))
        -> Rec (Map (Series n idx) (Rec.NativeRow t))
     f' = panic "fromNativeVec.something"
+
+fromScalar :: forall idx a.
+                  ( idx ~ Int )
+               => a
+               -> Maybe (DataFrame Nat1 idx ("value" .== a))
+fromScalar x = fromVec (#value .== x ::: VNil)
 
 fromScalarList :: forall n idx a.
                   ( SNatI n
@@ -484,6 +494,33 @@ series k = lens get' set'
 --   Eliminators
 -- ================================================================ --
 
+asBool :: forall idx k.
+          ( KnownSymbol k
+          , idx ~ Int
+          )
+       => DataFrame Nat1 idx (k .== Bool)
+       -> Bool
+asBool = asScalar
+
+asScalar :: forall idx k v.
+            ( KnownSymbol k
+            , ToField v -- why??
+            , idx ~ Int
+            )
+         => DataFrame Nat1 idx (k .== v)
+         -> v
+asScalar = Vec.head . Series.toVec . asSeries
+
+bool :: forall idx a k.
+        ( KnownSymbol k
+        , idx ~ Int
+        )
+     => a
+     -> a
+     -> DataFrame Nat1 idx (k .== Bool)
+     -> a
+bool f t df = P.bool f t (asBool df)
+
 asSeries :: forall n idx a k v.
           ( KnownSymbol k
           , SNatI n
@@ -502,8 +539,7 @@ asSeries DataFrame {..} = Series.construct $ Series.Options
   }
   where
     optData' :: Vec n v
-    optData' = fmap snd
-      . fmap Rec.unSingleton
+    optData' = fmap (snd . Rec.unSingleton)
       . Series.toVec
       . Rec.sequence
       $ dfData
@@ -519,6 +555,8 @@ at :: ( Forall a Unconstrained1
    -> DataFrame n idx a
    -> Maybe (a .! k)
 at idx k df = (.! k) <$> lookup idx df
+
+-- TODO: Can't implement `iat` until we have some sense of column ordering
 
 axes :: Forall a ToField
      => DataFrame n idx a
