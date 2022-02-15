@@ -41,6 +41,7 @@ module TDF.Series
   , filter
   , filterByIndex
   , filterWithIndex
+  , hasNaNs
   , index
   , isEmpty
   , ncols
@@ -346,6 +347,12 @@ display = putStr
   . Table.fromHeadedRows
   . List.map Table.Row
   . toTexts
+
+hasNaNs :: forall n idx a.
+           ( RealFloat a )
+        => Series n idx a
+        -> Bool
+hasNaNs = any isNaN
 
 index :: Series n idx a -> Index n idx
 index = sIndex
