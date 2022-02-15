@@ -33,6 +33,7 @@ module TDF.Series
   , updateVec
   -- Optics
   , at
+  , name
   -- Eliminators
   , display
   , filter
@@ -309,6 +310,17 @@ at idx = lens get' set'
         vecIdx = Index.toFin idx (sIndex s)
           & fromMaybe (panic "Series.at.vecIdx.set boom")
 
+name :: Lens' (Series n idx a) (Maybe Text)
+name = lens get' set'
+  where
+    get' :: Series n idx a -> Maybe Text
+    get' = sName
+
+    set' :: Series n idx a
+         -> Maybe Text
+         -> Series n idx a
+    set' s n = s { sName = n }
+
 -- ================================================================ --
 --   Eliminators
 -- ================================================================ --
@@ -342,10 +354,10 @@ onVec :: forall n idx a b.
 onVec f Series {..} = f sData
 
 toTextsVia :: forall n idx a. (a -> Text) -> Series n idx a -> [[Text]]
-toTextsVia tt = map pure . f . toVec
+toTextsVia tt s = map pure . f . toVec $ s
   where
     f :: Vec n a -> [Text]
-    f = ("series":) . Vec.toList . Vec.map tt
+    f = (fromMaybe "series" (s ^. name):) . Vec.toList . Vec.map tt
 
 toList :: Series n idx a -> [a]
 toList = Vec.toList . toVec
