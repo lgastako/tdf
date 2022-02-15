@@ -43,6 +43,7 @@ module TDF.Series
   , isEmpty
   , ndims
   , onVec
+  , toIndexedList
   , toList
   , toTexts
   , toVec
@@ -92,6 +93,9 @@ instance ( SNatI n
     }
     where
       sData' = Vec.repeat x
+
+instance ToVecN (Series n idx a) n a where
+  toVecN = toVec
 
 instance (NFData idx, NFData a) => NFData (Series n idx a)
 
@@ -226,10 +230,10 @@ filterWithIndex p s = Vector.map snd
                     $ s
 
 op :: ToVecN x n a
-   => (a -> a -> a)
+   => (a -> a -> b)
    -> x
    -> Series n idx a
-   -> Series n idx a
+   -> Series n idx b
 op f x s = s { sData = Vec.zipWith f v v' }
   where
     v  = sData s
@@ -361,6 +365,12 @@ toTextsVia tt s = map pure . f . toVec $ s
 
 toList :: Series n idx a -> [a]
 toList = Vec.toList . toVec
+
+toIndexedList :: Series n idx a -> [(idx, a)]
+toIndexedList Series {..} = List.zip idxes vals
+  where
+    idxes = Index.toList sIndex
+    vals  = Vec.toList sData
 
 toTexts :: Show a => Series n idx a -> [[Text]]
 toTexts = toTextsVia show

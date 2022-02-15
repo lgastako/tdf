@@ -26,6 +26,7 @@ module TDF.Index
   , length
   , toFin
   , toFinE
+  , toList
   , toVec
   ) where
 
@@ -192,3 +193,6 @@ toFinE idx (toVec -> v) = case find ((idx ==) . snd) indexed of
   where
     indexed :: [(Int, idx)]
     indexed = List.zip [0..] (F.toList v)
+
+toList :: Index n idx -> [idx]
+toList = Vec.toList . toVec

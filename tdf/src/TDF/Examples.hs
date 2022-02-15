@@ -296,8 +296,18 @@ s1 = fromMaybe (panic "s1.boom.2")
   . Vec.fromList
   $ [ 1.1, 2.2, 3.3 ]
 
+s2 :: Series Nat3 Int Float
+s2 = fromMaybe (panic "s1.boom.2")
+  . Series.fromVec
+  . fromMaybe (panic "s1.boom.1")
+  . Vec.fromList
+  $ [ 2.1, 0.0, 8.3 ]
+
 s1_plus1 :: Series Nat3 Int Float
 s1_plus1 = Series.op (+) (1 :: Float) s1
+
+s1_le :: Series Nat3 Int Bool
+s1_le = Series.op (<=) s1 s2
 
 s1_plusVec :: Series Nat3 Int Float
 s1_plusVec = Series.op (+) v s1
