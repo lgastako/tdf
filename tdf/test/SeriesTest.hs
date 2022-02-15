@@ -44,5 +44,5 @@ spec_Series = do
         `shouldBe` [0, 1, 2]
 
     it "should function applicatively" $
-      (pure (+5) <*> s)
+      (pure (+(5 :: Float)) <*> s)
         `shouldBe` (s & each +~ 5)
