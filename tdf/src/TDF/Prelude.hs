@@ -68,6 +68,7 @@ import Data.Type.Nat        as X ( Nat( S
                                  , Nat9
                                  , Plus
                                  , SNatI
+                                 , snat
                                  )
 import Data.Type.Nat.LE     as X ( LE )
 import Data.Vec.Lazy        as X ( Vec( (:::)

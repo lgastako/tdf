@@ -20,7 +20,9 @@ module TDF.Series
   , Series
   -- Constructors
   , construct
+  , empty
   , fromList
+  , fromScalar
   , fromVec
   -- Combinators
   , append
@@ -37,6 +39,8 @@ module TDF.Series
   , filterByIndex
   , filterWithIndex
   , index
+  , isEmpty
+  , ndims
   , onVec
   , toList
   , toTexts
@@ -44,6 +48,7 @@ module TDF.Series
   ) where
 
 import           TDF.Prelude           hiding ( drop
+                                              , empty
                                               , filter
                                               , reverse
                                               , take
@@ -59,6 +64,9 @@ import           TDF.Index                    ( Index )
 import qualified TDF.Index          as Index
 import qualified TDF.Types.Table    as Table
 import           TDF.Types.ToVecN             ( ToVecN( toVecN ) )
+import           Data.Type.Nat                ( nat0
+                                              , snatToNat
+                                              )
 
 -- See https://pandas.pydata.org/docs/reference/api/pandas.Series.html
 
@@ -114,6 +122,22 @@ fromList :: forall n idx a.
          -> Maybe (Series n idx a)
 fromList = fromVec <=< Vec.fromList
 
+fromScalar :: forall n idx a.
+              ( SNatI n
+              , idx ~ Int
+              )
+           => a
+           -> Series n idx a
+fromScalar x = Series
+  { sIndex  = Index.defaultIntsFor sData' & orCrash "Series.fromScalar"
+  , sData   = sData'
+  , sLength = length sData'
+  , sName   = Nothing
+  }
+  where
+    sData' :: Vec n a
+    sData' = Vec.repeat x
+
 fromVec :: forall n idx a.
            ( SNatI n
            , idx ~ Int
@@ -168,6 +192,17 @@ drop s@Series {..} = s
   where
     sData' :: Vec m a
     sData' = Vec.drop sData
+
+empty :: forall idx a. ( idx ~ Int )
+      => Series Nat0 idx a
+empty = Series
+  { sIndex  = Index.defaultIntsFor sData' & orCrash "Series.empty"
+  , sData   = sData'
+  , sLength = length sData'
+  , sName   = Nothing
+  }
+  where
+    sData' = Vec.empty
 
 filter :: (a -> Bool)
        -> Series n idx a
@@ -288,6 +323,17 @@ display = putStr
 
 index :: Series n idx a -> Index n idx
 index = sIndex
+
+isEmpty :: forall n idx a.
+           ( SNatI n )
+        => Series n idx a
+        -> Bool
+isEmpty _
+  | snatToNat (snat @n) == nat0 = True
+  | otherwise = False
+
+ndims :: Series n idx a -> Int
+ndims _ = 1
 
 onVec :: forall n idx a b.
          (Vec n a -> b)
