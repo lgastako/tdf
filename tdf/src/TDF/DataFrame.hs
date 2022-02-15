@@ -33,6 +33,7 @@ module TDF.DataFrame
   , fromVec
     -- Combinators
   , column
+  , dropColumn
   , extend
   , extendFrom
   , extendWith
@@ -269,7 +270,20 @@ column :: forall n k v idx a b rest.
        => Label k
        -> DataFrame n idx a
        -> DataFrame n idx b
-column _ = map Rec.restrict
+column _ = restrict
+
+dropColumn :: forall k n idx a b r v.
+              ( Disjoint r b
+              , Forall a Unconstrained1
+              , SNatI n
+              , r ≈ k .== v
+              , a ~ (r .+ b)
+              , idx ~ Int
+              )
+           => Label k
+           -> DataFrame n idx a
+           -> DataFrame n idx b
+dropColumn _ = restrict
 
 extend :: forall n k v idx a b.
           ( Forall a Unconstrained1
@@ -386,7 +400,7 @@ overSeries f DataFrame {..} = DataFrame
   , dfData  = Rec.distribute srb
   }
   where
-    srb = f . Rec.sequence $ dfData :: Series m idx (Rec b)
+    srb = (f . Rec.sequence) dfData :: Series m idx (Rec b)
 
 pop :: forall n idx r k v rest.
        ( Disjoint r rest
@@ -448,6 +462,9 @@ tail DataFrame {..} = DataFrame
 -- ================================================================ --
 --   Optics
 -- ================================================================ --
+
+newtype R = R Int
+  deriving (Eq, Generic, Ord, Show)
 
 series :: forall n idx r k v a rest.
           ( Disjoint r rest
@@ -699,10 +716,9 @@ toTexts :: forall n idx a.
 toTexts df = (headers:)
   . Vec.toList
   . Vec.map f
-  $ vec
+  . toVec
+  $ df
   where
-    vec = toVec df
-
     headers :: [Text]
     headers = columns df
 
@@ -781,21 +797,13 @@ lookup :: forall n idx a.
        => Int
        -> DataFrame n idx a
        -> Maybe (Rec a)
-lookup k DataFrame {..} = rMay
+lookup k DataFrame {..} = snd <$> find ((k ==) . fst) indexed
   where
-    rMay :: Maybe (Rec a)
-    rMay = snd <$> find ((k ==) . fst) indexed
-
     indexed :: Vec n (idx, Rec a)
     indexed = Index.index dfIndex vecOfRecs
 
     vecOfRecs :: Vec n (Rec a)
-    vecOfRecs = Series.toVec foo
-
-    _ = dfData :: Rec (Map (Series n idx) a)
-
-    foo :: Series n idx (Rec a)
-    foo = Rec.sequence dfData
+    vecOfRecs = Series.toVec . Rec.sequence $ dfData
 
 toFields :: ( Forall a ToField
             , Forall a Typeable
@@ -819,13 +827,10 @@ filterIndexes :: forall m n idx a.
              -> DataFrame n idx a
              -> DataFrame m idx a
 filterIndexes f DataFrame {..} = DataFrame
-  { dfIndex = dfIndex'
+  { dfIndex = Index.fromVec . f . Index.toVec $ dfIndex
   , dfData  = dfData'
   }
   where
-    dfIndex' :: Index m idx
-    dfIndex' = Index.fromVec . f . Index.toVec $ dfIndex
-
     dfData' :: Rec (Map (Series m idx) a)
     dfData' = panic "filterIndexes.dfData"
 
@@ -853,22 +858,10 @@ filterIndexes f DataFrame {..} = DataFrame
 --               . Rec.sequence
 --               $ r
 
--- under_ :: forall n m a b.
---          ( Forall a Unconstrained1
---          , Forall b Unconstrained1
---          , SNatI n
---          , SNatI m
---          )
---       => (Series n idx (Rec a) -> Series m idx (Rec b))
---       -> Rec (Map (Series n idx) a)
---       -> Rec (Map (Series m idx) b)
--- under_ f = undefined -- Rec.distribute . f . Rec.sequence
-
 -- ================================================================ --
 --  TODOs
 -- ================================================================ --
 
--- TODO: iat -- maybe? or explain
 -- TODO: explain bool
 -- TODO: explain dtypes
 -- TODO: explain select_dtypes
