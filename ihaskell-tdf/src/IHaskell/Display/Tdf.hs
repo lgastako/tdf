@@ -35,7 +35,7 @@ instance ( AllUniqueLabels (Map (Vec n) a)
          , Forall a Typeable
          , Forall a Unconstrained1
          , Forall a ToField
-         , Forall (Map (Vec n) a) DF.Something
+         , Forall (Map (Vec n) a) Unconstrained1
          , SNatI n
          ) => IHaskellDisplay (DataFrame n Int a) where
   display df = do

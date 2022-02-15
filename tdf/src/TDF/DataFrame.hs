@@ -49,6 +49,7 @@ module TDF.DataFrame
   , series
   -- Eliminators
   , asBool
+  , asScalar
   , asSeries
   , at
   , axes
@@ -59,8 +60,8 @@ module TDF.DataFrame
   , index
   , indexes
   , isEmpty
-  , melt
-  , meltSimple
+  -- , melt
+  -- , meltSimple
   , ncols
   , ndims
   , nrows
@@ -374,10 +375,10 @@ map :: forall n idx a b.
     -> DataFrame n idx b
 map f = overSeries (fmap f)
 
-melt :: forall m n idx a b.
-        DataFrame n idx a
-     -> DataFrame m idx b
-melt = panic "melt"
+-- melt :: forall m n idx a b.
+--         DataFrame n idx a
+--      -> DataFrame m idx b
+-- melt = panic "melt"
 
 -- Going to first try where you specify the full set of id cols and the full
 -- set of melt cols in full k/v form.
@@ -391,9 +392,9 @@ melt = panic "melt"
 
 -- Then all of those in one functtion.
 
-meltSimple :: DataFrame n idx a
-           -> DataFrame m idx b
-meltSimple = panic "simpleMelt"
+-- meltSimple :: DataFrame n idx a
+--            -> DataFrame m idx b
+-- meltSimple = panic "simpleMelt"
 
 overSeries :: forall m n idx a b.
            ( Forall a Unconstrained1
@@ -466,15 +467,9 @@ tail DataFrame {..} = DataFrame
     seriesN = Rec.sequence dfData :: Series n idx (Rec a)
     seriesM = Series.drop seriesN :: Series m idx (Rec a)
 
--- TODO: merge (however python does it)
---  ~ merge :: DataFrame idx a -> DataFrame idx b -> Extend a b
-
 -- ================================================================ --
 --   Optics
 -- ================================================================ --
-
-newtype R = R Int
-  deriving (Eq, Generic, Ord, Show)
 
 series :: forall n idx r k v a rest.
           ( Disjoint r rest
@@ -900,63 +895,20 @@ filterIndexes f DataFrame {..} = DataFrame
 --  TODOs
 -- ================================================================ --
 
--- TODO: explain bool
 -- TODO: explain dtypes
 -- TODO: explain select_dtypes
--- TODO: explain values replaced by toVector
--- TODO: explain to_numpy replaced by toVector
+-- TODO: explain values replaced by toVec
+-- TODO: explain to_numpy replaced by toVec
+
 -- TODO: loc/locLabel
 
--- swapCols :: forall idx k tmp k' v v' a b rest.
---             ( a ≈ k .== v
---             , b ≈ k .== v'
---             , Disjoint a rest
---             , Disjoint b rest
---             , Rec.Extend
---                           k'
---                           (Rec.Extend
---                              k
---                              (Rec.Extend
---                                 tmp
---                                 v
---                                 ( ((k .== v) .+ rest)
---                                  .- k)
---                               .! k')
---                              (Rec.Extend
---                                 tmp
---                                 v
---                                 (((k .== v) .+ rest)
---                                  .- k)
---                               .- k')
---                            .! tmp)
---                           (Rec.Extend
---                              k
---                              (Rec.Extend
---                                 tmp
---                                 v
---                                 (((k .== v) .+ rest)
---                                  .- k)
---                               .! k')
---                              (Rec.Extend
---                                 tmp
---                                 v
---                                 (((k .== v) .+ rest)
---                                  .- k)
---                               .- k')
---                            .- tmp)
---                         ~ ((k .== v) .+ rest)
---             , ((k .== v) .+ rest) ~ ((k .== v) .+ rest)
---             )
---          => Label k
---          -> Label tmp
---          -> Label k'
---          -> DataFrame n idx (a .+ rest)
---          -> DataFrame n idx (b .+ rest)
--- swapCols k t k' df = rename t k'
---   . rename k' k
---   . rename k t
---   $ df
+-- TODO: merge (however python does it)
+--  ~ merge :: DataFrame idx a -> DataFrame idx b -> Extend a b
 
+-- TODO group / groupBy
+-- TODO append
+-- TODO join
+-- TODO melt
 
 -- TODO use "Renderable" or something instead of Show for the idxs
 
@@ -981,37 +933,3 @@ filterIndexes f DataFrame {..} = DataFrame
 --   [ showInternalRangeIndex (internalRangeIndex df) <> "\nmore soon\n"
 --   , "more soon (verbose)"
 --   ]
-
--- internalRangeIndex :: DataFrame n idx a -> InternalRangeIndex idx
--- internalRangeIndex df =
---   ( length idxs
---   , case idxs of
---       []    -> Nothing
---       (f:xs) -> case reverse xs of
---         [] -> Nothing
---         (l:_) -> Just (f, l)
---   )
---   where
---     idxs = index df
-
--- showInternalRangeIndex :: Show idx => InternalRangeIndex idx -> Text
--- showInternalRangeIndex (n, Nothing)
---   = "Range index: " <> show n <> " entries."
--- showInternalRangeIndex (n, Just (f, l))
---   = "Range index: " <> show n <> " entries, " <> show f <> " to " <> show l
-
--- colIndex :: Forall a ToField => DataFrame n idx a -> ColIndex
--- colIndex df = ( length cols
---               , case cols of
---                   []    -> Nothing
---                   (f:xs) -> case reverse xs of
---                               [] -> Nothing
---                               (l:_) -> Just (f, l)
---               )
---   where
---     cols = columns df
-
--- showColIndex :: ColIndex -> Text
--- showColIndex (n, Nothing)     = "Columns: " <> show n <> " entries."
--- showColIndex (n, Just (f, l)) = "Columns: " <> show n <> " entries, "
---                              <> show f <> " to " <> show l
