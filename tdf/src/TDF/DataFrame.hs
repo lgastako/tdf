@@ -317,11 +317,11 @@ extendWith :: forall n k v idx a b.
            -> DataFrame n idx b
 extendWith k f DataFrame {..} = DataFrame
   { dfIndex = dfIndex
-  , dfData  = Rec.distribute serd'
+  , dfData  = Rec.distribute seriesOfRecs
   }
   where
-    serd' :: Series n idx (Rec b)
-    serd' = fmap (Rec.extend k =<< f) $ Rec.sequence dfData
+    seriesOfRecs :: Series n idx (Rec b)
+    seriesOfRecs = fmap (Rec.extend k =<< f) . Rec.sequence $ dfData
 
 head :: forall m n idx a.
         ( Forall a Unconstrained1
@@ -334,14 +334,11 @@ head :: forall m n idx a.
      -> DataFrame m idx a
 head DataFrame {..} = DataFrame
   { dfIndex = Index.take dfIndex
-  , dfData  = Rec.distribute serd'
+  , dfData  = Rec.distribute seriesM
   }
   where
-    serd :: Series n idx (Rec a)
-    serd = Rec.sequence dfData
-
-    serd' :: Series m idx (Rec a)
-    serd' = Series.updateVec Vec.take serd
+    seriesN = Rec.sequence dfData :: Series n idx (Rec a)
+    seriesM = Series.take seriesN :: Series m idx (Rec a)
 
 map :: forall n idx a b.
        ( Forall a Unconstrained1
@@ -440,16 +437,11 @@ tail :: forall m n idx a.
      -> DataFrame m idx a
 tail DataFrame {..} = DataFrame
   { dfIndex = Index.drop dfIndex
-  , dfData  = Rec.distribute serd'
+  , dfData  = Rec.distribute seriesM
   }
   where
-    serd :: Series n idx (Rec a)
-    serd = Rec.sequence dfData
-
-    serd' :: Series m idx (Rec a)
-    serd' = Series.updateVec Vec.drop serd
-
-
+    seriesN = Rec.sequence dfData :: Series n idx (Rec a)
+    seriesM = Series.drop seriesN :: Series m idx (Rec a)
 
 -- TODO: merge (however python does it)
 --  ~ merge :: DataFrame idx a -> DataFrame idx b -> Extend a b
@@ -458,14 +450,15 @@ tail DataFrame {..} = DataFrame
 --   Optics
 -- ================================================================ --
 
-series :: forall n idx r k v rest.
+series :: forall n idx r k v a rest.
           ( Disjoint r rest
-          , (Map (Series n idx) (r .+ rest) .! k) ~ Series n idx v
+          , (Map (Series n idx) a .! k) ~ Series n idx v
           , KnownSymbol k
           , r ≈ k .== v
+          , a ~ (r .+ rest)
           )
        => Label k
-       -> Lens' (DataFrame n idx (r .+ rest)) (Series n idx v)
+       -> Lens' (DataFrame n idx a) (Series n idx v)
 series k = lens get' set'
   where
     get' df   = dfData df .! k
@@ -520,13 +513,10 @@ axes df = Axes
   }
 
 columns :: forall n idx a.
-           Forall a ToField
+           ( Forall a ToField )
         => DataFrame n idx a
         -> [Text]
 columns _ = Rec.labels @a @ToField
-
---             , (Map (Vec n) a .! k) ~ Vec n (a .! k)
-
 
 columnVec :: forall n idx a k v r rest.
              ( Disjoint r rest
@@ -570,15 +560,17 @@ indexes :: forall n idx a.
            , LE n n
            , Num idx
            , SNatI n
+           , idx ~ Int
            )
         => DataFrame n idx a
         -> Vec n idx
 indexes DataFrame {..} = Vec.map fst . Index.index dfIndex $ rows
   where
-    rows = panic "indexes.rows"
+    rows :: Vec n (Rec a)
+    rows = Series.toVec seriesOfRecs
 
-    -- rows :: Vec n (Rec a)
-    -- rows = Rec.sequence dfData
+    seriesOfRecs :: Series n idx (Rec a)
+    seriesOfRecs = Rec.sequence dfData
 
 isEmpty :: ( Enum idx
            , Forall a ToField
@@ -638,16 +630,21 @@ render :: forall n idx a.
           , Forall a Typeable
           , Forall a Unconstrained1
           , SNatI n
+          , idx ~ Int
           )
        => DataFrame n idx a
        -> Text
-render df@(DataFrame _idx _rv) = Table.render . Table.fromTexts $ headers:rows
+render df@DataFrame {..} = Table.render . Table.fromTexts $ headers:rows
   where
     headers = columns df
-    rows    = Vec.toList . Vec.map (toFields headers) $ vr
 
-    vr :: Vec n (Rec a)
-    vr = panic "render.vr" -- toVec rv
+    rows = Vec.toList
+      . Vec.map (toFields headers)
+      . Series.toVec
+      $ seriesOfRecs
+
+    seriesOfRecs :: Series n idx (Rec a)
+    seriesOfRecs = Rec.sequence dfData
 
 shape :: ( Enum idx
          , Forall a ToField

@@ -354,7 +354,7 @@ data NativeProduct = NativeProduct
   } deriving (Eq, Generic, Ord, Show)
 
 products :: SNatI n => Either Text (DataFrame n Int Product)
-products = DF.fromTexts productTexts
+products = panic "Examples.products" -- DF.fromTexts productTexts
 
 productTexts :: [(Text, [Text])]
 productTexts =
