@@ -19,16 +19,14 @@ module TDF.CSV
 
 import TDF.Prelude
 
-import qualified Data.List         as L
-import qualified Data.Row.Records  as Rec
-import           Data.String              ( String )
-import qualified Data.Text         as T
-import           TDF.DataFrame            ( DataFrame
-                                          , Something
-                                          )
-import qualified TDF.DataFrame     as DF
-import           TDF.Types.FromField      ( FromField( fromField ) )
-import           TDF.Types.ToField        ( ToField( toField ) )
+import qualified Data.List           as L
+import qualified Data.Row.Records    as Rec
+import           Data.String                ( String )
+import qualified Data.Text           as T
+import           TDF.DataFrame              ( DataFrame )
+import qualified TDF.DataFrame       as DF
+import           TDF.Types.FromField        ( FromField( fromField ) )
+import           TDF.Types.ToField          ( ToField( toField ) )
 
 data Error
   = FileNotFound FilePath
@@ -49,7 +47,7 @@ fromHeadedCSV path = (recFromCSV <$> readFile path)
 
 toHeadedCSV :: ( AllUniqueLabels (Map (Vec n) a)
                , Forall a ToField
-               , Forall (Map (Vec n) a) Something
+               , Forall (Map (Vec n) a) Unconstrained1
                , Forall a Unconstrained1
                , SNatI n
                )

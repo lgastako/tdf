@@ -22,7 +22,6 @@ module TDF.DataFrame
         , rowLabels
         )
   , DataFrame
-  , Something(..)
   , Verbosity(..)
   -- Constructors
   , construct
@@ -533,10 +532,11 @@ columnVec = flip onColumn identity
 
 display :: forall n idx a.
            ( AllUniqueLabels (Map (Vec n) a)
-           , Forall (Map (Vec n) a) Something
+           , Forall (Map (Vec n) a) Unconstrained1
            , Forall a ToField
            , Forall a Typeable
            , Forall a Unconstrained1
+           , Forall (Map (Vec n) a) Unconstrained1
            , SNatI n
            , idx ~ Int
            )
@@ -662,7 +662,7 @@ size = (*) <$> ncols <*> nrows
 
 toList :: forall n idx a.
           ( AllUniqueLabels (Map (Vec n) a)
-          , Forall (Map (Vec n) a) Something
+          , Forall (Map (Vec n) a) Unconstrained1
           , Forall a Unconstrained1
           , SNatI n
           , idx ~ Int
@@ -674,7 +674,7 @@ toList = Vec.toList . toVec
 toNativeVec :: forall n idx t ntv.
                ( AllUniqueLabels (Map (Vec n) ntv)
                , Forall ntv Unconstrained1
-               , Forall (Map (Vec n) ntv) Something
+               , Forall (Map (Vec n) ntv) Unconstrained1
                , ToNative t
                , SNatI n
                , idx ~ Int
@@ -686,10 +686,11 @@ toNativeVec = Vec.map Rec.toNative . toVec
 
 toTexts :: forall n idx a.
            ( AllUniqueLabels (Map (Vec n) a)
-           , Forall (Map (Vec n) a) Something
+           , Forall (Map (Vec n) a) Unconstrained1
            , Forall a ToField
            , Forall a Typeable
            , Forall a Unconstrained1
+           , Forall (Map (Vec n) a) Unconstrained1
            , SNatI n
            , idx ~ Int
            )
@@ -710,7 +711,7 @@ toTexts df = (headers:)
 
 toVec :: forall n idx a.
          ( AllUniqueLabels (Map (Vec n) a)
-         , Forall (Map (Vec n) a) Something
+         , Forall (Map (Vec n) a) Unconstrained1
          , Forall a Unconstrained1
          , SNatI n
          , idx ~ Int
@@ -740,26 +741,6 @@ toVec df = vecOfRecs
 
         rov :: Rec (Map (Vec n) a)
         rov = Rec.distribute vor
-
-class Something x where
-  _something :: x -> Rec (Map (Vec n) a)
-
--- instance Something (Rec (Map (Series n idx) a)) where
-
-instance Something a where
-  _something = panic "_something"
-
--- instance Something (Rec (Map (Series n idx) a)) where
---   something = undefined
-
--- instance (AllUniqueLabels r, Forall r FromJSON) => FromJSON (Rec r) where
---   parseJSON (Object o) = do
---     r <- Rec.fromLabelsA @FromJSON $ \ l -> do x <- o .: (show' l)
---                                                x `seq` pure x
---     r `seq` pure r
-
---   parseJSON v = typeMismatch msg v
---     where msg = "REC: {" ++ intercalate "," (labels @r @FromJSON) ++ "}"
 
 valueCounts :: forall n idx r k v rest.
                ( r ≈ k .== v

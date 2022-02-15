@@ -216,7 +216,7 @@ take s@Series {..} = s
   , sData  = sData'
   }
   where
-    sData' = Vec.drop sData
+    sData' = Vec.take sData
 
 updateVec :: forall m n idx a.
              ( SNatI n
