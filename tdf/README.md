@@ -55,7 +55,8 @@ We take vectors of rows as input and turn it into rows of vectors to operate on.
     - eliminating the Forall on column counts and the like
   - Clean up/standardize on terminology.
   - Look into https://hackage.haskell.org/package/accelerate-1.3.0.0/docs/Data-Array-Accelerate.html
-
+  - Look into https://hackage.haskell.org/package/repa
+  - https://stackoverflow.com/questions/29954263/what-does-the-term-broadcasting-mean-in-pandas-documentation
 ## More
 
 - https://stackoverflow.com/questions/53217607/how-do-i-operate-on-a-dataframe-with-a-series-for-every-column

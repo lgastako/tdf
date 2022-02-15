@@ -31,7 +31,8 @@ import Control.Lens         as X ( Lens'
                                  )
 import Data.Fin             as X ( Fin )
 import Data.Generics.Labels      ()
-import Data.Row             as X ( Disjoint
+import Data.Row             as X ( AllUniqueLabels
+                                 , Disjoint
                                  , Empty
                                  , Forall
                                  , Label
@@ -47,7 +48,8 @@ import Data.Row             as X ( Disjoint
                                  , (.==)
                                  )
 import Data.Row.Internal    as X ( Unconstrained1 )
-import Data.Row.Records     as X ( Map
+import Data.Row.Records     as X ( Extend
+                                 , Map
                                  , NativeRow
                                  , ToNative
                                  )

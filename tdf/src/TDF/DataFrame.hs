@@ -31,7 +31,6 @@ module TDF.DataFrame
   , fromNativeVec
   , fromScalarList
   , fromSeries
-  , fromTexts
   , fromVec
     -- Combinators
   , column
@@ -41,7 +40,7 @@ module TDF.DataFrame
   , filterIndexes
   , head
   , map
-  , overVec
+  , overSeries
   , pop
   , rename
   , restrict
@@ -90,9 +89,6 @@ import           TDF.Prelude              hiding ( empty
 
 import qualified Data.List            as List
 import qualified Data.Map.Strict      as Map
-import           Data.Row.Records                ( AllUniqueLabels
-                                                 , Extend
-                                                 )
 import qualified Data.Row.Records     as Rec
 import qualified Data.Text            as Text
 import qualified Data.Vec.Lazy.X      as Vec
@@ -141,59 +137,71 @@ data Verbosity
 -- ================================================================ --
 
 -- https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame
-construct :: forall n a.
+construct :: forall n idx a.
              ( Forall a Unconstrained1
              , SNatI n
+             , idx ~ Int
              )
-          => Options n Int a
-          -> DataFrame n Int a
+          => Options n idx a
+          -> DataFrame n idx a
 construct opts = DataFrame dfIndex d
   where
     dfIndex = Options.optIndex opts
 
-    d :: Forall a Unconstrained1 => Rec (Map (Series n Int) a)
+    d :: Forall a Unconstrained1 => Rec (Map (Series n idx) a)
     d = Rec.distribute source
 
-    source :: Series n Int (Rec a)
+    source :: Series n idx (Rec a)
     source = toSeries vecOfRecs
 
     vecOfRecs :: Vec n (Rec a)
     vecOfRecs = Options.optData opts
 
-toLabelledSeries :: SNatI n
-                 => Text
-                 -> Vec n a
-                 -> Series n Int a
-toLabelledSeries label v = Series.construct $ Series.Options
+toLabeledSeries :: forall n idx a.
+                   ( SNatI n
+                   , idx ~ Int
+                   )
+                => Text
+                -> Vec n a
+                -> Series n idx a
+toLabeledSeries label v = Series.construct $ Series.Options
   { optIndex = Index.defaultIntsFor v & fromMaybe (explode "Nahh")
   , optData  = v
   , optName  = Just label
   }
 
-toSeries :: SNatI n => Vec n a -> Series n Int a
-toSeries = toLabelledSeries "series"
+toSeries :: forall n idx a.
+            ( SNatI n
+            , idx ~ Int
+            )
+         => Vec n a
+         -> Series n idx a
+toSeries = toLabeledSeries "series"
 
 empty :: DataFrame 'Z Int Empty
 empty = construct . Options.fromVec $ Vec.empty
 
-fromList :: ( Forall a Unconstrained1
+fromList :: forall n idx a.
+            ( Forall a Unconstrained1
             , SNatI n
+            , idx ~ Int
             )
          => [Rec a]
-         -> Maybe (DataFrame n Int a)
+         -> Maybe (DataFrame n idx a)
 fromList = fromVec <=< Vec.fromList
 
-fromNativeVec :: forall n t.
-                 ( Forall (Rec.NativeRow t) Unconstrained1
+fromNativeVec :: forall n idx a t.
+                 ( Forall a Unconstrained1
                  , Rec.FromNative t
                  , SNatI n
+                 , a ~ Rec.NativeRow t
+                 , idx ~ Int
                  )
               => Vec n t
-              -> DataFrame n Int (Rec.NativeRow t)
+              -> DataFrame n idx a
 fromNativeVec values = DataFrame
   { dfData  = dfData'
-  , dfIndex = Index.defaultIntsFor vecOfRecs
-                & fromMaybe (explode "exploding indexes!")
+  , dfIndex = Index.defaultIntsFor vecOfRecs & orCrash "fromNativeVec.dfIndex"
   }
   where
     vecOfRecs :: Vec n (Rec (Rec.NativeRow t))
@@ -202,178 +210,149 @@ fromNativeVec values = DataFrame
     recOfVecs :: Rec (Map (Vec n) (Rec.NativeRow t))
     recOfVecs = Rec.distribute vecOfRecs
 
-    dfData' :: Rec (Map (Series n Int) (Rec.NativeRow t))
+    dfData' :: Rec (Map (Series n idx) (Rec.NativeRow t))
     dfData' = f' recOfVecs
 
     f' :: Rec (Map (Vec n) (Rec.NativeRow t))
-       -> Rec (Map (Series n Int) (Rec.NativeRow t))
+       -> Rec (Map (Series n idx) (Rec.NativeRow t))
     f' = panic "fromNativeVec.something"
 
-    -- f :: Vec n (Rec (Rec.NativeRow t))
-    --   -> Series n Int (Rec.NativeRow t)
-    -- f = undefined
-
---    f :: a -> f a
--- promoteVecToSeries :: forall n a. Vec n a -> Series n Int a
--- promoteVecToSeries = undefined
-
-fromScalarList :: SNatI n
+fromScalarList :: forall n idx a.
+                  ( SNatI n
+                  , idx ~ Int
+                  )
                => [a]
-               -> Maybe (DataFrame n Int ("value" .== a))
+               -> Maybe (DataFrame n idx ("value" .== a))
 fromScalarList = fromList . List.map (\x -> #value .== x)
 
-fromSeries :: forall n a. ( SNatI n )
-           => Series n Int a
-           -> Maybe (DataFrame n Int ("value" .== a))
+fromSeries :: forall n idx a.
+              ( SNatI n
+              , idx ~ Int
+              )
+           => Series n idx a
+           -> Maybe (DataFrame n idx ("value" .== a))
 fromSeries = fromVec . Vec.map (#value .==) . Series.toVec
 
-fromTexts :: forall n a.
-             ( Forall a Unconstrained1
-             , SNatI n
-             )
-          => [(Text, [Text])]
-          -> Either Text (DataFrame n Int a)
-fromTexts = \case
-  []     -> Left "Can't construct Frame from empty texts."
-  (x:xs) -> Right $ makeDf x xs
-    where
-      makeDf :: (Text, [Text])
-             -> [(Text, [Text])]
-             -> DataFrame n Int a
-      makeDf _x' _xs' = DataFrame
-        { dfIndex = Index.defaultIntsFor theIndexableData
-                      & fromMaybe (explode "Splode.1")
-        , dfData  = dfData'
-        }
-        where
-          theIndexableData :: Series n Int (Rec a)
-          theIndexableData = Rec.sequence dfData'
-
-          dfData' :: Rec (Map (Series n Int) a)
-          dfData' = panic "fromTexts.dfData'"
-
-fromVec :: forall n a.
+fromVec :: forall n idx a.
            ( Forall a Unconstrained1
            , SNatI n
+           , idx ~ Int
            )
         => Vec n (Rec a)
-        -> Maybe (DataFrame n Int a)
+        -> Maybe (DataFrame n idx a)
 fromVec v = f <$> Index.defaultIntsFor v
   where
-    f :: Index n Int -> DataFrame n Int a
+    f :: Index n idx -> DataFrame n idx a
     f idx = DataFrame
       { dfIndex = idx
       , dfData  = dfData'
       }
       where
-        dfData' :: Rec (Map (Series n Int) a)
-        dfData' = Rec.distribute foo
+        dfData' :: Rec (Map (Series n idx) a)
+        dfData' = Rec.distribute seriesOfRecs
 
-        foo :: Series n Int (Rec a)
-        foo = Series.fromVec v & fromMaybe (explode "DF.fromVec")
+        seriesOfRecs :: Series n idx (Rec a)
+        seriesOfRecs = Series.fromVec v & fromMaybe (explode "DF.fromVec")
 
 -- ================================================================ --
 --  Combinators
 -- ================================================================ --
 
-column :: forall n r idx k v rest.
-          ( Disjoint r rest
-          , Forall r Unconstrained1
-          , Forall (r .+ rest) Unconstrained1
-          , KnownSymbol k
+column :: forall n k v idx a b rest.
+          ( Forall a Unconstrained1
+          , Forall b Unconstrained1
           , SNatI n
-          , r ≈ k .== v
+          , Disjoint b rest
+          , a ~ (b .+ rest)
+          , b ≈ k .== v
+          , idx ~ Int
           )
        => Label k
-       -> DataFrame n idx (r .+ rest)
-       -> DataFrame n idx r
+       -> DataFrame n idx a
+       -> DataFrame n idx b
 column _ = map Rec.restrict
 
-extend :: forall n k v r.
-          ( Forall r Unconstrained1
-          , Forall (Rec.Extend k v r) Unconstrained1
+extend :: forall n k v idx a b.
+          ( Forall a Unconstrained1
+          , Forall b Unconstrained1
           , KnownSymbol k
           , SNatI n
+          , b ~ Extend k v a
+          , idx ~ Int
           )
        => Label k
        -> v
-       -> DataFrame n Int r
-       -> DataFrame n Int (Extend k v r)
+       -> DataFrame n idx a
+       -> DataFrame n idx b
 extend k x = extendWith k (const x)
 
-extendFrom :: forall src dst n v v' a b.
+extendFrom :: forall k k' n v v' idx a b.
               ( Forall a Unconstrained1
               , Forall b Unconstrained1
-              , KnownSymbol src
-              , KnownSymbol dst
-              , SNatI n
-              , (a .! src) ~ v
-              , b ~ Extend dst v' a
-              )
-           => Label src
-           -> Label dst
-           -> (v -> v')
-           -> DataFrame n Int a
-           -> DataFrame n Int b
-extendFrom src dst f = extendWith dst (\r -> f (r .! src))
-
-extendWith :: forall n k v r.
-              ( Forall r Unconstrained1
-              , Forall (Extend k v r) Unconstrained1
               , KnownSymbol k
+              , KnownSymbol k'
               , SNatI n
+              , (a .! k) ~ v
+              , b ~ Extend k' v' a
+              , idx ~ Int
               )
            => Label k
-           -> (Rec r -> v)
-           -> DataFrame n Int r
-           -> DataFrame n Int (Extend k v r)
+           -> Label k'
+           -> (v -> v')
+           -> DataFrame n idx a
+           -> DataFrame n idx b
+extendFrom src dst f = extendWith dst (\r -> f (r .! src))
+
+extendWith :: forall n k v idx a b.
+              ( Forall a Unconstrained1
+              , Forall b Unconstrained1
+              , KnownSymbol k
+              , SNatI n
+              , b ~ Extend k v a
+              , idx ~ Int
+              )
+           => Label k
+           -> (Rec a -> v)
+           -> DataFrame n idx a
+           -> DataFrame n idx b
 extendWith k f DataFrame {..} = DataFrame
   { dfIndex = dfIndex
-  , dfData  = dfData'
+  , dfData  = Rec.distribute serd'
   }
   where
-    _ = dfData :: Rec (Map (Series n Int) r)
+    serd' :: Series n idx (Rec b)
+    serd' = fmap (Rec.extend k =<< f) $ Rec.sequence dfData
 
-    dfData' :: Rec (Map (Series n Int) (Extend k v r))
-    dfData' = Rec.distribute serd'
-
-    serd :: Series n Int (Rec r)
-    serd = Rec.sequence dfData
-
-    serd' :: Series n Int (Rec (Extend k v r))
-    serd' = fmap (Rec.extend k =<< f) serd
-
--- TODO: Put the last size variable first to make TypeApplications concise
--- TODO: for all functions that return a dataframe of a new size.
-head :: forall m n a.
+head :: forall m n idx a.
         ( Forall a Unconstrained1
         , LE m n
-        , SNatI n
         , SNatI m
+        , SNatI n
+        , idx ~ Int
         )
-     => DataFrame n Int a
-     -> DataFrame m Int a
+     => DataFrame n idx a
+     -> DataFrame m idx a
 head DataFrame {..} = DataFrame
   { dfIndex = Index.take dfIndex
   , dfData  = Rec.distribute serd'
   }
   where
-    serd :: Series n Int (Rec a)
+    serd :: Series n idx (Rec a)
     serd = Rec.sequence dfData
 
-    serd' :: Series m Int (Rec a)
+    serd' :: Series m idx (Rec a)
     serd' = Series.updateVec Vec.take serd
 
--- TODO are this and over the same?
 map :: forall n idx a b.
        ( Forall a Unconstrained1
        , Forall b Unconstrained1
        , SNatI n
+       , idx ~ Int
        )
     => (Rec a -> Rec b)
     -> DataFrame n idx a
     -> DataFrame n idx b
-map f = overVec (Vec.map f)
+map f = overSeries (fmap f)
 
 melt :: forall m n idx a b.
         DataFrame n idx a
@@ -396,27 +375,22 @@ meltSimple :: DataFrame n idx a
            -> DataFrame m idx b
 meltSimple = panic "simpleMelt"
 
-overVec :: forall m n idx a b.
+overSeries :: forall m n idx a b.
            ( Forall a Unconstrained1
            , Forall b Unconstrained1
+           , SNatI m
            , SNatI n
+           , idx ~ Int
            )
-        => (Vec n (Rec a) -> Vec m (Rec b))
+        => (Series n idx (Rec a) -> Series m idx (Rec b))
         -> DataFrame n idx a
         -> DataFrame m idx b
-overVec _f DataFrame {} {- {..} -} = DataFrame
-  { dfIndex = dfIndex'
-  , dfData  = dfData'
+overSeries f DataFrame {..} = DataFrame
+  { dfIndex = Index.defaultIntsFor srb & orCrash "overVec.dfIndex"
+  , dfData  = Rec.distribute srb
   }
   where
-    (dfData', dfIndex') = panic "overVec.stuff"
-      -- ((,) <$> Rec.distribute <*> reindex')
-      --   . f
-      --   . Rec.sequence
-      --   $ dfData
-
-    -- reindex' :: Vec m (Rec b) -> Index m idx
-    -- reindex' = panic "reindex'"
+    srb = f . Rec.sequence $ dfData :: Series m idx (Rec b)
 
 pop :: forall n idx r k v rest.
        ( Disjoint r rest
@@ -425,6 +399,7 @@ pop :: forall n idx r k v rest.
        , SNatI n
        , Series n idx v ~ (Map (Series n idx) (r .+ rest) .! k)
        , r ≈ k .== v
+       , idx ~ Int
        )
     => Label k
     -> DataFrame n idx (r .+ rest)
@@ -448,28 +423,30 @@ restrict :: forall b n idx a.
             , Forall b Unconstrained1
             , Rec.Subset b a
             , SNatI n
+            , idx ~ Int
             )
          => DataFrame n idx a
          -> DataFrame n idx b
 restrict = map Rec.restrict
 
-tail :: forall m n a.
+tail :: forall m n idx a.
         ( Forall a Unconstrained1
         , LE m n
         , SNatI n
         , SNatI m
+        , idx ~ Int
         )
-     => DataFrame n Int a
-     -> DataFrame m Int a
+     => DataFrame n idx a
+     -> DataFrame m idx a
 tail DataFrame {..} = DataFrame
   { dfIndex = Index.drop dfIndex
   , dfData  = Rec.distribute serd'
   }
   where
-    serd :: Series n Int (Rec a)
+    serd :: Series n idx (Rec a)
     serd = Rec.sequence dfData
 
-    serd' :: Series m Int (Rec a)
+    serd' :: Series m idx (Rec a)
     serd' = Series.updateVec Vec.drop serd
 
 
@@ -498,16 +475,17 @@ series k = lens get' set'
 --   Eliminators
 -- ================================================================ --
 
-asSeries :: forall n a k v.
+asSeries :: forall n idx a k v.
           ( KnownSymbol k
           , SNatI n
           , ToField v
           , a ≈ k .== v
           , (a .! k) ~ v
           , ((k .== Vec n v) .! k) ~ Vec n ((k .== v) .! k)
+          , idx ~ Int
           )
-       => DataFrame n Int a
-       -> Series n Int v
+       => DataFrame n idx a
+       -> Series n idx v
 asSeries DataFrame {..} = Series.construct $ Series.Options
   { optIndex = dfIndex
   , optData  = optData'
@@ -521,17 +499,15 @@ asSeries DataFrame {..} = Series.construct $ Series.Options
       . Rec.sequence
       $ dfData
 
--- TODO we should really at least eliminate the `Forall a ToField` constraint
--- on things that are just getting the column count -- should be able to get
--- that without rendering them.
 at :: ( Forall a Unconstrained1
-      , LE n n
       , KnownSymbol k
+      , LE n n
       , SNatI n
+      , idx ~ Int
       )
-   => Int
+   => idx
    -> Label k
-   -> DataFrame n Int a
+   -> DataFrame n idx a
    -> Maybe (a .! k)
 at idx k df = (.! k) <$> lookup idx df
 
@@ -565,14 +541,16 @@ columnVec :: forall n idx a k v r rest.
           -> Vec n v
 columnVec = flip onColumn identity
 
-display :: ( AllUniqueLabels (Map (Vec n) a)
+display :: forall n idx a.
+           ( AllUniqueLabels (Map (Vec n) a)
            , Forall (Map (Vec n) a) Something
            , Forall a ToField
            , Forall a Typeable
            , Forall a Unconstrained1
            , SNatI n
+           , idx ~ Int
            )
-        => DataFrame n Int a
+        => DataFrame n idx a
         -> IO ()
 display = putStr
   . Table.render
@@ -685,36 +663,40 @@ size :: ( Enum idx
      -> Int
 size = (*) <$> ncols <*> nrows
 
-toList :: ( AllUniqueLabels (Map (Vec n) a)
+toList :: forall n idx a.
+          ( AllUniqueLabels (Map (Vec n) a)
           , Forall (Map (Vec n) a) Something
           , Forall a Unconstrained1
           , SNatI n
+          , idx ~ Int
           )
-       => DataFrame n Int a
+       => DataFrame n idx a
        -> [Rec a]
 toList = Vec.toList . toVec
 
-toNativeVec :: forall n t ntv.
+toNativeVec :: forall n idx t ntv.
                ( AllUniqueLabels (Map (Vec n) ntv)
                , Forall ntv Unconstrained1
                , Forall (Map (Vec n) ntv) Something
                , ToNative t
                , SNatI n
+               , idx ~ Int
                , ntv ~ NativeRow t
                )
-            => DataFrame n Int ntv
+            => DataFrame n idx ntv
             -> Vec n t
 toNativeVec = Vec.map Rec.toNative . toVec
 
-toTexts :: forall n a.
+toTexts :: forall n idx a.
            ( AllUniqueLabels (Map (Vec n) a)
            , Forall (Map (Vec n) a) Something
            , Forall a ToField
            , Forall a Typeable
            , Forall a Unconstrained1
            , SNatI n
+           , idx ~ Int
            )
-        => DataFrame n Int a
+        => DataFrame n idx a
         -> [[Text]]
 toTexts df = (headers:)
   . Vec.toList
@@ -729,30 +711,31 @@ toTexts df = (headers:)
     f :: Rec a -> [Text]
     f = toFields headers
 
-toVec :: forall n a.
+toVec :: forall n idx a.
          ( AllUniqueLabels (Map (Vec n) a)
          , Forall (Map (Vec n) a) Something
          , Forall a Unconstrained1
          , SNatI n
+         , idx ~ Int
          )
-      => DataFrame n Int a
+      => DataFrame n idx a
       -> Vec n (Rec a)
 toVec df = vecOfRecs
   where
     vecOfRecs :: Vec n (Rec a)
     vecOfRecs = Rec.sequence recOfVecs
 
-    recOfSeries :: Rec (Map (Series n Int) a)
+    recOfSeries :: Rec (Map (Series n idx) a)
     recOfSeries = dfData df
 
     recOfVecs :: Rec (Map (Vec n) a)
     recOfVecs = recSeriesToRecVec recOfSeries
 
-    recSeriesToRecVec :: Rec (Map (Series n Int) a)
+    recSeriesToRecVec :: Rec (Map (Series n idx) a)
                       -> Rec (Map (Vec n) a)
     recSeriesToRecVec ros = rov
       where
-        sor :: Series n Int (Rec a)
+        sor :: Series n idx (Rec a)
         sor = Rec.sequence ros
 
         vor :: Vec n (Rec a)
@@ -811,28 +794,29 @@ colFoldr k f z df = Vec.foldr f z ( columnVec k df )
 -- ================================================================ --
 
 -- TODO this obviously needs to be SOOO much better
-lookup :: forall n a.
+lookup :: forall n idx a.
           ( Forall a Unconstrained1
           , LE n n
           , SNatI n
+          , idx ~ Int
           )
        => Int
-       -> DataFrame n Int a
+       -> DataFrame n idx a
        -> Maybe (Rec a)
 lookup k DataFrame {..} = rMay
   where
     rMay :: Maybe (Rec a)
     rMay = snd <$> find ((k ==) . fst) indexed
 
-    indexed :: Vec n (Int, Rec a)
+    indexed :: Vec n (idx, Rec a)
     indexed = Index.index dfIndex vecOfRecs
 
     vecOfRecs :: Vec n (Rec a)
     vecOfRecs = Series.toVec foo
 
-    _ = dfData :: Rec (Map (Series n Int) a)
+    _ = dfData :: Rec (Map (Series n idx) a)
 
-    foo :: Series n Int (Rec a)
+    foo :: Series n idx (Rec a)
     foo = Rec.sequence dfData
 
 toFields :: ( Forall a ToField

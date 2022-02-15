@@ -12,6 +12,7 @@
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
@@ -70,7 +71,9 @@ data Series (n :: Nat) idx a = Series
   , sName   :: Maybe Text
   } deriving (Eq, Foldable, Functor, Generic, Ord, Traversable, Show)
 
-instance SNatI n => Applicative (Series n Int) where
+instance ( SNatI n
+         , idx ~ Int
+         ) => Applicative (Series n idx) where
   sf <*> sx = sf { sData = Vec.zipWith ($) (sData sf) (sData sx) }
 
   pure x = Series
@@ -104,17 +107,23 @@ construct Options {..} = Series
   , sName   = optName
   }
 
-fromList :: forall n a. ( SNatI n )
+fromList :: forall n idx a.
+            ( SNatI n
+            , idx ~ Int
+            )
          => [a]
-         -> Maybe (Series n Int a)
+         -> Maybe (Series n idx a)
 fromList = fromVec <=< Vec.fromList
 
-fromVec :: forall n a. ( SNatI n )
+fromVec :: forall n idx a.
+           ( SNatI n
+           , idx ~ Int
+           )
         => Vec n a
-        -> Maybe (Series n Int a)
+        -> Maybe (Series n idx a)
 fromVec optData = f <$> Index.defaultIntsFor optData
   where
-    f:: Index n Int -> Series n Int a
+    f:: Index n idx -> Series n idx a
     f idx = Series
       { sIndex  = idx
       , sData   = optData
@@ -145,13 +154,14 @@ append a b = Series
   , sName   = sName a  -- TODO
   }
 
-drop :: forall m n a.
+drop :: forall m n idx a.
         ( SNatI n
         , SNatI m
         , LE m n
+        , idx ~ Int
         )
-     => Series n Int a
-     -> Series m Int a
+     => Series n idx a
+     -> Series m idx a
 drop s@Series {..} = s
   { sIndex = Index.defaultIntsFor sData' & orCrash "drop.sIndex"
   , sData  = sData'
@@ -193,12 +203,13 @@ op f x s = s { sData = Vec.zipWith f v v' }
 reverse :: Series n idx a -> Series n idx a
 reverse = #sData %~ Vec.reverse
 
-take :: forall m n a.
+take :: forall m n idx a.
         ( LE m n
         , SNatI m
         , SNatI n
+        , idx ~ Int
         )
-     => Series n Int a
+     => Series n idx a
      -> Series m Int a
 take s@Series {..} = s
   { sIndex = Index.defaultIntsFor sData' & orCrash "drop.sIndex"
@@ -207,12 +218,14 @@ take s@Series {..} = s
   where
     sData' = Vec.drop sData
 
-updateVec :: ( SNatI n
+updateVec :: forall m n idx a.
+             ( SNatI n
              , SNatI m
+             , idx ~ Int
              )
           => (Vec n a -> Vec m a)
-          -> Series n Int a
-          -> Series m Int a
+          -> Series n idx a
+          -> Series m idx a
 updateVec f Series {..} = Series
   { sIndex  = sIndex'
   , sData   = sData'
@@ -222,7 +235,7 @@ updateVec f Series {..} = Series
   where
     sData'  = f sData
     sIndex' = Index.defaultIntsFor sData'  -- TODO shouldn't do this...
-      & fromMaybe (panic "updateVec.sIindex")
+      & orCrash "updateVec.sIindex"
 
 vecFilter :: forall n a.
              (a -> Bool)

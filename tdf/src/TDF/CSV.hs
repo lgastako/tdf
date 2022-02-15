@@ -20,7 +20,6 @@ module TDF.CSV
 import TDF.Prelude
 
 import qualified Data.List         as L
-import           Data.Row
 import qualified Data.Row.Records  as Rec
 import           Data.String              ( String )
 import qualified Data.Text         as T

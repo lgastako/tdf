@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE OverloadedStrings    #-}
@@ -30,11 +31,13 @@ import           TDF.Series                       ( Series )
 import qualified TDF.Series             as Series
 import           TDF.Types.ToField                ( ToField )
 
-instance ( Forall a Typeable
+instance ( AllUniqueLabels (Map (Vec n) a)
+         , Forall a Typeable
          , Forall a Unconstrained1
          , Forall a ToField
+         , Forall (Map (Vec n) a) DF.Something
          , SNatI n
-         ) => IHaskellDisplay (DataFrame n idx a) where
+         ) => IHaskellDisplay (DataFrame n Int a) where
   display df = do
     let (header:rows) =  DF.toTexts df
         --    ^-- should always have at least a header if we got here
@@ -46,7 +49,8 @@ instance ( Forall a Typeable
 
 instance ( Show a
          , SNatI n
-         ) => IHaskellDisplay (Series n idx a) where
+         )
+      => IHaskellDisplay (Series n Int a) where
   display series = do
     let (header:rows) =  Series.toTexts series
         --    ^-- should always have at least a header if we got here
