@@ -11,6 +11,7 @@
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -29,6 +30,7 @@ module TDF.Series
   , drop
   , op
   , reverse
+  , t
   , take
   , updateVec
   -- Optics
@@ -41,8 +43,11 @@ module TDF.Series
   , filterWithIndex
   , index
   , isEmpty
+  , ncols
   , ndims
+  , nrows
   , onVec
+  , shape
   , toIndexedList
   , toList
   , toTexts
@@ -242,6 +247,11 @@ op f x s = s { sData = Vec.zipWith f v v' }
 reverse :: Series n idx a -> Series n idx a
 reverse = #sData %~ Vec.reverse
 
+-- | The transpose of the Series, which according to Pandas, is the
+-- series itself.
+t :: Series n idx a -> Series n idx a
+t = identity
+
 take :: forall m n idx a.
         ( LE m n
         , SNatI m
@@ -348,14 +358,31 @@ isEmpty _
   | snatToNat (snat @n) == nat0 = True
   | otherwise = False
 
-ndims :: Series n idx a -> Int
+ncols :: forall n idx a. Series n idx a -> Int
+ncols _ = 1
+
+ndims :: forall n idx a. Series n idx a -> Int
 ndims _ = 1
+
+nrows :: forall n idx a.
+         ( SNatI n )
+      => Series n idx a
+      -> Int
+nrows _ = fromIntegral . toInteger $ snatToNat (snat @n)
 
 onVec :: forall n idx a b.
          (Vec n a -> b)
       -> Series n idx a
       -> b
 onVec f Series {..} = f sData
+
+shape :: forall n idx a.
+         ( Enum idx
+         , SNatI n
+         )
+      => Series n idx a
+      -> (Int, Int)
+shape = (,) <$> nrows <*> ncols
 
 toTextsVia :: forall n idx a. (a -> Text) -> Series n idx a -> [[Text]]
 toTextsVia tt s = map pure . f . toVec $ s

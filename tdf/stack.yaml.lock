@@ -25,6 +25,20 @@ packages:
       sha256: c575e93caf206d5824a1c9e6233ad1e34efd4dc58c92fd4a8872b75ebdf156c9
   original:
     hackage: vec-lens-0.4@sha256:a32ae456c2b6f8f04f7610a959a349f83688708bf1995ddd098da1b18254089c,1725
+- completed:
+    hackage: applicative-quoters-0.1.0.6@sha256:9997cf5a1063444db31dca04d3450f8142b4d87df661f00f4e8513437366bac3,977
+    pantry-tree:
+      size: 397
+      sha256: 511cadc18c1b20efb62fead439ebf6841772bee096da01958c60d887c2625da0
+  original:
+    hackage: applicative-quoters-0.1.0.6
+- completed:
+    hackage: notcpp-0.2.0.3@sha256:202d99244522e20ae34de92b1fdbfd5471ea40f32e79689df1c8ffae820d7723,2109
+    pantry-tree:
+      size: 663
+      sha256: 5c6c0d35bf15b9e453cc2466882fb69f639b107a2bbce8a345ab60b8e8e375ed
+  original:
+    hackage: notcpp-0.2.0.3@sha256:202d99244522e20ae34de92b1fdbfd5471ea40f32e79689df1c8ffae820d7723,2109
 snapshots:
 - completed:
     size: 586103

@@ -50,7 +50,8 @@ library
       src
   ghc-options: -Wall
   build-depends:
-      base >=4.7 && <5
+      applicative-quoters
+    , base >=4.7 && <5
     , containers
     , deepseq
     , fin
@@ -84,6 +85,7 @@ test-suite tdf-test
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       QuickCheck
+    , applicative-quoters
     , base >=4.7 && <5
     , containers
     , deepseq

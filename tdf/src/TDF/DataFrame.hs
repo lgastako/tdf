@@ -92,6 +92,7 @@ import           TDF.Prelude              hiding ( bool
                                                  )
 import qualified TDF.Prelude          as P
 
+import           Control.Applicative.QQ.Idiom    ( i )
 import qualified Data.List            as List
 import qualified Data.Map.Strict      as Map
 import qualified Data.Row.Records     as Rec
@@ -701,14 +702,22 @@ shape :: ( Enum idx
          )
       => DataFrame n idx a
       -> (Int, Int)
-shape = (,) <$> nrows <*> ncols
+shape = _onRC (,)
 
 size :: ( Enum idx
         , Forall a ToField
         )
      => DataFrame n idx a
      -> Int
-size = (*) <$> ncols <*> nrows
+size = _onRC (*)
+
+_onRC :: ( Enum idx
+         , Forall a ToField
+         )
+      => (Int -> Int -> b)
+      -> DataFrame n idx a
+      -> b
+_onRC f = f <$> nrows <*> ncols
 
 toList :: forall n idx a.
           ( AllUniqueLabels (Map (Vec n) a)
