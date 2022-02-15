@@ -92,7 +92,6 @@ import           TDF.Prelude              hiding ( bool
                                                  )
 import qualified TDF.Prelude          as P
 
-import           Control.Applicative.QQ.Idiom    ( i )
 import qualified Data.List            as List
 import qualified Data.Map.Strict      as Map
 import qualified Data.Row.Records     as Rec
