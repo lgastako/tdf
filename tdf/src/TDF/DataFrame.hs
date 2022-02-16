@@ -54,8 +54,8 @@ module TDF.DataFrame
   , at
   , axes
   , bool
+  , columnNames
   , columnVec
-  , columns
   , display
   , index
   , indexes
@@ -295,6 +295,18 @@ dropColumn :: forall k n idx a b r v.
            -> DataFrame n idx a
            -> DataFrame n idx b
 dropColumn _ = restrict
+
+restrict :: forall b n idx a.
+            ( Forall a Unconstrained1
+            , Forall b Unconstrained1
+            , Rec.Subset b a
+            , SNatI n
+            , idx ~ Int
+            )
+         => DataFrame n idx a
+         -> DataFrame n idx b
+restrict = map Rec.restrict
+
 
 extend :: forall n k v idx a b.
           ( Forall a Unconstrained1
@@ -558,14 +570,14 @@ axes :: Forall a ToField
      -> Axes idx
 axes df = Axes
   { rowLabels    = Vec.toList . Index.toVec . index $ df
-  , columnLabels = columns df
+  , columnLabels = columnNames df
   }
 
-columns :: forall n idx a.
-           ( Forall a ToField )
-        => DataFrame n idx a
-        -> [Text]
-columns _ = Rec.labels @a @ToField
+columnNames :: forall n idx a.
+               ( Forall a ToField )
+            => DataFrame n idx a
+            -> [Text]
+columnNames _ = Rec.labels @a @ToField
 
 columnVec :: forall n idx a k v r rest.
              ( Disjoint r rest
@@ -647,14 +659,14 @@ isEmpty df
 ncols :: Forall a ToField
       => DataFrame n idx a
       -> Int
-ncols = length . columns
+ncols = length . columnNames
 
 -- I think this is right?
 ndims :: Forall a ToField
       => DataFrame n idx a
       -> Int
 ndims df
-  | length (columns df) <= 1 = 1
+  | length (columnNames df) <= 1 = 1
   | otherwise                = 2
 
 nrows :: Enum idx
@@ -686,7 +698,7 @@ render :: forall n idx a.
        -> Text
 render df@DataFrame {..} = Table.render . Table.fromTexts $ headers:rows
   where
-    headers = columns df
+    headers = columnNames df
 
     rows = Vec.toList
       . Vec.map (toFields headers)
@@ -761,7 +773,7 @@ toTexts df = (headers:)
   $ df
   where
     headers :: [Text]
-    headers = columns df
+    headers = columnNames df
 
     f :: Rec a -> [Text]
     f = toFields headers
