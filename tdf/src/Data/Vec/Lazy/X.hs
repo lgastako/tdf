@@ -10,11 +10,12 @@
 
 module Data.Vec.Lazy.X
   ( module Data.Vec.Lazy
-  , AVec
+  , AVec(..)
   , avec
   , dwimFromList
   , filter
   , recoverVec
+  , reifyAVec
   , unsafeFromList
   ) where
 
@@ -36,7 +37,10 @@ import           Data.Type.Nat              ( Nat
                                             )
 import           Data.Vec.Lazy
 
-data AVec a = forall n. AVec (SNat n) (Vec n a)
+data AVec a = forall n. SNatI n => AVec
+  { size :: SNat n
+  , vec  :: Vec n a
+  }
 
 deriving instance Show a => Show (AVec a)
 
@@ -56,23 +60,11 @@ recoverVec (AVec n xs) = case testEquality n n' of
   where
     n' = snat @n
 
--- reifyAVec :: forall a r. (forall n. SNatI n => Vec n a -> r) -> AVec a -> r
--- reifyAVec f (AVec n v) = g n v
---   where
---     _ = f :: forall m b q. SNatI m => Vec m b -> q
-
---     g :: SNatI n => SNat n -> Vec n a -> r
---     g _n = f
-
---     _ = f :: forall n0. SNatI n0 => Vec n0 a -> r
--- --    _ = n :: SNatI n => SNat n
-
---     g :: forall n a r. SNatI n => Vec n a -> r
---     g = undefined
---       where
---         m = fromIntegral . snatToNat $ snat @n
-
---    sn = snat @
+reifyAVec :: forall a r.
+             (forall n. SNatI n => Vec n a -> r)
+          -> AVec a
+          -> r
+reifyAVec f (AVec _n v) = f v
 
 filter :: forall n a.
           ( SNatI n )
