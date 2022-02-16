@@ -30,7 +30,10 @@ import Control.Lens         as X ( Lens'
                                  , (^.)
                                  )
 import Data.Fin             as X ( Fin )
-import Data.Generics.Labels      ()
+import Data.Generics.Labels as X ()
+import Data.Generics.Product as X ( field
+                                  , typed
+                                  )
 import Data.Row             as X ( AllUniqueLabels
                                  , Disjoint
                                  , Empty

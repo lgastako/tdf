@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE FlexibleContexts      #-}
@@ -15,6 +16,7 @@ module TDF.CSV
   ( Error(..)
   , fromHeadedCSV
   , toHeadedCSV
+  , unsafeFromHeadedCSV
   ) where
 
 import TDF.Prelude
@@ -44,17 +46,6 @@ fromHeadedCSV :: ( AllUniqueLabels a
 fromHeadedCSV path = (recFromCSV <$> readFile path)
   <&> either (Left . FromCSVError)
              (Right . DF.fromList)
-
-toHeadedCSV :: ( AllUniqueLabels (Map (Vec n) a)
-               , Forall a ToField
-               , Forall (Map (Vec n) a) Unconstrained1
-               , Forall a Unconstrained1
-               , SNatI n
-               )
-            => FilePath
-            -> DataFrame n Int a
-            -> IO ()
-toHeadedCSV path = writeFile path . recToCSV . DF.toList
 
 recToCSV :: forall ρ. Forall ρ ToField => [Rec ρ] -> Text
 recToCSV rs = T.unlines $ map (T.intercalate ",")
@@ -86,3 +77,27 @@ recFromCSV s = case map (T.splitOn ",") (T.lines s) of
         where
           sid :: Text -> String
           sid = show
+
+toHeadedCSV :: ( AllUniqueLabels (Map (Vec n) a)
+               , Forall a ToField
+               , Forall (Map (Vec n) a) Unconstrained1
+               , Forall a Unconstrained1
+               , SNatI n
+               )
+            => FilePath
+            -> DataFrame n Int a
+            -> IO ()
+toHeadedCSV path = writeFile path . recToCSV . DF.toList
+
+unsafeFromHeadedCSV :: forall n a.
+                       ( AllUniqueLabels a
+                       , Forall a FromField
+                       , Forall a Unconstrained1
+                       , SNatI n
+                       )
+                    => FilePath
+                    -> IO (DataFrame n Int a)
+unsafeFromHeadedCSV path = fromHeadedCSV path >>= \case
+  Left error     -> panic (show error)
+  Right Nothing  -> panic "unsafeFromHeadedCSV: Nothing"
+  Right (Just x) -> pure x

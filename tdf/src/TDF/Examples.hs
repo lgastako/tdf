@@ -340,6 +340,9 @@ examples = unsafePerformIO $ CSV.fromHeadedCSV "data/example.csv" >>= \case
   Right Nothing   -> panic   "Examples.examples.2: Nothing"
   Right (Just df) -> pure df
 
+examples' :: DataFrame Nat6 Int PersonFields
+examples' = unsafePerformIO
+  $ CSV.unsafeFromHeadedCSV "data/example.csv"
 
 -- product=pd.DataFrame({
 --     'Product_ID':[101,102,103,104,105,106,107],
