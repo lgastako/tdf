@@ -296,18 +296,6 @@ dropColumn :: forall k n idx a b r v.
            -> DataFrame n idx b
 dropColumn _ = restrict
 
-restrict :: forall b n idx a.
-            ( Forall a Unconstrained1
-            , Forall b Unconstrained1
-            , Rec.Subset b a
-            , SNatI n
-            , idx ~ Int
-            )
-         => DataFrame n idx a
-         -> DataFrame n idx b
-restrict = map Rec.restrict
-
-
 extend :: forall n k v idx a b.
           ( Forall a Unconstrained1
           , Forall b Unconstrained1

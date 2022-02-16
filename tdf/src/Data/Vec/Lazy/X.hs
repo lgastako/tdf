@@ -56,13 +56,13 @@ recoverVec (AVec n xs) = case testEquality n n' of
   where
     n' = snat @n
 
-reifyAVec :: forall a r. (forall n. SNatI n => Vec n a -> r) -> AVec a -> r
-reifyAVec f (AVec n v) = g n v
-  where
-    _ = f :: forall m b q. SNatI m => Vec m b -> q
+-- reifyAVec :: forall a r. (forall n. SNatI n => Vec n a -> r) -> AVec a -> r
+-- reifyAVec f (AVec n v) = g n v
+--   where
+--     _ = f :: forall m b q. SNatI m => Vec m b -> q
 
-    g :: SNatI n => SNat n -> Vec n a -> r
-    g _n = f
+--     g :: SNatI n => SNat n -> Vec n a -> r
+--     g _n = f
 
 --     _ = f :: forall n0. SNatI n0 => Vec n0 a -> r
 -- --    _ = n :: SNatI n => SNat n
