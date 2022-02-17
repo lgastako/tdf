@@ -93,6 +93,3 @@ withExamples :: (DataFrame Nat6 Int PersonFields -> IO ())
 withExamples f = readExamplesIO >>= \case
   Nothing -> panic "invalid csv - maybe not 7 rows (6 + header)?"
   Just examples -> f examples
-
-nl :: IO ()
-nl = putText ""

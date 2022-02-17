@@ -17,6 +17,9 @@ import           TDF.Prelude            hiding ( Product
                                                , take
                                                )
 
+import           Control.Monad.Cont            ( ContT( ContT )
+                                               , runContT
+                                               )
 import qualified Data.Row.Records   as Rec
 import qualified Data.List          as List
 import qualified Data.List.NonEmpty as NE
@@ -28,7 +31,9 @@ import           TDF.DataFrame                 ( Axes
 import qualified TDF.CSV            as CSV
 import qualified TDF.DataFrame      as DF
 import qualified TDF.Options        as Options
-import           TDF.Series                    ( Series )
+import           TDF.Series                    ( Series
+                                               , a_
+                                               )
 import qualified TDF.Series         as Series
 import           System.IO.Unsafe              ( unsafePerformIO )
 
@@ -393,3 +398,26 @@ productTexts =
     , ["Delhi","Mumbai","Chennai","Kolkata","Delhi","Chennai","Bengalore"]
     )
   ]
+
+aDemo :: IO ()
+aDemo = do
+  let df = examples
+      s  = df ^. DF.series #age
+  nl >> DF.display df
+  nl >> Series.display s
+  nl >> Series.filterThen even s (a_ Series.display)
+  nl
+
+aContDemo :: IO ()
+aContDemo = do
+  let df = examples
+      s  = df ^. DF.series #age
+  nl >> DF.display df
+  nl >> Series.display s
+  run $ do
+    s' <- ContT $ Series.filterThen even s
+    lift nl >> lift (a_ Series.display s')
+    lift nl
+
+run :: ContT r IO r -> IO r
+run = flip runContT pure

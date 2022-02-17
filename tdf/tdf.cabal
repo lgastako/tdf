@@ -56,6 +56,7 @@ library
     , fin
     , generic-lens
     , lens
+    , mtl
     , protolude
     , row-types
     , text
@@ -89,6 +90,7 @@ test-suite tdf-test
     , fin
     , generic-lens
     , lens
+    , mtl
     , protolude
     , quickcheck-text
     , row-types

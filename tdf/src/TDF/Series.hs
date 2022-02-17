@@ -22,6 +22,7 @@ module TDF.Series
   , Options(..)
   , Series
   -- Constructors
+  , a_
   , construct
   , empty
   , fromList
@@ -83,13 +84,6 @@ import           TDF.Index                    ( Index )
 import qualified TDF.Index          as Index
 import qualified TDF.Types.Table    as Table
 import           TDF.Types.ToVecN             ( ToVecN( toVecN ) )
-import           Data.Type.Nat                ( -- FromGHC
-                                              -- , SNat( SS
-                                              --       , SZ
-                                              --       )
-                                                nat0
-                                              , snatToNat
-                                              )
 
 -- See https://pandas.pydata.org/docs/reference/api/pandas.Series.html
 
@@ -153,6 +147,12 @@ instance Each (Series n idx a) (Series n idx a) a a
 -- ================================================================ --
 --   Constructors
 -- ================================================================ --
+
+-- | A synonym for `reify` for those who crave brevity.
+a_ :: forall  idx a    b.
+      (forall n. SNatI n => Series n idx a -> b)
+   -> (ASeries  idx a -> b)
+a_ = reify
 
 construct :: forall n idx a. Options n idx a -> Series n idx a
 construct Options {..} = Series
@@ -529,10 +529,10 @@ onVec :: forall n idx a b.
       -> b
 onVec f Series {..} = f sData
 
-reify :: forall idx a r.
-         (forall n. SNatI n => Series n idx a -> r)
+reify :: forall idx a b.
+         (forall n. SNatI n => Series n idx a -> b)
       -> ASeries idx a
-      -> r
+      -> b
 reify f (ASeries _n v) = f v
 
 shape :: forall n idx a.

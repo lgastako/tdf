@@ -8,6 +8,7 @@ module TDF.Prelude
   , cs
   , explode
   , mean
+  , nl
   , orCrash
   , stdDev
   ) where
@@ -58,7 +59,9 @@ import Data.Row.Records     as X ( Extend
                                  , NativeRow
                                  , ToNative
                                  )
-import Data.Type.Nat        as X ( Nat( S
+import Data.Type.Equality   as X ( testEquality )
+import Data.Type.Nat        as X ( FromGHC
+                                 , Nat( S
                                       , Z
                                       )
                                  , Nat0
@@ -74,7 +77,9 @@ import Data.Type.Nat        as X ( Nat( S
                                  , Plus
                                  , SNatI
                                  , SNat
+                                 , nat0
                                  , snat
+                                 , snatToNat
                                  )
 import Data.Type.Nat.LE     as X ( LE )
 import Data.Vec.Lazy.X      as X ( AVec(..)
@@ -90,13 +95,6 @@ import Protolude.Conv            ( Leniency( Lenient )
 (...) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
 (...) = (.).(.)
 
-stdDev :: ( Floating a
-          , Foldable f
-          , Functor f
-          , Fractional a
-          ) => f a -> a
-stdDev xs = sqrt . mean . map ((^ (2 :: Int)) . (-) (mean xs)) $ xs
-
 cs :: StringConv a b => a -> b
 cs = strConv Lenient
 
@@ -110,5 +108,15 @@ mean :: ( Foldable f
      -> a
 mean = (/) <$> sum <*> realToFrac . length
 
+nl :: IO ()
+nl = putText ""
+
 orCrash :: Text -> Maybe a -> a
 orCrash s = fromMaybe (panic s)
+
+stdDev :: ( Floating a
+          , Foldable f
+          , Functor f
+          , Fractional a
+          ) => f a -> a
+stdDev xs = sqrt . mean . map ((^ (2 :: Int)) . (-) (mean xs)) $ xs

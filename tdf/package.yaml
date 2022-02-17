@@ -25,6 +25,7 @@ dependencies:
 - fin
 - generic-lens
 - lens
+- mtl
 - protolude
 - row-types
 - text
