@@ -175,7 +175,6 @@ type DateExampleFields = "year"  .== Integer
                       .+ "day"   .== Int
                       .+ "value" .== Int
 
-
 type DateColsLen = Nat6
 
 dateAcrossCols :: DataFrame DateColsLen Int DateExampleFields
@@ -309,9 +308,6 @@ s2 = fromMaybe (panic "s1.boom.2")
   . Vec.fromList
   $ [ 2.1, 0.0, 8.3 ]
 
-
-
-
 s1_plus1 :: Series Nat3 Int Float
 s1_plus1 = Series.op (+) (1 :: Float) s1
 
@@ -399,7 +395,6 @@ productTexts =
     )
   ]
 
-
 aDemo :: IO ()
 aDemo = do
   let df = examples
@@ -425,9 +420,26 @@ cpsContDemo = do
   nl >> DF.display df
   nl >> Series.display s
   run $ do
-    s' <- ContT $ Series.filterThen even s
+    s' <- ct $ Series.filterThen even s
     lift nl >> lift (a_ Series.display s')
     lift nl
+  where
+    ct = ContT
 
 run :: ContT r IO r -> IO r
 run = flip runContT pure
+
+monadExample :: Monad m => m Int
+monadExample = do
+  x <- pure (1 :: Int)
+  y <- pure (2 :: Int)
+  pure (x + y)
+
+meSeries :: Series Nat1 Int Int
+meSeries = monadExample
+
+newSeries :: Series Nat3 Int Float
+newSeries = do
+  x <- s1
+  y <- s1
+  pure $ x + y

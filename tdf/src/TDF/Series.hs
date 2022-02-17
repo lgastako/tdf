@@ -1,3 +1,4 @@
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE DeriveTraversable         #-}
 {-# LANGUAGE DeriveGeneric             #-}
@@ -28,6 +29,7 @@ module TDF.Series
   , fromList
   , fromScalar
   , fromVec
+  , repeat
   -- Combinators
   , append
   , drop
@@ -41,6 +43,8 @@ module TDF.Series
   , t
   , take
   , updateVec
+  , zip
+  , zipWith
   -- Optics
   , at
   , name
@@ -71,10 +75,14 @@ module TDF.Series
 import           TDF.Prelude           hiding ( drop
                                               , empty
                                               , filter
+                                              , repeat
                                               , reverse
                                               , take
                                               , toList
+                                              , zip
+                                              , zipWith
                                               )
+-- import qualified TDF.Prelude        as P
 
 import           Control.Lens                 ( Each )
 import qualified Data.List          as List
@@ -86,6 +94,8 @@ import qualified TDF.Index          as Index
 import qualified TDF.Types.Table    as Table
 import           TDF.Types.ToVecN             ( ToVecN( toVecN ) )
 
+-- import qualified Control.Applicative as A
+
 -- See https://pandas.pydata.org/docs/reference/api/pandas.Series.html
 
 -- | One-dimensional series of data with axis labels
@@ -95,6 +105,68 @@ data Series (n :: Nat) idx a = Series
   , sLength :: Int
   , sName   :: Maybe Text
   } deriving (Eq, Foldable, Functor, Generic, Ord, Traversable, Show)
+
+-- instance (SNatI n, idx ~ Int) => Alternative (Series n idx) where
+--   empty :: forall a. Series n idx a
+--   empty = undefined
+--     where
+--       x :: a
+--       x = A.empty
+
+--   (<|>) :: forall a.
+--            Series n Int a
+--         -> Series n Int a
+--         -> Series n Int a
+--   (<|>) = undefined
+
+instance Semigroup a => Semigroup (Series n idx a) where
+  s1 <> s2 = s1 { sData = sData s1 <> sData s2 }
+
+instance (Monoid a, SNatI n, idx ~ Int) => Monoid (Series n idx a) where
+  mempty = pure mempty
+
+instance ( SNatI n
+         , idx ~ Int
+         ) => Applicative (Series n idx) where
+  sf <*> sx = sf { sData = Vec.zipWith ($) (sData sf) (sData sx) }
+
+  pure x = Series
+    { sIndex  = Index.defaultIntsFor sData' & fromMaybe (panic "Series.pure")
+    , sData   = sData'
+    , sLength = Vec.length sData'
+    , sName   = Nothing
+    }
+    where
+      sData' = Vec.repeat x
+
+instance ( SNatI n
+         , idx ~ Int
+         ) => Monad (Series n idx) where
+  (>>=) :: forall a b.
+           Series n Int a
+        -> (a -> Series n Int b)
+        -> Series n Int b
+  ma >>= mf = join' (fmap mf ma)
+
+join' :: forall n idx a.
+         ( SNatI n
+         , idx ~ Int
+         )
+      => Series n idx (Series n idx a)
+      -> Series n idx a
+join' Series {..} = Series
+  { sIndex  = Index.defaultIntsFor v & orCrash "Series.join'"
+  , sData   = v
+  , sLength = length v
+  , sName   = sName
+  }
+  where
+    v = Vec.join (fmap toVec sData)
+
+instance ToVecN (Series n idx a) n a where
+  toVecN = toVec
+
+instance (NFData idx, NFData a) => NFData (Series n idx a)
 
 data ASeries idx a = forall n. SNatI n => ASeries
   { size :: SNat n
@@ -117,25 +189,6 @@ deriving instance Traversable (ASeries idx)
 --       a = undefined
 
 --   asf <*> asx = undefined
-
-instance ( SNatI n
-         , idx ~ Int
-         ) => Applicative (Series n idx) where
-  sf <*> sx = sf { sData = Vec.zipWith ($) (sData sf) (sData sx) }
-
-  pure x = Series
-    { sIndex  = Index.defaultIntsFor sData' & fromMaybe (panic "Series.pure")
-    , sData   = sData'
-    , sLength = Vec.length sData'
-    , sName   = Nothing
-    }
-    where
-      sData' = Vec.repeat x
-
-instance ToVecN (Series n idx a) n a where
-  toVecN = toVec
-
-instance (NFData idx, NFData a) => NFData (Series n idx a)
 
 data Options (n :: Nat) idx a = Options
   { optIndex :: Index n idx
@@ -202,6 +255,21 @@ fromVec optData = f <$> Index.defaultIntsFor optData
       , sLength = Vec.length optData
       , sName   = Nothing
       }
+
+repeat :: forall n idx a.
+          ( SNatI n
+          , idx ~ Int
+          )
+       => a
+       -> Series n idx a
+repeat x = Series
+  { sIndex  = Index.defaultIntsFor v & orCrash "Series.repeat"
+  , sData   = v
+  , sLength = length v
+  , sName   = Nothing
+  }
+  where
+    v = Vec.repeat x
 
 -- ================================================================ --
 --   Combinators
@@ -442,6 +510,28 @@ updateVec f Series {..} = Series
     sData'  = f sData
     sIndex' = Index.defaultIntsFor sData'  -- TODO shouldn't do this...
       & orCrash "updateVec.sIindex"
+
+zip :: ( SNatI n
+       , idx ~ Int
+       )
+    => Series n idx a
+    -> Series n idx b
+    -> Series n idx (a, b)
+zip = zipWith (,)
+
+zipWith :: ( SNatI n
+           , idx ~ Int
+           )
+        => (a -> b -> c)
+        -> Series n idx a
+        -> Series n idx b
+        -> Series n idx c
+zipWith f s1 s2 = s1
+  { sIndex  = Index.defaultIntsFor v' & orCrash "Series.zipWith"
+  , sData   = v'
+  }
+  where
+    v' = Vec.zipWith f (sData s1) (sData s2)
 
 -- ================================================================ --
 --   Optics
