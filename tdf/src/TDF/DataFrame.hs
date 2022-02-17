@@ -88,6 +88,7 @@ import           TDF.Prelude              hiding ( bool
                                                  , foldr
                                                  , head
                                                  , map
+                                                 , size
                                                  , toList
                                                  )
 import qualified TDF.Prelude          as P

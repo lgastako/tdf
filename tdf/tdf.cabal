@@ -62,7 +62,6 @@ library
     , unordered-containers
     , vec
     , vec-lens
-    , vector
   default-language: Haskell2010
 
 test-suite tdf-test
@@ -103,5 +102,4 @@ test-suite tdf-test
     , unordered-containers
     , vec
     , vec-lens
-    , vector
   default-language: Haskell2010

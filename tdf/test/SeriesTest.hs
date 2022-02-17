@@ -27,7 +27,7 @@ spec_Series = do
       length ss `shouldBe` 6
 
     it "should filter" $
-      toList (Series.filter (<2.0) s)
+      Series.filterUnfixedWithIndexThen ((<2.0) . snd) s toList
         `shouldBe` [1.1]
 
     it "should produce these exact indexes" $ do

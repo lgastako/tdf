@@ -1,23 +1,25 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DeriveFoldable        #-}
-{-# LANGUAGE DeriveFunctor         #-}
-{-# LANGUAGE DeriveTraversable     #-}
-{-# LANGUAGE DeriveGeneric         #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE OverloadedLabels      #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE DataKinds                 #-}
+{-# LANGUAGE DeriveTraversable         #-}
+{-# LANGUAGE DeriveGeneric             #-}
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE MultiParamTypeClasses     #-}
+{-# LANGUAGE NoImplicitPrelude         #-}
+{-# LANGUAGE OverloadedLabels          #-}
+{-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE RecordWildCards           #-}
+{-# LANGUAGE RankNTypes                #-}
+{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE StandaloneDeriving        #-}
+{-# LANGUAGE TupleSections             #-}
+{-# LANGUAGE TypeApplications          #-}
+{-# LANGUAGE TypeFamilies              #-}
+{-# LANGUAGE TypeOperators             #-}
+{-# LANGUAGE UndecidableInstances      #-}
 
 module TDF.Series
-  ( Options(..)
+  ( ASeries(..)
+  , Options(..)
   , Series
   -- Constructors
   , construct
@@ -28,8 +30,12 @@ module TDF.Series
   -- Combinators
   , append
   , drop
+  , duplicated
+  , normalize
   , op
   , reverse
+  , standardize
+  , standardizeWith
   , t
   , take
   , updateVec
@@ -38,9 +44,10 @@ module TDF.Series
   , name
   -- Eliminators
   , display
-  , filter
-  , filterByIndex
-  , filterWithIndex
+  , filterUnfixed
+  , filterUnfixedByIndex
+  , filterUnfixedWithIndex
+  , filterUnfixedWithIndexThen
   , hasNaNs
   , index
   , isEmpty
@@ -48,6 +55,7 @@ module TDF.Series
   , ndims
   , nrows
   , onVec
+  , reify
   , shape
   , toIndexedList
   , toList
@@ -65,14 +73,18 @@ import           TDF.Prelude           hiding ( drop
 
 import           Control.Lens                 ( Each )
 import qualified Data.List          as List
+import qualified Data.Map.Strict    as Map
 import qualified Data.Vec.Lazy.X    as Vec
 import qualified Data.Vec.Lazy.Lens as VL
-import qualified Data.Vector        as Vector
 import           TDF.Index                    ( Index )
 import qualified TDF.Index          as Index
 import qualified TDF.Types.Table    as Table
 import           TDF.Types.ToVecN             ( ToVecN( toVecN ) )
-import           Data.Type.Nat                ( nat0
+import           Data.Type.Nat                ( -- FromGHC
+                                              -- , SNat( SS
+                                              --       , SZ
+                                              --       )
+                                                nat0
                                               , snatToNat
                                               )
 
@@ -85,6 +97,28 @@ data Series (n :: Nat) idx a = Series
   , sLength :: Int
   , sName   :: Maybe Text
   } deriving (Eq, Foldable, Functor, Generic, Ord, Traversable, Show)
+
+data ASeries idx a = forall n. SNatI n => ASeries
+  { size :: SNat n
+  , vec  :: Series n idx a
+  }
+
+deriving instance Foldable    (ASeries idx)
+deriving instance Functor     (ASeries idx)
+deriving instance Traversable (ASeries idx)
+
+-- instance Applicative (ASeries idx) where
+--   pure :: forall a. a -> ASeries idx a
+--   pure x = ASeries sn a
+--     where
+--       sn :: SNatI n => SNat n
+--       sn = panic "sn undefined"
+--       -- (snat @(FromGHC 1)) x
+
+--       a :: Series n idx a
+--       a = undefined
+
+--   asf <*> asx = undefined
 
 instance ( SNatI n
          , idx ~ Int
@@ -204,6 +238,15 @@ drop s@Series {..} = s
     sData' :: Vec m a
     sData' = Vec.drop sData
 
+duplicated :: forall n idx a.
+              ( Ord a )
+           => Series n idx a
+           -> Series n idx Bool
+duplicated s = map ((>1) . (counts Map.!)) s
+  where
+    counts :: Map.Map a Int
+    counts = Map.fromListWith (+) . map (, 1) . toList $ s
+
 empty :: forall idx a. ( idx ~ Int )
       => Series Nat0 idx a
 empty = Series
@@ -215,25 +258,122 @@ empty = Series
   where
     sData' = Vec.empty
 
-filter :: (a -> Bool)
-       -> Series n idx a
-       -> Vector a
-filter p = filterWithIndex (\(_, x) -> p x)
+-- filterAnd :: forall n idx a r.
+--              (a -> Bool)
+--           -> Series n idx a
+--           -> (forall n. SNatI n => Series n idx a -> r)
+--           -> r
+-- filterAnd =
 
-filterByIndex :: (idx -> Bool)
+filterUnfixed :: forall n idx a.
+                 ( SNatI n
+                 , idx ~ Int
+                 )
+              => (a -> Bool)
               -> Series n idx a
-              -> Vector a
-filterByIndex p = filterWithIndex (\(idx, _) -> p idx)
+              -> ASeries idx a
+filterUnfixed p = filterUnfixedWithIndex (\(_, x) -> p x)
 
-filterWithIndex :: forall n idx a.
-                   ((idx, a) -> Bool)
+filterUnfixedByIndex :: forall n idx a.
+                        ( SNatI n
+                        , idx ~ Int
+                        )
+                     => (idx -> Bool)
+                     -> Series n idx a
+                     -> ASeries idx a
+filterUnfixedByIndex p = filterUnfixedWithIndex (\(idx, _) -> p idx)
+
+filterUnfixedWithIndexThen :: forall n idx a r.
+                              ( SNatI n
+                              , idx ~ Int
+                              )
+                           => ((idx, a) -> Bool)
+                           -> Series n idx a
+                           -> (ASeries idx a -> r)
+                           -> r
+filterUnfixedWithIndexThen p s c = c . filterUnfixedWithIndex p $ s
+
+filterUnfixedWithIndex :: forall n idx a.
+                          ( SNatI n
+                          , idx ~ Int
+                          )
+                       => ((idx, a) -> Bool)
+                       -> Series n idx a
+                       -> ASeries idx a
+filterUnfixedWithIndex p s@Series {..} = result
+  where
+    -- _ = p :: (idx, a) -> Bool
+    -- _ = s :: Series n idx a
+
+    v :: Vec n a
+    v = toVec s
+
+    indexed :: Vec n (idx, a)
+    indexed = Vec.zip (Index.toVec sIndex) v
+
+    aresult :: AVec (idx, a)
+    aresult = Vec.filter p indexed
+
+    aresult' :: AVec a
+    aresult' = map snd aresult
+
+    result :: ASeries idx a
+    result = Vec.reify (mkASeries sName) aresult'
+
+mkASeries :: forall n idx a.
+             ( SNatI n
+             , idx ~ Int
+             )
+          => Maybe Text
+          -> Vec n a
+          -> ASeries idx a
+mkASeries sName v = ASeries (snat @n) $ Series
+  { sIndex  = Index.defaultIntsFor v & orCrash "f.Sindex"
+  , sData   = v
+  , sLength = Vec.length v
+  , sName   = sName
+  }
+
+normalize :: forall n idx a.
+             ( Fractional a
+             , Ord a
+             )
+          => Series n idx a
+          -> Series n idx a
+normalize s = map f s
+  where
+    f :: a -> a
+    f x = (x - mn) / (mx - mn)
+
+    mn = minimum s
+    mx = maximum s
+
+-- | Z-Score normalization
+standardize :: forall n idx a.
+               ( Floating a
+               , Fractional a
+               )
+            => Series n idx a
+            -> Series n idx a
+standardize s = map f s
+  where
+    f :: a -> a
+    f x = (x - mu) / stdDev s
+
+    mu = mean s
+
+-- | Z-Score normalization
+standardizeWith :: forall n idx a.
+                   ( Floating a
+                   , Fractional a
+                   )
+                => a
                 -> Series n idx a
-                -> Vector a
-filterWithIndex p s = Vector.map snd
-                    . vecFilter p
-                    . Vec.zipWith (,) (Index.toVec . sIndex $ s)
-                    . toVec
-                    $ s
+                -> Series n idx a
+standardizeWith mu s = map f s
+  where
+    f :: a -> a
+    f x = (x - mu) / stdDev s
 
 op :: ToVecN x n a
    => (a -> a -> b)
@@ -286,15 +426,6 @@ updateVec f Series {..} = Series
     sData'  = f sData
     sIndex' = Index.defaultIntsFor sData'  -- TODO shouldn't do this...
       & orCrash "updateVec.sIindex"
-
-vecFilter :: forall n a.
-             (a -> Bool)
-          -> Vec n a
-          -> Vector a
-vecFilter p = Vec.foldr f Vector.empty
-  where
-    f x acc | p x       = Vector.cons x acc
-            | otherwise =               acc
 
 -- ================================================================ --
 --   Optics
@@ -382,6 +513,12 @@ onVec :: forall n idx a b.
       -> Series n idx a
       -> b
 onVec f Series {..} = f sData
+
+reify :: forall idx a r.
+         (forall n. SNatI n => Series n idx a -> r)
+      -> ASeries idx a
+      -> r
+reify f (ASeries _n v) = f v
 
 shape :: forall n idx a.
          ( Enum idx

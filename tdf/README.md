@@ -11,6 +11,7 @@ following pages:
 https://pypancsv.github.io/pypancsv/quickexamples/#first-the-csv-files-within-the-examples
 https://www.geeksforgeeks.org/python-pandas-dataframe/
 https://www.analyticsvidhya.com/blog/2020/02/joins-in-pandas-master-the-different-types-of-joins-in-python/
+https://realpython.com/python-data-cleaning-numpy-pandas/
 
 You can find some of the CSV files from those sites in the `test/fixtures`
 directory.
@@ -31,7 +32,8 @@ We take vectors of rows as input and turn it into rows of vectors to operate on.
     even be doing a round trip there...
 
 - TODO List:
-  - lenses for bidirectional accessors like loc, at, iat, etc.
+  - IN-PROGRESS lenses for bidirectional accessors like loc, at, iat, etc.
+  - pd.describe
   - merge
     https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.merge.html
     https://pandas-docs.github.io/pandas-docs-travis/user_guide/merging.html

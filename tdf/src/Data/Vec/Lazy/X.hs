@@ -1,7 +1,8 @@
+{-# LANGUAGE DataKinds                 #-}
+{-# LANGUAGE DeriveFunctor             #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GADTs                     #-}
 {-# LANGUAGE InstanceSigs              #-}
-{-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE NoImplicitPrelude         #-}
 {-# LANGUAGE RankNTypes                #-}
 {-# LANGUAGE StandaloneDeriving        #-}
@@ -15,12 +16,15 @@ module Data.Vec.Lazy.X
   , dwimFromList
   , filter
   , recoverVec
-  , reifyAVec
+  , reify
   , unsafeFromList
+  , zip
   ) where
 
 import           Prelude             hiding ( filter
                                             , foldr
+                                            , zip
+                                            , zipWith
                                             )
 
 import qualified Data.List          as List
@@ -28,9 +32,9 @@ import           Data.Maybe                 ( fromMaybe )
 import           Data.Type.Equality         ( (:~:)(Refl)
                                             , testEquality
                                             )
-import           Data.Type.Nat              ( Nat
-                                            , Nat
-                                            , SNat
+import           Data.Type.Nat              ( SNat( SS
+                                                  , SZ
+                                                  )
                                             , SNatI
                                             , snat
                                             , snatToNat
@@ -42,6 +46,7 @@ data AVec a = forall n. SNatI n => AVec
   , vec  :: Vec n a
   }
 
+deriving instance Functor AVec
 deriving instance Show a => Show (AVec a)
 
 instance Eq a => Eq (AVec a) where
@@ -60,41 +65,71 @@ recoverVec (AVec n xs) = case testEquality n n' of
   where
     n' = snat @n
 
-reifyAVec :: forall a r.
-             (forall n. SNatI n => Vec n a -> r)
-          -> AVec a
-          -> r
-reifyAVec f (AVec _n v) = f v
+reify :: forall a r.
+         (forall n. SNatI n => Vec n a -> r)
+      -> AVec a
+      -> r
+reify f (AVec _n v) = f v
 
-filter :: forall n a.
-          ( SNatI n )
-       => (a -> Bool)
-       -> Vec n a
-       -> (SNat n, AVec a)
-filter p v = package $ foldr f [] v
-  where
-    f :: a -> [a] -> [a]
-    f x acc | p x       = x:acc
-            | otherwise = acc
+filter :: forall n a. (a -> Bool) -> Vec n a -> AVec a
+filter _ VNil = AVec SZ VNil
+filter p (x ::: xs)
+  | p x, AVec _ v <- filter p xs = AVec SS (x ::: v)
+  | otherwise = filter p xs
 
-    package :: [a] -> (SNat n, AVec a)
-    package xs = case fromList xs of
-      Nothing -> error "filter explode"
-      Just v' -> (sn, AVec sn v')
-      where
-        sn :: SNat n
-        sn = intToSnat len
+-- filter :: forall n a.
+--           ( SNatI n )
+--        => (a -> Bool)
+--        -> Vec n a
+--        -> (SNat n, AVec a)
+-- filter p v = package $ foldr f [] v
+--   where
+--     f :: a -> [a] -> [a]
+--     f x acc | p x       = x:acc
+--             | otherwise = acc
 
-        intToSnat :: Int -> SNat n
-        intToSnat = \case
-          0  -> error "filter.1" -- SZ
-          _n -> error "filter.2" -- intToSnat . pred $ n
+--     package :: [a] -> (SNat n, AVec a)
+--     package xs = case fromList xs of
+--       Nothing -> error "Vec.filter: package failed with Nothing"
+--       Just v' -> ( sn, AVec sn v' )
+--         where
+--           sn :: SNat n
+--           sn = undefined -- intentionally
 
-        _n :: Nat
-        _n = fromIntegral len
+--           _proxy :: Proxy n
+--           _proxy = Proxy
 
-        len :: Int
-        len = List.length xs
+--           _lenSomeNat :: TN.SomeNat
+--           _lenSomeNat = TN.someNatVal lenNatural
+
+--           lenNatural :: Natural
+--           lenNatural = fromIntegral len
+
+--           len :: Int
+--           len = List.length xs
+
+--           _intToSNat :: Int -> SNat n
+--           _intToSNat = undefined
+
+      -- Just v' -> (sn, AVec sn v')
+      -- where
+      --   sn :: SNat n
+      --   sn = intToSnat len
+
+      --   intToSnat :: Int -> SNat n
+      --   intToSnat = undefined
+
+      --   lenSNat :: SNat n
+      --   lenSNat = something lenNat
+      --     where
+      --       something :: Nat -> SNat n
+      --       something = undefined
+
+      --   lenNat :: Nat
+      --   lenNat = fromNatural lenNatural
+
+      --   lenNatural :: Natural
+      --   lenNatural = fromIntegral len
 
 dwimFromList :: forall n a. SNatI n => [a] -> Vec n a
 dwimFromList = unsafeFromList . List.take m . List.cycle
@@ -106,3 +141,6 @@ unsafeFromList = fromMaybe (error msg) . fromList
   where
     msg = "unsafeFromList called on list of wrong size."
 
+
+zip :: Vec n a -> Vec n b -> Vec n (a, b)
+zip = zipWith (,)

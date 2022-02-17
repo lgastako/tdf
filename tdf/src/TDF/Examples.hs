@@ -13,6 +13,7 @@ module TDF.Examples where
 
 import           TDF.Prelude            hiding ( Product
                                                , drop
+                                               , size
                                                , take
                                                )
 
@@ -303,6 +304,9 @@ s2 = fromMaybe (panic "s1.boom.2")
   . Vec.fromList
   $ [ 2.1, 0.0, 8.3 ]
 
+
+
+
 s1_plus1 :: Series Nat3 Int Float
 s1_plus1 = Series.op (+) (1 :: Float) s1
 
@@ -340,6 +344,7 @@ examples = unsafePerformIO $ CSV.fromHeadedCSV "data/example.csv" >>= \case
   Right Nothing   -> panic   "Examples.examples.2: Nothing"
   Right (Just df) -> pure df
 
+{-# NOINLINE examples' #-}
 examples' :: DataFrame Nat6 Int PersonFields
 examples' = unsafePerformIO
   $ CSV.unsafeFromHeadedCSV "data/example.csv"

@@ -7,7 +7,9 @@ module TDF.Prelude
   , (...)
   , cs
   , explode
+  , mean
   , orCrash
+  , stdDev
   ) where
 
 import Protolude            as X hiding ( Map
@@ -71,14 +73,15 @@ import Data.Type.Nat        as X ( Nat( S
                                  , Nat9
                                  , Plus
                                  , SNatI
+                                 , SNat
                                  , snat
                                  )
 import Data.Type.Nat.LE     as X ( LE )
-import Data.Vec.Lazy        as X ( Vec( (:::)
+import Data.Vec.Lazy.X      as X ( AVec(..)
+                                 , Vec( (:::)
                                       , VNil
                                       )
                                  )
-import Data.Vector          as X ( Vector )
 import Protolude.Conv       as X ( StringConv )
 import Protolude.Conv            ( Leniency( Lenient )
                                  , strConv
@@ -87,11 +90,25 @@ import Protolude.Conv            ( Leniency( Lenient )
 (...) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
 (...) = (.).(.)
 
+stdDev :: ( Floating a
+          , Foldable f
+          , Functor f
+          , Fractional a
+          ) => f a -> a
+stdDev xs = sqrt . mean . map ((^ (2 :: Int)) . (-) (mean xs)) $ xs
+
 cs :: StringConv a b => a -> b
 cs = strConv Lenient
 
 explode :: Text -> a
 explode = panic . ("ERROR:EXPLOSION:" <>)
+
+mean :: ( Foldable f
+        , Fractional a
+        )
+     => f a
+     -> a
+mean = (/) <$> sum <*> realToFrac . length
 
 orCrash :: Text -> Maybe a -> a
 orCrash s = fromMaybe (panic s)

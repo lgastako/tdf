@@ -31,7 +31,6 @@ dependencies:
 - unordered-containers
 - vec
 - vec-lens
-- vector
 
 library:
   source-dirs: src
