@@ -44,10 +44,12 @@ module TDF.Series
   , name
   -- Eliminators
   , display
-  , filterUnfixed
-  , filterUnfixedByIndex
-  , filterUnfixedWithIndex
-  , filterUnfixedWithIndexThen
+  , filter
+  , filterThen
+  , filterByIndex
+  , filterByIndexThen
+  , filterWithIndex
+  , filterWithIndexThen
   , hasNaNs
   , index
   , isEmpty
@@ -61,6 +63,7 @@ module TDF.Series
   , toList
   , toTexts
   , toVec
+  , unique
   ) where
 
 import           TDF.Prelude           hiding ( drop
@@ -258,49 +261,52 @@ empty = Series
   where
     sData' = Vec.empty
 
--- filterAnd :: forall n idx a r.
---              (a -> Bool)
---           -> Series n idx a
---           -> (forall n. SNatI n => Series n idx a -> r)
---           -> r
--- filterAnd =
+filter :: forall n idx a.
+          ( SNatI n
+          , idx ~ Int
+          )
+       => (a -> Bool)
+       -> Series n idx a
+       -> ASeries idx a
+filter p = filterWithIndex (\(_, x) -> p x)
 
-filterUnfixed :: forall n idx a.
+filterThen :: forall n idx a r.
+              ( SNatI n
+              , idx ~ Int
+              )
+           => (a -> Bool)
+           -> Series n idx a
+           -> (ASeries idx a -> r)
+           -> r
+filterThen p s c = c . filter p $ s
+
+filterByIndex :: forall n idx a.
                  ( SNatI n
                  , idx ~ Int
                  )
-              => (a -> Bool)
+              => (idx -> Bool)
               -> Series n idx a
               -> ASeries idx a
-filterUnfixed p = filterUnfixedWithIndex (\(_, x) -> p x)
+filterByIndex p = filterWithIndex (\(idx, _) -> p idx)
 
-filterUnfixedByIndex :: forall n idx a.
-                        ( SNatI n
-                        , idx ~ Int
-                        )
-                     => (idx -> Bool)
-                     -> Series n idx a
-                     -> ASeries idx a
-filterUnfixedByIndex p = filterUnfixedWithIndex (\(idx, _) -> p idx)
+filterByIndexThen :: forall n idx a r.
+                     ( SNatI n
+                     , idx ~ Int
+                     )
+                  => (idx -> Bool)
+                  -> Series n idx a
+                  -> (ASeries idx a -> r)
+                  -> r
+filterByIndexThen p s c = c . filterByIndex p $ s
 
-filterUnfixedWithIndexThen :: forall n idx a r.
-                              ( SNatI n
-                              , idx ~ Int
-                              )
-                           => ((idx, a) -> Bool)
-                           -> Series n idx a
-                           -> (ASeries idx a -> r)
-                           -> r
-filterUnfixedWithIndexThen p s c = c . filterUnfixedWithIndex p $ s
-
-filterUnfixedWithIndex :: forall n idx a.
-                          ( SNatI n
-                          , idx ~ Int
-                          )
-                       => ((idx, a) -> Bool)
-                       -> Series n idx a
-                       -> ASeries idx a
-filterUnfixedWithIndex p s@Series {..} = result
+filterWithIndex :: forall n idx a.
+                   ( SNatI n
+                   , idx ~ Int
+                   )
+                => ((idx, a) -> Bool)
+                -> Series n idx a
+                -> ASeries idx a
+filterWithIndex p s@Series {..} = result
   where
     -- _ = p :: (idx, a) -> Bool
     -- _ = s :: Series n idx a
@@ -319,6 +325,16 @@ filterUnfixedWithIndex p s@Series {..} = result
 
     result :: ASeries idx a
     result = Vec.reify (mkASeries sName) aresult'
+
+filterWithIndexThen :: forall n idx a r.
+                       ( SNatI n
+                       , idx ~ Int
+                       )
+                    => ((idx, a) -> Bool)
+                    -> Series n idx a
+                    -> (ASeries idx a -> r)
+                    -> r
+filterWithIndexThen p s c = c . filterWithIndex p $ s
 
 mkASeries :: forall n idx a.
              ( SNatI n
@@ -342,7 +358,6 @@ normalize :: forall n idx a.
           -> Series n idx a
 normalize s = map f s
   where
-    f :: a -> a
     f x = (x - mn) / (mx - mn)
 
     mn = minimum s
@@ -357,9 +372,9 @@ standardize :: forall n idx a.
             -> Series n idx a
 standardize s = map f s
   where
-    f :: a -> a
-    f x = (x - mu) / stdDev s
+    f x = (x - mu) / sd
 
+    sd = stdDev s
     mu = mean s
 
 -- | Z-Score normalization
@@ -548,3 +563,10 @@ toTexts = toTextsVia show
 
 toVec :: Series n idx a -> Vec n a
 toVec Series {..} = sData
+
+-- TODO ifCtx for the (Ord a) with a fallback to Eq via compared nub to itself
+unique :: forall n idx a.
+          ( Ord a )
+       => Series n idx a
+       -> Bool
+unique = not . any identity . duplicated
