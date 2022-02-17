@@ -408,6 +408,15 @@ aDemo = do
   nl >> Series.filterThen even s (a_ Series.display)
   nl
 
+aaDemo :: IO ()
+aaDemo = do
+  let df = examples
+      s  = df ^. DF.series #age
+  nl >> DF.display df
+  nl >> Series.display s
+  nl >> (a_ Series.display $ Series.filter even s)
+  nl
+
 aContDemo :: IO ()
 aContDemo = do
   let df = examples

@@ -31,6 +31,7 @@ module TDF.Series
   -- Combinators
   , append
   , drop
+  , dropNaNs
   , duplicated
   , normalize
   , op
@@ -499,6 +500,15 @@ hasNaNs :: forall n idx a.
         => Series n idx a
         -> Bool
 hasNaNs = any isNaN
+
+dropNaNs :: forall n idx a.
+            ( RealFloat a
+            , SNatI n
+            , idx ~ Int
+            )
+         => Series n idx a
+         -> ASeries idx a
+dropNaNs = filter (not . isNaN)
 
 index :: Series n idx a -> Index n idx
 index = sIndex
