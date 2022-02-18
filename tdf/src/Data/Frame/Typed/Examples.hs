@@ -30,6 +30,7 @@ import           Data.Frame.Typed                    ( Axes
                                                      )
 import qualified Data.Frame.Typed.CSV     as CSV
 import qualified Data.Frame.Typed         as DF
+import qualified Data.Frame.Typed.Index   as Index
 import qualified Data.Frame.Typed.Options as Options
 import           Data.Frame.Typed.Series             ( Series
                                                      , a_
@@ -135,7 +136,9 @@ df1Restricted = DF.restrict df1
 -- Dave
 
 df1' :: Frame Nat2 Int PersonFields
-df1' = df1 -- undefined -- DF.reindex [0, 1] df1
+df1' = DF.reindex (Index.fromVec idx') df1
+  where
+    idx' = Vec.fromList [5, 6] `onCrash` "Examples.df1'"
 
 -- λ> DF.memSize df1'
 -- 1096

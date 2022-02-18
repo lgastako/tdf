@@ -3,8 +3,12 @@
 My latest attempt to implement effective (if not efficient) DataFrames (ala
 python's pandas) in Haskell.
 
+Candidate names:
+- chassis
+
 ## Biggest Problems to Solve
 
+* Column ordering (Series of Series?)
 * Handle non-Label friendly column names well
   (and then un-hack all the example csv files)
 * Dynamic rendering failures

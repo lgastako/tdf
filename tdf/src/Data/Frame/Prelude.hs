@@ -5,6 +5,7 @@
 module Data.Frame.Prelude
   ( module X
   , (...)
+  , Nat10
   , cs
   , explode
   , mean
@@ -93,6 +94,8 @@ import Protolude.Conv       as X ( StringConv )
 import Protolude.Conv            ( Leniency( Lenient )
                                  , strConv
                                  )
+
+type Nat10 = Plus Nat9 Nat1
 
 (...) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
 (...) = (.).(.)

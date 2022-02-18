@@ -34,7 +34,8 @@ module Data.Frame.Typed
   , fromScalarList
   , fromSeries
   , fromVec
-    -- Combinators
+  -- Combinators
+  , benford
   , column
   , dropColumn
   , extend
@@ -45,6 +46,7 @@ module Data.Frame.Typed
   , map
   , overSeries
   , pop
+  , reindex
   , rename
   , restrict
   , snoc
@@ -86,14 +88,15 @@ module Data.Frame.Typed
   , valueCounts
   ) where
 
-import           Data.Frame.Prelude         hiding ( bool
-                                                   , empty
-                                                   , foldr
-                                                   , head
-                                                   , map
-                                                   , toList
-                                                   )
-import qualified Data.Frame.Prelude           as P
+import           Data.Frame.Prelude                hiding ( bool
+                                                          , empty
+                                                          , foldr
+                                                          , head
+                                                          , map
+                                                          , toList
+                                                          )
+import qualified Prelude                      as P
+import qualified Data.Frame.Prelude           as DP
 
 import qualified Data.List                    as List
 import qualified Data.Map.Strict              as Map
@@ -283,6 +286,57 @@ fromVec v = f <$> Index.defaultIntsFor v
 --  Combinators
 -- ================================================================ --
 
+-- TODO: These are not expected and actual... find the right names.
+type K1Field = "expected" .== Double
+type K2Field = "actual"   .== Double
+
+benford :: forall n idx a b k v r rest.
+           ( Disjoint r rest
+           , (Map (Series n idx) a .! k) ~ Series n idx v
+           , KnownSymbol k
+           , Show v
+           , SNatI n
+           , a ~ (r .+ rest)
+           , b ~ (K1Field .+ K2Field)
+           , r ≈ k .== v
+           )
+        => Label k
+        -> Frame n idx a
+        -> Frame Nat10 Int b
+benford k df = case fromList dfreqs of
+  Nothing -> panic "benford! you have failed us!"
+  Just s' -> s'
+  where
+    dfreqs :: [Rec b]
+    dfreqs = fmap g [0..9]
+
+    g :: Int -> Rec b
+    g d = #expected .== v2
+       .+ #actual   .== v1
+       where
+         v1 :: Double
+         v1 = fromIntegral (Map.findWithDefault 0 d freqs) / fromIntegral len
+
+         v2 :: Double
+         v2 = logBase 10.0 $ 1 + 1 / fromIntegral d
+
+    slen :: SNat n
+    slen = snat @n
+
+    nlen :: Nat
+    nlen = snatToNat slen
+
+    len :: Int
+    len = fromIntegral nlen
+
+    freqs :: Map.Map Int Int
+    freqs = Map.fromListWith (+)
+      $ zip (fmap digit $ Series.toList s)
+            (repeat 1)
+
+    s :: Series n idx v
+    s = view (series k) df
+
 column :: forall n k v idx a b rest.
           ( Forall a Unconstrained1
           , Forall b Unconstrained1
@@ -451,6 +505,12 @@ pop :: forall n idx r k v rest.
     -> (Frame n idx rest, Series n idx v)
 pop k df = (restrict df, df ^. series k)
 
+reindex :: Index n idx -> Frame n idx a -> Frame n idx a
+reindex idx Frame {..} = Frame
+  { dfIndex = idx
+  , dfData  = dfData
+  }
+
 rename :: ( Extend k' (sa .! k) (sa .- k) ~ Map (Series n idx) b
           , KnownSymbol k
           , KnownSymbol k'
@@ -554,7 +614,7 @@ bool :: forall idx a k.
      -> a
      -> Frame Nat1 idx (k .== Bool)
      -> a
-bool f t df = P.bool f t (asBool df)
+bool f t df = DP.bool f t (asBool df)
 
 asSeries :: forall n idx a k v.
           ( KnownSymbol k
@@ -930,6 +990,14 @@ filterIndexes f Frame {..} = Frame
 
     -- dfData' :: Rec (Map (Vec m) a)
     -- dfData' = restoreByIndexes  @_ @_ @_ @a dfIndex dfIndex' dfData
+
+-- ================================================================ --
+--   Helpers
+-- ================================================================ --
+
+digit :: forall a. Show a => a -> Int
+digit = digitToInt . P.head . show
+
 
 -- restoreByIndexes :: forall m n idx a.
 --                     ( Forall a Unconstrained1

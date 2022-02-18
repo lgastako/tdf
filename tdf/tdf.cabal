@@ -31,6 +31,7 @@ library
       Data.Frame.Prelude
       Data.Frame.Typed
       Data.Frame.Typed.CSV
+      Data.Frame.Typed.DeleteBenford
       Data.Frame.Typed.DeleteMe
       Data.Frame.Typed.Examples
       Data.Frame.Typed.Examples.Prestige
