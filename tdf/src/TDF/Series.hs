@@ -1,22 +1,22 @@
-{-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE DataKinds                 #-}
-{-# LANGUAGE DeriveTraversable         #-}
-{-# LANGUAGE DeriveGeneric             #-}
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE FlexibleInstances         #-}
-{-# LANGUAGE MultiParamTypeClasses     #-}
-{-# LANGUAGE NoImplicitPrelude         #-}
-{-# LANGUAGE OverloadedLabels          #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE RecordWildCards           #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
-{-# LANGUAGE StandaloneDeriving        #-}
-{-# LANGUAGE TupleSections             #-}
-{-# LANGUAGE TypeApplications          #-}
-{-# LANGUAGE TypeFamilies              #-}
-{-# LANGUAGE TypeOperators             #-}
-{-# LANGUAGE UndecidableInstances      #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveTraversable     #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE InstanceSigs          #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedLabels      #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE StandaloneDeriving    #-}
+{-# LANGUAGE TupleSections         #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module TDF.Series
   ( ASeries(..)
@@ -24,6 +24,7 @@ module TDF.Series
   , Series
   -- Constructors
   , a_
+  , afromList
   , construct
   , empty
   , fromList
@@ -32,6 +33,7 @@ module TDF.Series
   , repeat
   -- Combinators
   , append
+  , cons
   , drop
   , dropNaNs
   , duplicated
@@ -155,8 +157,8 @@ instance ToVecN (Series n idx a) n a where
 instance (NFData idx, NFData a) => NFData (Series n idx a)
 
 data ASeries idx a = forall n. SNatI n => ASeries
-  { size :: SNat n
-  , vec  :: Series n idx a
+  { asSize   :: SNat n
+  , asSeries :: Series n idx a
   }
 
 aseries :: forall n idx a.
@@ -216,6 +218,27 @@ fromList :: forall n idx a.
          -> Maybe (Series n idx a)
 fromList = fromVec <=< Vec.fromList
 
+-- filter :: forall n a. (a -> Bool) -> Vec n a -> AVec a
+-- filter _ VNil = AVec SZ VNil
+-- filter p (x ::: xs)
+--   | p x, AVec _ v <- filter p xs = AVec SS (x ::: v)
+--   | otherwise = filter p xs
+afromList :: forall idx a.
+             ( idx ~ Int )
+          => [a]
+          -> ASeries idx a
+afromList [] = ASeries SZ empty
+afromList (_x:_xs) = panic "afromList" -- cons x (afromList xs)
+
+cons :: forall n idx a.
+        ( SNatI n
+        , idx ~ Int
+        )
+     => a
+     -> Series n idx a
+     -> Series (Plus Nat1 n) idx a
+cons x = updateVec (Vec.cons x)
+
 fromScalar :: forall n idx a.
               ( SNatI n
               , idx ~ Int
@@ -223,7 +246,7 @@ fromScalar :: forall n idx a.
            => a
            -> Series n idx a
 fromScalar x = Series
-  { sIndex  = Index.defaultIntsFor sData' & orCrash "Series.fromScalar"
+  { sIndex  = Index.defaultIntsFor sData' `onCrash` "Series.fromScalar"
   , sData   = sData'
   , sLength = length sData'
   , sName   = Nothing
@@ -255,7 +278,7 @@ repeat :: forall n idx a.
        => a
        -> Series n idx a
 repeat x = Series
-  { sIndex  = Index.defaultIntsFor v & orCrash "Series.repeat"
+  { sIndex  = Index.defaultIntsFor v `onCrash` "Series.repeat"
   , sData   = v
   , sLength = length v
   , sName   = Nothing
@@ -308,7 +331,7 @@ duplicated s = map ((>1) . (counts Map.!)) s
 empty :: forall idx a. ( idx ~ Int )
       => Series Nat0 idx a
 empty = Series
-  { sIndex  = Index.defaultIntsFor sData' & orCrash "Series.empty"
+  { sIndex  = Index.defaultIntsFor sData' `onCrash` "Series.empty"
   , sData   = sData'
   , sLength = length sData'
   , sName   = Nothing
@@ -399,7 +422,7 @@ mkASeries :: forall n idx a.
           -> Vec n a
           -> ASeries idx a
 mkASeries sName v = ASeries (snat @n) $ Series
-  { sIndex  = Index.defaultIntsFor v & orCrash "f.Sindex"
+  { sIndex  = Index.defaultIntsFor v `onCrash` "f.Sindex"
   , sData   = v
   , sLength = Vec.length v
   , sName   = sName
@@ -482,7 +505,7 @@ updateVec :: forall m n idx a b.
           -> Series n idx a
           -> Series m idx b
 updateVec f Series {..} = Series
-  { sIndex  = Index.defaultIntsFor v & orCrash "Series.join'"
+  { sIndex  = Index.defaultIntsFor v `onCrash` "Series.join'"
   , sData   = v
   , sLength = length v
   , sName   = sName
@@ -555,7 +578,7 @@ name = lens get' set'
 display :: (Show idx, Show a) => Series n idx a -> IO ()
 display = putStr
   . Table.render
-  . orCrash "Series.display"
+  . (`onCrash` "Series.display")
   . Table.fromHeadedRows
   . List.map Table.Row
   . toTexts

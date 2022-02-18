@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE GADTs                #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE OverloadedLabels     #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
@@ -16,7 +17,8 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 module TDF.DataFrame
-  ( Axes( Axes
+  ( AFrame(..)
+  , Axes( Axes
         , columnLabels
         , rowLabels
         )
@@ -48,6 +50,8 @@ module TDF.DataFrame
   -- Optics
   , series
   -- Eliminators
+  , a_
+  , aframe
   , asBool
   , asScalar
   , asSeries
@@ -60,6 +64,7 @@ module TDF.DataFrame
   , index
   , indexes
   , isEmpty
+  , reify
   -- , melt
   -- , meltSimple
   , ncols
@@ -127,6 +132,17 @@ deriving instance ( Forall (Map (Series n idx) a) Show
 deriving instance ( Forall (Map (Series n idx) a) Eq
                   , Eq idx
                   ) => Eq (DataFrame n idx a)
+
+data AFrame idx a = forall n. SNatI n => AFrame
+  { adfSize  :: SNat n
+  , adfFrame :: DataFrame n idx a
+  }
+
+aframe :: forall n idx a.
+          ( SNatI n )
+       => DataFrame n idx a
+       -> AFrame idx a
+aframe = AFrame (snat @n)
 
 data Axes idx = Axes
   { rowLabels    :: [idx]
@@ -490,6 +506,12 @@ series k = lens get' set'
 --   Eliminators
 -- ================================================================ --
 
+a_ :: forall idx a b.
+      (forall n. SNatI n => DataFrame n idx a -> b)
+   -> AFrame idx a
+   -> b
+a_ = reify
+
 asBool :: forall idx k.
           ( KnownSymbol k
           , idx ~ Int
@@ -675,6 +697,12 @@ onColumn :: forall n idx k v a b r rest.
          -> DataFrame n idx a
          -> b
 onColumn k f = Series.onVec f . view (series k)
+
+reify :: forall idx a b.
+         (forall n. SNatI n => DataFrame n idx a -> b)
+      -> AFrame idx a
+      -> b
+reify f (AFrame _n v) = f v
 
 render :: forall n idx a.
           ( Forall a ToField

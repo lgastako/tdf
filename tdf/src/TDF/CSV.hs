@@ -25,7 +25,10 @@ import qualified Data.List           as L
 import qualified Data.Row.Records    as Rec
 import           Data.String                ( String )
 import qualified Data.Text           as T
-import           TDF.DataFrame              ( DataFrame )
+import           TDF.DataFrame              ( -- AFrame
+                                            -- ,
+                                              DataFrame
+                                            )
 import qualified TDF.DataFrame       as DF
 import           TDF.Types.FromField        ( FromField( fromField ) )
 import           TDF.Types.ToField          ( ToField( toField ) )
@@ -34,6 +37,25 @@ data Error
   = FileNotFound FilePath
   | FromCSVError String
   deriving (Eq, Generic, Ord, Show)
+
+-- afromHeadedCSV :: ( AllUniqueLabels a
+--                   , Forall a FromField
+--                   , Forall a Unconstrained1
+--                   )
+--               => FilePath
+--               -> IO (Either Error (AFrame Int a))
+-- afromHeadedCSV path = do
+--   contents <- readFile path
+--   case recFromCSV contents of
+--     Left  error -> pure . Left . FromCSVError $ error
+--     Right val   -> do
+--       let --  Just xs = DF.fromList val
+--           xs = undefined
+--           _ = val :: [Rec a]
+--       pure . Right $ DF.AFrame undefined xs
+--   -- (recFromCSV <$> readFile path)
+--   -- <&> either (Left . FromCSVError)
+--   --            (Right . DF.fromList)
 
 -- TODO: catch and return FileNotFound
 fromHeadedCSV :: ( AllUniqueLabels a

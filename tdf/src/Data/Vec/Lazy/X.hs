@@ -1,13 +1,12 @@
-{-# LANGUAGE DataKinds                 #-}
-{-# LANGUAGE DeriveFunctor             #-}
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE GADTs                     #-}
-{-# LANGUAGE InstanceSigs              #-}
-{-# LANGUAGE NoImplicitPrelude         #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE StandaloneDeriving        #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
-{-# LANGUAGE TypeApplications          #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveFunctor       #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE InstanceSigs        #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE StandaloneDeriving  #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 
 module Data.Vec.Lazy.X
   ( module Data.Vec.Lazy
@@ -76,60 +75,6 @@ filter _ VNil = AVec SZ VNil
 filter p (x ::: xs)
   | p x, AVec _ v <- filter p xs = AVec SS (x ::: v)
   | otherwise = filter p xs
-
--- filter :: forall n a.
---           ( SNatI n )
---        => (a -> Bool)
---        -> Vec n a
---        -> (SNat n, AVec a)
--- filter p v = package $ foldr f [] v
---   where
---     f :: a -> [a] -> [a]
---     f x acc | p x       = x:acc
---             | otherwise = acc
-
---     package :: [a] -> (SNat n, AVec a)
---     package xs = case fromList xs of
---       Nothing -> error "Vec.filter: package failed with Nothing"
---       Just v' -> ( sn, AVec sn v' )
---         where
---           sn :: SNat n
---           sn = undefined -- intentionally
-
---           _proxy :: Proxy n
---           _proxy = Proxy
-
---           _lenSomeNat :: TN.SomeNat
---           _lenSomeNat = TN.someNatVal lenNatural
-
---           lenNatural :: Natural
---           lenNatural = fromIntegral len
-
---           len :: Int
---           len = List.length xs
-
---           _intToSNat :: Int -> SNat n
---           _intToSNat = undefined
-
-      -- Just v' -> (sn, AVec sn v')
-      -- where
-      --   sn :: SNat n
-      --   sn = intToSnat len
-
-      --   intToSnat :: Int -> SNat n
-      --   intToSnat = undefined
-
-      --   lenSNat :: SNat n
-      --   lenSNat = something lenNat
-      --     where
-      --       something :: Nat -> SNat n
-      --       something = undefined
-
-      --   lenNat :: Nat
-      --   lenNat = fromNatural lenNatural
-
-      --   lenNatural :: Natural
-      --   lenNatural = fromIntegral len
 
 dwimFromList :: forall n a. SNatI n => [a] -> Vec n a
 dwimFromList = unsafeFromList . List.take m . List.cycle

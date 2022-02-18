@@ -9,6 +9,7 @@ module TDF.Prelude
   , explode
   , mean
   , nl
+  , onCrash
   , orCrash
   , stdDev
   ) where
@@ -76,7 +77,9 @@ import Data.Type.Nat        as X ( FromGHC
                                  , Nat9
                                  , Plus
                                  , SNatI
-                                 , SNat
+                                 , SNat( SS
+                                       , SZ
+                                       )
                                  , nat0
                                  , snat
                                  , snatToNat
@@ -110,6 +113,9 @@ mean = (/) <$> sum <*> realToFrac . length
 
 nl :: IO ()
 nl = putText ""
+
+onCrash :: Maybe a -> Text -> a
+onCrash = flip orCrash
 
 orCrash :: Text -> Maybe a -> a
 orCrash s = fromMaybe (panic s)
