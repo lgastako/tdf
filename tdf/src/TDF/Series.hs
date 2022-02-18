@@ -148,21 +148,6 @@ instance ( SNatI n
         -> Series n Int b
   ma >>= mf = join' (fmap mf ma)
 
-join' :: forall n idx a.
-         ( SNatI n
-         , idx ~ Int
-         )
-      => Series n idx (Series n idx a)
-      -> Series n idx a
-join' Series {..} = Series
-  { sIndex  = Index.defaultIntsFor v & orCrash "Series.join'"
-  , sData   = v
-  , sLength = length v
-  , sName   = sName
-  }
-  where
-    v = Vec.join (fmap toVec sData)
-
 instance ToVecN (Series n idx a) n a where
   toVecN = toVec
 
@@ -302,13 +287,7 @@ drop :: forall m n idx a.
         )
      => Series n idx a
      -> Series m idx a
-drop s@Series {..} = s
-  { sIndex = Index.defaultIntsFor sData' & orCrash "drop.sIndex"
-  , sData  = sData'
-  }
-  where
-    sData' :: Vec m a
-    sData' = Vec.drop sData
+drop = updateVec Vec.drop
 
 duplicated :: forall n idx a.
               ( Ord a )
@@ -456,15 +435,16 @@ standardizeWith :: forall n idx a.
                 -> Series n idx a
 standardizeWith mu s = map f s
   where
-    f :: a -> a
     f x = (x - mu) / stdDev s
 
+-- This implementation avoids the SNat (and idx ~ Int) constraints that would
+-- be required if we used updateVec instead
 op :: ToVecN x n a
    => (a -> a -> b)
    -> x
    -> Series n idx a
    -> Series n idx b
-op f x s = s { sData = Vec.zipWith f v v' }
+op f x s = s { sData =  Vec.zipWith f v v' }
   where
     v  = sData s
     v' = toVecN x
@@ -485,31 +465,23 @@ take :: forall m n idx a.
         )
      => Series n idx a
      -> Series m Int a
-take s@Series {..} = s
-  { sIndex = Index.defaultIntsFor sData' & orCrash "drop.sIndex"
-  , sData  = sData'
-  }
-  where
-    sData' = Vec.take sData
+take = updateVec Vec.take
 
-updateVec :: forall m n idx a.
-             ( SNatI n
-             , SNatI m
+updateVec :: forall m n idx a b.
+             ( SNatI m
              , idx ~ Int
              )
-          => (Vec n a -> Vec m a)
+          => (Vec n a -> Vec m b)
           -> Series n idx a
-          -> Series m idx a
+          -> Series m idx b
 updateVec f Series {..} = Series
-  { sIndex  = sIndex'
-  , sData   = sData'
-  , sLength = Vec.length sData'
+  { sIndex  = Index.defaultIntsFor v & orCrash "Series.join'"
+  , sData   = v
+  , sLength = length v
   , sName   = sName
   }
   where
-    sData'  = f sData
-    sIndex' = Index.defaultIntsFor sData'  -- TODO shouldn't do this...
-      & orCrash "updateVec.sIindex"
+    v = f sData
 
 zip :: ( SNatI n
        , idx ~ Int
@@ -519,19 +491,15 @@ zip :: ( SNatI n
     -> Series n idx (a, b)
 zip = zipWith (,)
 
-zipWith :: ( SNatI n
+zipWith :: forall n idx a b c.
+           ( SNatI n
            , idx ~ Int
            )
         => (a -> b -> c)
         -> Series n idx a
         -> Series n idx b
         -> Series n idx c
-zipWith f s1 s2 = s1
-  { sIndex  = Index.defaultIntsFor v' & orCrash "Series.zipWith"
-  , sData   = v'
-  }
-  where
-    v' = Vec.zipWith f (sData s1) (sData s2)
+zipWith f s1 s2 = updateVec (const $ Vec.zipWith f (sData s1) (sData s2)) s1
 
 -- ================================================================ --
 --   Optics
@@ -670,3 +638,15 @@ unique :: forall n idx a.
        => Series n idx a
        -> Bool
 unique = not . any identity . duplicated
+
+-- ================================================================ --
+--   Helpers
+-- ================================================================ --
+
+join' :: forall n idx a.
+         ( SNatI n
+         , idx ~ Int
+         )
+      => Series n idx (Series n idx a)
+      -> Series n idx a
+join' = updateVec (Vec.join . fmap toVec)
