@@ -659,12 +659,12 @@ asSeries :: forall n idx a k v.
        -> Series n idx v
 asSeries Frame {..} = Series.construct $ Series.Options
   { optIndex = dfIndex
-  , optData  = optData'
+  , optData  = v
   , optName  = Just $ Text.intercalate "-" (Rec.labels @a @ToField)
   }
   where
-    optData' :: Vec n v
-    optData' = fmap (snd . Rec.unSingleton)
+    v :: Vec n v
+    v = fmap (snd . Rec.unSingleton)
       . Series.toVec
       . Rec.sequence
       $ dfData
@@ -687,7 +687,7 @@ axes :: Forall a ToField
      => Frame n idx a
      -> Axes idx
 axes df = Axes
-  { rowLabels    = Vec.toList . Index.toVec . view index $ df
+  { rowLabels    = df ^. index . to (Vec.toList . Index.toVec)
   , columnLabels = columnNames df
   }
 
@@ -708,7 +708,7 @@ columnVec :: forall n idx a k v r rest.
           => Label k
           -> Frame n idx a
           -> Vec n v
-columnVec = flip onColumn identity
+columnVec = (`onColumn` identity)
 
 display :: forall n idx a.
            ( AllUniqueLabels (Map (Vec n) a)
@@ -729,18 +729,8 @@ display = putStr
   . List.map Table.Row
   . toTexts
 
--- index :: Frame n idx a -> Index n idx
--- index = dfIndex
-
 index :: Lens' (Frame n idx a) (Index n idx)
-index = lens get' set'
-  where
-    get' :: Frame n idx a -> Index n idx
-    get' = dfIndex
-
-    set' :: Frame n idx a -> Index n idx -> Frame n idx a
-    set' s idx = s { dfIndex = idx }
-
+index = field @"dfIndex"
 
 -- | The index (row labels) of the Frame.
 indexes :: forall n idx a.
@@ -800,7 +790,7 @@ ndims df
 nrows :: Enum idx
       => Frame n idx a
       -> Int
-nrows Frame {..} = Index.length dfIndex
+nrows df = Index.length $ df ^. index
 
 onColumn :: forall n idx k v a b r rest.
             ( Disjoint r rest

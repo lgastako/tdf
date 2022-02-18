@@ -1,11 +1,13 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE DeriveTraversable   #-}
-{-# LANGUAGE KindSignatures      #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE ViewPatterns        #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DeriveTraversable     #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE KindSignatures        #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 module Data.Frame.Typed.Index
   ( Index
@@ -28,11 +30,13 @@ module Data.Frame.Typed.Index
   , toVec
   ) where
 
-import           Data.Frame.Prelude hiding ( drop
-                                           , length
-                                           , take
-                                           , toList
-                                           )
+import Data.Frame.Prelude     hiding ( drop
+                                     , length
+                                     , take
+                                     , toList
+                                     )
+
+import Data.Frame.Typed.Types.ToVecN ( ToVecN( toVecN ) )
 
 import qualified Data.Fin      as Fin
 import qualified Data.Foldable as F
@@ -43,6 +47,9 @@ newtype Index n idx = Index { toVec :: Vec n idx }
   deriving (Foldable, Functor, Eq, Generic, Ord, Show, Traversable)
 
 instance NFData idx => NFData (Index n idx)
+
+instance ToVecN (Index n idx) n idx where
+  toVecN = toVec
 
 -- ================================================================ --
 -- Constructors
