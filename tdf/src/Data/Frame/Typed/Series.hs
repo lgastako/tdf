@@ -40,6 +40,7 @@ module Data.Frame.Typed.Series
   , normalize
   , op
   , reverse
+  , snoc
   , standardize
   , standardizeWith
   , t
@@ -237,6 +238,15 @@ cons :: forall n idx a.
      -> Series n idx a
      -> Series (Plus Nat1 n) idx a
 cons x = updateVec (Vec.cons x)
+
+snoc :: forall n idx a.
+        ( SNatI n
+        , idx ~ Int
+        )
+     => a
+     -> Series n idx a
+     -> Series (Plus Nat1 n) idx a
+snoc x = updateVec (flip Vec.snoc x)
 
 fromScalar :: forall n idx a.
               ( SNatI n

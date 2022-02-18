@@ -48,17 +48,17 @@ We take vectors of rows as input and turn it into rows of vectors to operate on.
   - Add usecols and nrows functionality to CSV reader
   - Tests to ensure indexes are properly preserved along the lines of
     whatever Pandas does
-  - Add rows
-  - Remove rows
+  - Insert rows at a specific position in the middle
+  - Remove rows from specific positions
   - Perform aggregate computations over the rows
   - Full range of pandas indexing options including hierarchical indexes.
     https://pandas-docs.github.io/pandas-docs-travis/user_guide/advanced.html#advanced-hierarchical
-  - TODOs in code... in particular:
-    - eliminating the Forall on column counts and the like
+  - TODOs in code...
   - Clean up/standardize on terminology.
   - Look into https://hackage.haskell.org/package/accelerate-1.3.0.0/docs/Data-Array-Accelerate.html
   - Look into https://hackage.haskell.org/package/repa
   - https://stackoverflow.com/questions/29954263/what-does-the-term-broadcasting-mean-in-pandas-documentation
+
 ## More
 
 - https://stackoverflow.com/questions/53217607/how-do-i-operate-on-a-dataframe-with-a-series-for-every-column

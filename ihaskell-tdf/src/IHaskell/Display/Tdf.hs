@@ -5,31 +5,31 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-orphans      #-}
 
-module IHaskell.Display.Tdf
-  where
+module IHaskell.Display.Tdf where
 
-import           TDF.Prelude
+import Data.Frame.Prelude
 
-import           Data.String                      ( fromString )
-import           IHaskell.IPython.Types           ( MimeType( MimeHtml ) )
-import           IHaskell.Display                 ( Display( Display )
-                                                  , DisplayData( DisplayData )
-                                                  , IHaskellDisplay( display )
-                                                  )
+import Data.String                    ( fromString )
+import IHaskell.IPython.Types         ( MimeType( MimeHtml ) )
+import IHaskell.Display               ( Display( Display )
+                                      , DisplayData( DisplayData )
+                                      , IHaskellDisplay( display )
+                                      )
+import Lucid                          ( Html )
+import Lucid.Html5                    ( table_
+                                      , tbody_
+                                      , td_
+                                      , th_
+                                      , thead_
+                                      , tr_
+                                      )
+import Data.Frame.Typed               ( Frame )
+import Data.Frame.Typed.Series        ( Series )
+import Data.Frame.Typed.Types.ToField ( ToField )
+
 import qualified Lucid
-import           Lucid                            ( Html )
-import           Lucid.Html5                      ( table_
-                                                  , tbody_
-                                                  , td_
-                                                  , th_
-                                                  , thead_
-                                                  , tr_
-                                                  )
-import           TDF.Frame                    ( Frame )
-import qualified TDF.Frame          as DF
-import           TDF.Series                       ( Series )
-import qualified TDF.Series             as Series
-import           TDF.Types.ToField                ( ToField )
+import qualified Data.Frame.Typed        as DF
+import qualified Data.Frame.Typed.Series as Series
 
 instance ( AllUniqueLabels (Map (Vec n) a)
          , Forall a Typeable
