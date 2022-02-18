@@ -49,6 +49,7 @@ module TDF.Series
   , at
   , name
   -- Eliminators
+  , aseries
   , display
   , filter
   , filterThen
@@ -157,6 +158,12 @@ data ASeries idx a = forall n. SNatI n => ASeries
   { size :: SNat n
   , vec  :: Series n idx a
   }
+
+aseries :: forall n idx a.
+           ( SNatI n )
+        => Series n idx a
+        -> ASeries idx a
+aseries = ASeries (snat @n)
 
 deriving instance Foldable    (ASeries idx)
 deriving instance Functor     (ASeries idx)
