@@ -1,18 +1,18 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module TDF.Types.ToField
+module Data.Frame.Typed.Types.ToField
   ( ToField(..)
   ) where
 
-import           TDF.Prelude  hiding ( empty
-                                     , head
-                                     , map
-                                     , toList
-                                     )
+import           Data.Frame.Prelude   hiding ( empty
+                                             , head
+                                             , map
+                                             , toList
+                                             )
 
-import           Data.String         ( String )
-import qualified Data.Text   as Text
+import           Data.String                 ( String )
+import qualified Data.Text           as Text
 
 class ToField a where
   toField :: a -> Text

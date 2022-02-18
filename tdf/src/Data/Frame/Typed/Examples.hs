@@ -9,33 +9,33 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 
-module TDF.Examples where
+module Data.Frame.Typed.Examples where
 
-import           TDF.Prelude            hiding ( Product
-                                               , drop
-                                               , size
-                                               , take
-                                               )
+import           Data.Frame.Prelude           hiding ( Product
+                                                     , drop
+                                                     , size
+                                                     , take
+                                                     )
 
-import           Control.Monad.Cont            ( ContT( ContT )
-                                               , runContT
-                                               )
-import qualified Data.Row.Records   as Rec
-import qualified Data.List          as List
-import qualified Data.List.NonEmpty as NE
-import qualified Data.Text          as Text
-import qualified Data.Vec.Lazy      as Vec
-import           TDF.Frame                 ( Axes
-                                               , Frame
-                                               )
-import qualified TDF.CSV            as CSV
-import qualified TDF.Frame      as DF
-import qualified TDF.Options        as Options
-import           TDF.Series                    ( Series
-                                               , a_
-                                               )
-import qualified TDF.Series         as Series
-import           System.IO.Unsafe              ( unsafePerformIO )
+import           Control.Monad.Cont                  ( ContT( ContT )
+                                                     , runContT
+                                                     )
+import qualified Data.Row.Records         as Rec
+import qualified Data.List                as List
+import qualified Data.List.NonEmpty       as NE
+import qualified Data.Text                as Text
+import qualified Data.Vec.Lazy            as Vec
+import           Data.Frame.Typed                    ( Axes
+                                                     , Frame
+                                                     )
+import qualified Data.Frame.Typed.CSV     as CSV
+import qualified Data.Frame.Typed         as DF
+import qualified Data.Frame.Typed.Options as Options
+import           Data.Frame.Typed.Series             ( Series
+                                                     , a_
+                                                     )
+import qualified Data.Frame.Typed.Series  as Series
+import           System.IO.Unsafe                    ( unsafePerformIO )
 
 type PersonFields = NameFields .+ AgeFields
 

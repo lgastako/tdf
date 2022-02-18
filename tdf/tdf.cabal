@@ -27,24 +27,24 @@ source-repository head
 
 library
   exposed-modules:
+      Data.Frame.Prelude
+      Data.Frame.Typed
+      Data.Frame.Typed.CSV
+      Data.Frame.Typed.DeleteMe
+      Data.Frame.Typed.Examples
+      Data.Frame.Typed.Index
+      Data.Frame.Typed.Options
+      Data.Frame.Typed.Series
+      Data.Frame.Typed.Tutorial
+      Data.Frame.Typed.Types.FromField
+      Data.Frame.Typed.Types.Positive
+      Data.Frame.Typed.Types.Table
+      Data.Frame.Typed.Types.ToField
+      Data.Frame.Typed.Types.ToVecN
+      Data.Frame.Typed.Types.Widths
+      Data.Frame.Typed.Utils.Dyn
+      Data.Row.Records.X
       Data.Vec.Lazy.X
-      Datq.Row.Records.X
-      TDF.CSV
-      TDF.DeleteMe
-      TDF.Examples
-      TDF.Frame
-      TDF.Index
-      TDF.Options
-      TDF.Prelude
-      TDF.Series
-      TDF.Tutorial
-      TDF.Types.FromField
-      TDF.Types.Positive
-      TDF.Types.Table
-      TDF.Types.ToField
-      TDF.Types.ToVecN
-      TDF.Types.Widths
-      TDF.Utils.Dyn
   other-modules:
       Paths_tdf
   hs-source-dirs:
@@ -71,8 +71,8 @@ test-suite tdf-test
   main-is: Driver.hs
   other-modules:
       CSVTest
-      DataFrameTest
       DynTest
+      FrameTest
       IndexTest
       Orphans
       SeriesTest

@@ -2,7 +2,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NoImplicitPrelude          #-}
 
-module TDF.Types.Positive
+module Data.Frame.Typed.Types.Positive
   ( Positive( unPositive )
   , fromNum
   , one
@@ -10,7 +10,7 @@ module TDF.Types.Positive
   , three
   ) where
 
-import TDF.Prelude hiding ( one )
+import Data.Frame.Prelude hiding ( one )
 
 newtype Positive a = Positive { unPositive :: a }
   deriving (Bounded, Enum, Eq, Generic, Num, Ord, Show)

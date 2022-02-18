@@ -1,12 +1,12 @@
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module TDF.DeleteMe where
+module Data.Frame.Typed.DeleteMe where
 
-import TDF.Prelude
+import Data.Frame.Prelude
 
-import           TDF.Series     ( Series )
-import qualified TDF.Series as S
+import           Data.Frame.Typed.Series      ( Series )
+import qualified Data.Frame.Typed.Series as S
 
 data Pair a = Pair a a
   deriving (Eq, Ord, Foldable, Functor, Show, Traversable)

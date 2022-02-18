@@ -18,7 +18,7 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module TDF.Series
+module Data.Frame.Typed.Series
   ( ASeries(..)
   , Options(..)
   , Series
@@ -75,7 +75,7 @@ module TDF.Series
   , unique
   ) where
 
-import           TDF.Prelude           hiding ( drop
+import           Data.Frame.Prelude    hiding ( drop
                                               , empty
                                               , filter
                                               , repeat
@@ -91,10 +91,10 @@ import qualified Data.List          as List
 import qualified Data.Map.Strict    as Map
 import qualified Data.Vec.Lazy.X    as Vec
 import qualified Data.Vec.Lazy.Lens as VL
-import           TDF.Index                    ( Index )
-import qualified TDF.Index          as Index
-import qualified TDF.Types.Table    as Table
-import           TDF.Types.ToVecN             ( ToVecN( toVecN ) )
+import           Data.Frame.Typed.Index                    ( Index )
+import qualified Data.Frame.Typed.Index          as Index
+import qualified Data.Frame.Typed.Types.Table    as Table
+import           Data.Frame.Typed.Types.ToVecN             ( ToVecN( toVecN ) )
 
 -- import qualified Control.Applicative as A
 

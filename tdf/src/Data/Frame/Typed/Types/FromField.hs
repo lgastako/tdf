@@ -4,18 +4,18 @@
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module TDF.Types.FromField
+module Data.Frame.Typed.Types.FromField
   ( FromField(..)
   , genericReadFF
   ) where
 
-import TDF.Prelude  hiding ( empty
-                           , head
-                           , map
-                           , toList
-                           )
+import Data.Frame.Prelude hiding ( empty
+                                 , head
+                                 , map
+                                 , toList
+                                 )
 
-import Data.String         ( String )
+import Data.String               ( String )
 
 class FromField a where
   fromField :: Text -> Either String a

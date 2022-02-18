@@ -3,7 +3,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module TDF.Options
+module Data.Frame.Typed.Options
   ( Options( optData
            , optIndex
            )
@@ -11,11 +11,11 @@ module TDF.Options
   , fromVec
   ) where
 
-import           TDF.Prelude     hiding ( empty )
+import           Data.Frame.Prelude       hiding ( empty )
 
-import qualified Data.Vec.Lazy as Vec
-import           TDF.Index              ( Index )
-import qualified TDF.Index     as Index
+import qualified Data.Vec.Lazy          as Vec
+import           Data.Frame.Typed.Index          ( Index )
+import qualified Data.Frame.Typed.Index as Index
 
 data Options (n :: Nat) idx a = Options
   { optIndex :: Index n idx

@@ -2,12 +2,12 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module TDF.Utils.Dyn
+module Data.Frame.Typed.Utils.Dyn
   ( fromAnyDyn
   , getValue
   ) where
 
-import           TDF.Prelude
+import           Data.Frame.Prelude
 
 import           Data.Dynamic                   ( Dynamic
                                                 , fromDynamic

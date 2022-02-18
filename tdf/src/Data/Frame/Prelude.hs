@@ -2,7 +2,7 @@
 {-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE OverloadedStrings  #-}
 
-module TDF.Prelude
+module Data.Frame.Prelude
   ( module X
   , (...)
   , cs
@@ -14,27 +14,27 @@ module TDF.Prelude
   , stdDev
   ) where
 
-import Protolude            as X hiding ( Map
-                                        , Nat
-                                        )
+import Protolude             as X hiding ( Map
+                                         , Nat
+                                         )
 
-import Control.Arrow        as X ( (>>>) )
-import Control.Lens         as X ( Lens'
-                                 , each
-                                 , lens
-                                 , set
-                                 , view
-                                 , (%~)
-                                 , (*~)
-                                 , (+~)
-                                 , (-~)
-                                 , (.~)
-                                 , (//~)
-                                 , (?~)
-                                 , (^.)
-                                 )
-import Data.Fin             as X ( Fin )
-import Data.Generics.Labels as X ()
+import Control.Arrow         as X ( (>>>) )
+import Control.Lens          as X ( Lens'
+                                  , each
+                                  , lens
+                                  , set
+                                  , view
+                                  , (%~)
+                                  , (*~)
+                                  , (+~)
+                                  , (-~)
+                                  , (.~)
+                                  , (//~)
+                                  , (?~)
+                                  , (^.)
+                                  )
+import Data.Fin              as X ( Fin )
+import Data.Generics.Labels  as X ()
 import Data.Generics.Product as X ( field
                                   , typed
                                   )

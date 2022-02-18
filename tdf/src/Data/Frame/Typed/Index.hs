@@ -7,7 +7,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns        #-}
 
-module TDF.Index
+module Data.Frame.Typed.Index
   ( Index
   -- Constructors
   , defaultFromFor
@@ -28,11 +28,11 @@ module TDF.Index
   , toVec
   ) where
 
-import           TDF.Prelude    hiding ( drop
-                                       , length
-                                       , take
-                                       , toList
-                                       )
+import           Data.Frame.Prelude hiding ( drop
+                                           , length
+                                           , take
+                                           , toList
+                                           )
 
 import qualified Data.Fin      as Fin
 import qualified Data.Foldable as F

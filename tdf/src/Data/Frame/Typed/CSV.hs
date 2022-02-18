@@ -12,26 +12,26 @@
 
 -- mostly ganked from https://target.github.io/row-types/examples/RowCSV.html
 
-module TDF.CSV
+module Data.Frame.Typed.CSV
   ( Error(..)
   , fromHeadedCSV
   , toHeadedCSV
   , unsafeFromHeadedCSV
   ) where
 
-import TDF.Prelude
+import           Data.Frame.Prelude
 
-import qualified Data.List           as L
-import qualified Data.Row.Records    as Rec
-import           Data.String                ( String )
-import qualified Data.Text           as T
-import           TDF.Frame                  ( -- AFrame
-                                                -- ,
-                                              Frame
-                                            )
-import qualified TDF.Frame           as DF
-import           TDF.Types.FromField        ( FromField( fromField ) )
-import           TDF.Types.ToField          ( ToField( toField ) )
+import qualified Data.List                        as L
+import qualified Data.Row.Records                 as Rec
+import           Data.String                             ( String )
+import qualified Data.Text                        as T
+import           Data.Frame.Typed                        ( -- AFrame
+                                                             -- ,
+                                                           Frame
+                                                         )
+import qualified Data.Frame.Typed                 as DF
+import           Data.Frame.Typed.Types.FromField        ( FromField( fromField ) )
+import           Data.Frame.Typed.Types.ToField          ( ToField( toField ) )
 
 data Error
   = FileNotFound FilePath

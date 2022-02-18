@@ -16,7 +16,7 @@
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module TDF.Frame
+module Data.Frame.Typed
   ( AFrame(..)
   , Axes( Axes
         , columnLabels
@@ -88,30 +88,30 @@ module TDF.Frame
 --   , under
   ) where
 
-import           TDF.Prelude          hiding ( bool
-                                             , empty
-                                             , foldr
-                                             , head
-                                             , map
-                                             , size
-                                             , toList
-                                             )
-import qualified TDF.Prelude      as P
+import           Data.Frame.Prelude         hiding ( bool
+                                                   , empty
+                                                   , foldr
+                                                   , head
+                                                   , map
+                                                   , size
+                                                   , toList
+                                                   )
+import qualified Data.Frame.Prelude           as P
 
-import qualified Data.List        as List
-import qualified Data.Map.Strict  as Map
-import qualified Data.Row.Records as Rec
-import qualified Data.Text        as Text
-import qualified Data.Vec.Lazy.X  as Vec
-import           TDF.Index                   ( Index )
-import qualified TDF.Index        as Index
-import           TDF.Options                 ( Options )
-import qualified TDF.Options      as Options
-import qualified TDF.Types.Table  as Table
-import           TDF.Types.ToField           ( ToField )
-import qualified TDF.Utils.Dyn    as Dyn
-import           TDF.Series                  ( Series )
-import qualified TDF.Series       as Series
+import qualified Data.List                    as List
+import qualified Data.Map.Strict              as Map
+import qualified Data.Row.Records             as Rec
+import qualified Data.Text                    as Text
+import qualified Data.Vec.Lazy.X              as Vec
+import           Data.Frame.Typed.Index                  ( Index )
+import qualified Data.Frame.Typed.Index       as Index
+import           Data.Frame.Typed.Options                ( Options )
+import qualified Data.Frame.Typed.Options     as Options
+import qualified Data.Frame.Typed.Types.Table as Table
+import           Data.Frame.Typed.Types.ToField          ( ToField )
+import qualified Data.Frame.Typed.Utils.Dyn   as Dyn
+import           Data.Frame.Typed.Series                 ( Series )
+import qualified Data.Frame.Typed.Series      as Series
 
 data Frame (n :: Nat) idx a = Frame
   { dfIndex :: Index n idx

@@ -4,15 +4,15 @@
 
 module CSVTest where
 
-import           TDF.Prelude
+import           Data.Frame.Prelude
 
 import           Test.Tasty.Hspec
 
-import qualified Data.Vec.Lazy as Vec
-import qualified TDF.CSV       as CSV
-import           TDF.Frame            ( Frame )
-import qualified TDF.Frame     as DF
-import           TDF.Examples         ( PersonFields )
+import qualified Data.Vec.Lazy             as Vec
+import qualified Data.Frame.Typed.CSV      as CSV
+import           Data.Frame.Typed.Frame           ( Frame )
+import qualified Data.Frame.Typed.Frame    as DF
+import           Data.Frame.Typed.Examples        ( PersonFields )
 
 spec_CSV :: Spec
 spec_CSV = do

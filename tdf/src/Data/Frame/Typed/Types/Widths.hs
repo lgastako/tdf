@@ -2,7 +2,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module TDF.Types.Widths
+module Data.Frame.Typed.Types.Widths
   ( Widths( unWidths )
   , fill
   , pad
@@ -10,10 +10,10 @@ module TDF.Types.Widths
   , widths
   ) where
 
-import           TDF.Prelude
+import           Data.Frame.Prelude
 
-import qualified Data.List   as List
-import qualified Data.Text   as Text
+import qualified Data.List          as List
+import qualified Data.Text          as Text
 
 newtype Widths = Widths { unWidths :: [Int] }
   deriving (Eq, Generic, Ord, Show)

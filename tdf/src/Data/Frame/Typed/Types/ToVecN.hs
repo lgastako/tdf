@@ -2,11 +2,11 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
 
-module TDF.Types.ToVecN
+module Data.Frame.Typed.Types.ToVecN
   ( ToVecN(..)
   ) where
 
-import           TDF.Prelude
+import           Data.Frame.Prelude
 
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Vec.Lazy.X    as Vec

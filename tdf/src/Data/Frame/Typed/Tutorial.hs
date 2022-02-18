@@ -7,14 +7,14 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators       #-}
 
-module TDF.Tutorial where
+module Data.Frame.Typed.Tutorial where
 
-import TDF.Prelude
+import           Data.Frame.Prelude
 
-import qualified TDF.CSV    as CSV
-import           TDF.Frame            ( Frame )
-import qualified TDF.Frame  as DF
-import qualified TDF.Series as Series
+import qualified Data.Frame.Typed.CSV    as CSV
+import           Data.Frame.Typed                  ( Frame )
+import qualified Data.Frame.Typed        as DF
+import qualified Data.Frame.Typed.Series as Series
 
 type PersonFields = NameField .+ AgeField .+ LocationField
 
