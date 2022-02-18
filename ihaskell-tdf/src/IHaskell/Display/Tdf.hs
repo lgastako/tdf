@@ -10,6 +10,7 @@ module IHaskell.Display.Tdf where
 import Data.Frame.Prelude
 
 import Data.String                    ( fromString )
+import Graphics.BarChart              ( BarChart )
 import IHaskell.IPython.Types         ( MimeType( MimeHtml ) )
 import IHaskell.Display               ( Display( Display )
                                       , DisplayData( DisplayData )
@@ -28,6 +29,7 @@ import Data.Frame.Typed.Series        ( Series )
 import Data.Frame.Typed.Types.ToField ( ToField )
 
 import qualified Lucid
+import qualified Graphics.BarChartt      as Chart
 import qualified Data.Frame.Typed        as DF
 import qualified Data.Frame.Typed.Series as Series
 

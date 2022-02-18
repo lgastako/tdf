@@ -3,10 +3,10 @@ resolver:
 
 packages:
 - .
-- ../tdf  # This suddenly stoppped working as an extra-dep.  Don't know why
 
 extra-deps:
 - ihaskell-display-0.1.0.0@sha256:8124d0e5ef9e79e09e55d1c6d13a480ea3cfe610ca37908288735b94dcb5f317,2217
 - row-types-1.0.1.2@sha256:5c56e91d30b61f275eaee0d97b015d5332d95d7599e57582d6e62a43aa388087,2948
 
 - vec-lens-0.4@sha256:a32ae456c2b6f8f04f7610a959a349f83688708bf1995ddd098da1b18254089c,1725
+- ../tdf

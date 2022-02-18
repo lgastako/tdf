@@ -20,6 +20,7 @@ ghc-options:
 - -freduction-depth=0
 
 dependencies:
+- QuickCheck
 - base                    >= 4.7 && < 5
 - containers
 - deepseq
@@ -28,6 +29,7 @@ dependencies:
 - lens
 - mtl
 - protolude
+- quickcheck-text
 - row-types
 - text
 - unordered-containers
@@ -46,7 +48,6 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - QuickCheck
     - tdf
     - tasty
     - tasty-quickcheck

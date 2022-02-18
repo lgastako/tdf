@@ -34,6 +34,7 @@ library
       src
   build-depends:
       base >=4.7 && <5
+    , haskell-barchart
     , ihaskell
     , ipython-kernel
     , lucid
@@ -51,6 +52,7 @@ test-suite ihaskell-tdf-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , haskell-barchart
     , ihaskell
     , ihaskell-tdf
     , ipython-kernel

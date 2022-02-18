@@ -17,6 +17,7 @@ description:         "README at <https://github.com/lgastako/ihaskell-tdf#readme
 
 dependencies:
 - base               >= 4.7 && < 5
+- haskell-barchart
 - ihaskell
 - ipython-kernel
 - lucid
