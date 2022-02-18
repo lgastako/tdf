@@ -35,6 +35,7 @@ module Data.Frame.Typed
   , fromSeries
   , fromVec
   -- Combinators
+  , addSeries
   , benford
   , column
   , dropColumn
@@ -237,7 +238,14 @@ fromNativeVec values = Frame
 
     f' :: Rec (Map (Vec n) (Rec.NativeRow t))
        -> Rec (Map (Series n idx) (Rec.NativeRow t))
-    f' = panic "fromNativeVec.something"
+    f' recOfVecOfNative = Rec.distribute seriesOfNativeRec
+      where
+        vecOfNativeRec :: Vec n (Rec (Rec.NativeRow t))
+        vecOfNativeRec = Rec.sequence recOfVecOfNative
+
+        seriesOfNativeRec :: Series n idx (Rec (Rec.NativeRow t))
+        seriesOfNativeRec = Series.fromVec vecOfNativeRec
+          `onCrash` "fromNativeVec.seriesOfNativeRec"
 
 fromScalar :: forall idx a.
                   ( idx ~ Int )
@@ -286,9 +294,25 @@ fromVec v = f <$> Index.defaultIntsFor v
 --  Combinators
 -- ================================================================ --
 
--- TODO: These are not expected and actual... find the right names.
-type K1Field = "expected" .== Double
-type K2Field = "actual"   .== Double
+addSeries :: forall n idx a b k v r.
+             ( Disjoint r a
+             , Extend k v a ~ b
+             , Forall a Unconstrained1
+             , Forall b Unconstrained1
+             , KnownSymbol k
+             , SNatI n
+             , r ≈ k .== v
+             , b ~ (a .+ r)
+             , idx ~ Int
+             )
+          => Label k
+          -> Series n idx v
+          -> Frame n idx a
+          -> Frame n idx b
+addSeries k v = overSeries (Series.zipWith (Rec.extend k) v)
+
+type ExpectedField = "expected" .== Double
+type ActualField   = "actual"   .== Double
 
 benford :: forall n idx a b k v r rest.
            ( Disjoint r rest
@@ -297,18 +321,27 @@ benford :: forall n idx a b k v r rest.
            , Show v
            , SNatI n
            , a ~ (r .+ rest)
-           , b ~ (K1Field .+ K2Field)
+           , b ~ (ExpectedField .+ ActualField)
            , r ≈ k .== v
            )
         => Label k
         -> Frame n idx a
-        -> Frame Nat10 Int b
-benford k df = case fromList dfreqs of
+        -> Frame Nat9 Int b
+benford k df = case fmap bumpIndexes . fromList $ dfreqs of
   Nothing -> panic "benford! you have failed us!"
   Just s' -> s'
   where
+    bumpIndexes :: Frame Nat9 Int b -> Frame Nat9 Int b
+    bumpIndexes = index .~ idx'
+
+    idx' :: Index Nat9 Int
+    idx' = Index.fromVec idxVec
+
+    idxVec :: Vec Nat9 Int
+    idxVec = Vec.fromList [1..9] `onCrash` "benford.idxVec"
+
     dfreqs :: [Rec b]
-    dfreqs = fmap g [0..9]
+    dfreqs = fmap g [1..9]
 
     g :: Int -> Rec b
     g d = #expected .== v2
@@ -506,10 +539,7 @@ pop :: forall n idx r k v rest.
 pop k df = (restrict df, df ^. series k)
 
 reindex :: Index n idx -> Frame n idx a -> Frame n idx a
-reindex idx Frame {..} = Frame
-  { dfIndex = idx
-  , dfData  = dfData
-  }
+reindex idx df = df & index .~ idx
 
 rename :: ( Extend k' (sa .! k) (sa .- k) ~ Map (Series n idx) b
           , KnownSymbol k
@@ -657,7 +687,7 @@ axes :: Forall a ToField
      => Frame n idx a
      -> Axes idx
 axes df = Axes
-  { rowLabels    = Vec.toList . Index.toVec . index $ df
+  { rowLabels    = Vec.toList . Index.toVec . view index $ df
   , columnLabels = columnNames df
   }
 
@@ -699,8 +729,18 @@ display = putStr
   . List.map Table.Row
   . toTexts
 
-index :: Frame n idx a -> Index n idx
-index = dfIndex
+-- index :: Frame n idx a -> Index n idx
+-- index = dfIndex
+
+index :: Lens' (Frame n idx a) (Index n idx)
+index = lens get' set'
+  where
+    get' :: Frame n idx a -> Index n idx
+    get' = dfIndex
+
+    set' :: Frame n idx a -> Index n idx -> Frame n idx a
+    set' s idx = s { dfIndex = idx }
+
 
 -- | The index (row labels) of the Frame.
 indexes :: forall n idx a.

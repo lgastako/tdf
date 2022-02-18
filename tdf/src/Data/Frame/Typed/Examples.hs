@@ -466,3 +466,9 @@ newSeries = do
   x <- s1
   y <- s1
   pure $ x + y
+
+dfPlus :: Frame Nat2 Int (PersonFields .+ "xs" .== Int)
+dfPlus = DF.addSeries #xs s df1
+  where
+    s :: Series Nat2 Int Int
+    s = Series.fromList [10, 20] `onCrash` "dfPlus.s"

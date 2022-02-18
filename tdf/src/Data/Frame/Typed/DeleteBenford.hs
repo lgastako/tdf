@@ -28,4 +28,4 @@ tab =
   ]
 
 main :: IO ()
-main = mapM_ print ( tab)
+main = mapM_ print tab

@@ -595,8 +595,18 @@ dropNaNs :: forall n idx a.
          -> ASeries idx a
 dropNaNs = filter (not . isNaN)
 
-index :: Series n idx a -> Index n idx
-index = sIndex
+-- index :: Series n idx a -> Index n idx
+-- index = sIndex
+
+-- TODO could make these through generics ...?
+index :: forall n idx a. Lens' (Series n idx a) (Index n idx)
+index = lens get' set'
+  where
+    get' :: Series n idx a -> Index n idx
+    get' = sIndex
+
+    set' :: Series n idx a -> Index n idx -> Series n idx a
+    set' s idx = s { sIndex = idx }
 
 isEmpty :: forall n idx a.
            ( SNatI n )

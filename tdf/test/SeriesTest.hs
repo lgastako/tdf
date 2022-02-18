@@ -40,7 +40,7 @@ spec_Series =
           b :: Series Nat2 Int Bool
           Just b = Series.fromList [False, False]
 
-      (Vec.toList . Index.toVec . Series.index $ ab)
+      (Vec.toList . Index.toVec . view Series.index) ab
         `shouldBe` [0, 1, 2]
 
     it "should function applicatively" $
