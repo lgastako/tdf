@@ -10,6 +10,7 @@ python's pandas) in Haskell.
 * Dynamic rendering failures
   - Either fix the rendering falures; or, ideally...
   - Eliminate the need for the whole Dynamic dance
+* Proper indexes
 * Finish all the a_ implementations
   - Including moving the A* versions out of the current modules into
     their own sub-modules

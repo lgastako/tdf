@@ -4,21 +4,22 @@
 {-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -Wno-orphans     #-}
 
-module Data.Frame.Typed.Tools.Calendar where
+module Data.Frame.Typed.Calendar
+  ( extendWithDay
+  ) where
 
-import           Data.Frame.Prelude
+import Data.Frame.Prelude
 
-import           Data.Time.Calendar       ( Day
-                                          , DayOfMonth
-                                          , MonthOfYear
-                                          , Year
-                                          , fromGregorian
-                                          )
-import           Data.Frame.Typed.Frame                ( Frame )
-import qualified Data.Frame.Typed.Frame         as DF
-import           Data.Frame.Typed.Types.ToField        ( ToField( toField ) )
+import Data.Time.Calendar             ( Day
+                                      , DayOfMonth
+                                      , MonthOfYear
+                                      , Year
+                                      , fromGregorian
+                                      )
+import Data.Frame.Typed               ( Frame )
+import Data.Frame.Typed.Types.ToField ( ToField( toField ) )
 
-import           Data.Row.Records.X      ( Extend )
+import qualified Data.Frame.Typed as DF
 
 instance ToField Day where
   toField = show
@@ -28,6 +29,7 @@ extendWithDay :: forall n idx k r.
                  , Forall (Extend k Day r) Unconstrained1
                  , KnownSymbol k
                  , SNatI n
+                 , idx ~ Int
                  )
               => Label k
               -> (Rec r -> (Year, MonthOfYear, DayOfMonth))
