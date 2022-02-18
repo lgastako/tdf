@@ -803,14 +803,15 @@ toTexts :: forall n idx a.
 toTexts df = (headers:)
   . Vec.toList
   . Vec.map f
+  . Vec.zip (Index.toVec . dfIndex $ df)
   . toVec
   $ df
   where
     headers :: [Text]
-    headers = columnNames df
+    headers = mempty:columnNames df
 
-    f :: Rec a -> [Text]
-    f = toFields headers
+    f :: (idx, Rec a) -> [Text]
+    f (n, r) = show n:toFields headers r
 
 toVec :: forall n idx a.
          ( AllUniqueLabels (Map (Vec n) a)
