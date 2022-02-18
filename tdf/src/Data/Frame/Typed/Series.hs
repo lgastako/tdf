@@ -76,26 +76,27 @@ module Data.Frame.Typed.Series
   , unique
   ) where
 
-import           Data.Frame.Prelude    hiding ( drop
-                                              , empty
-                                              , filter
-                                              , repeat
-                                              , reverse
-                                              , take
-                                              , toList
-                                              , zip
-                                              , zipWith
-                                              )
+import           Data.Frame.Prelude             hiding ( drop
+                                                       , empty
+                                                       , filter
+                                                       , repeat
+                                                       , reverse
+                                                       , take
+                                                       , toList
+                                                       , zip
+                                                       , zipWith
+                                                       )
 
-import           Control.Lens                 ( Each )
-import qualified Data.List          as List
-import qualified Data.Map.Strict    as Map
-import qualified Data.Vec.Lazy.X    as Vec
-import qualified Data.Vec.Lazy.Lens as VL
-import           Data.Frame.Typed.Index                    ( Index )
-import qualified Data.Frame.Typed.Index          as Index
-import qualified Data.Frame.Typed.Types.Table    as Table
-import           Data.Frame.Typed.Types.ToVecN             ( ToVecN( toVecN ) )
+import           Control.Lens                          ( Each )
+import qualified Data.List                    as List
+import qualified Data.Map.Strict              as Map
+import qualified Data.Vec.Lazy.X              as Vec
+import qualified Data.Vec.Lazy.AVec           as AVec
+import qualified Data.Vec.Lazy.Lens           as VL
+import           Data.Frame.Typed.Index                ( Index )
+import qualified Data.Frame.Typed.Index       as Index
+import qualified Data.Frame.Typed.Types.Table as Table
+import           Data.Frame.Typed.Types.ToVecN         ( ToVecN( toVecN ) )
 
 -- import qualified Control.Applicative as A
 
@@ -393,25 +394,12 @@ filterWithIndex :: forall n idx a.
                 => ((idx, a) -> Bool)
                 -> Series n idx a
                 -> ASeries idx a
-filterWithIndex p s@Series {..} = result
-  where
-    -- _ = p :: (idx, a) -> Bool
-    -- _ = s :: Series n idx a
-
-    v :: Vec n a
-    v = toVec s
-
-    indexed :: Vec n (idx, a)
-    indexed = Vec.zip (Index.toVec sIndex) v
-
-    aresult :: AVec (idx, a)
-    aresult = Vec.filter p indexed
-
-    aresult' :: AVec a
-    aresult' = map snd aresult
-
-    result :: ASeries idx a
-    result = Vec.reify (mkASeries sName) aresult'
+filterWithIndex p s@Series {..} = AVec.reify (mkASeries sName)
+  . map snd
+  . AVec.filter p
+  . Vec.zip (Index.toVec sIndex)
+  . toVec
+  $ s
 
 filterWithIndexThen :: forall n idx a r.
                        ( SNatI n

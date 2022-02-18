@@ -65,29 +65,25 @@ module Data.Frame.Typed
   , display
   , index
   , indexes
+  -- , info
   , isEmpty
-  , reify
   -- , melt
   -- , meltSimple
+  -- , memSize
   , ncols
   , ndims
   , nrows
   , onColumn
+  , reify
   , render
   , shape
   , size
-  , toFields -- temporarily
+  , toFields
   , toList
   , toNativeVec
   , toTexts
   , toVec
   , valueCounts
-
-  -- TODO
-  -- , info
-  -- , memSize
---  , reindex
---   , under
   ) where
 
 import           Data.Frame.Prelude         hiding ( bool
@@ -95,7 +91,6 @@ import           Data.Frame.Prelude         hiding ( bool
                                                    , foldr
                                                    , head
                                                    , map
-                                                   , size
                                                    , toList
                                                    )
 import qualified Data.Frame.Prelude           as P

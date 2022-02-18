@@ -17,6 +17,7 @@ description:         README at <https://github.com/lgastako/tdf#readme>
 
 ghc-options:
 - -Wall
+- -freduction-depth=0
 
 dependencies:
 - base                    >= 4.7 && < 5

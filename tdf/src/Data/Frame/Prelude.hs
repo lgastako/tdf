@@ -85,8 +85,7 @@ import Data.Type.Nat        as X ( FromGHC
                                  , snatToNat
                                  )
 import Data.Type.Nat.LE     as X ( LE )
-import Data.Vec.Lazy.X      as X ( AVec(..)
-                                 , Vec( (:::)
+import Data.Vec.Lazy.X      as X ( Vec( (:::)
                                       , VNil
                                       )
                                  )

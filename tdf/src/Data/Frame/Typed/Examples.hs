@@ -14,7 +14,6 @@ module Data.Frame.Typed.Examples where
 
 import           Data.Frame.Prelude           hiding ( Product
                                                      , drop
-                                                     , size
                                                      , take
                                                      )
 

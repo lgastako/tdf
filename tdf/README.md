@@ -5,6 +5,8 @@ python's pandas) in Haskell.
 
 ## Biggest Problems to Solve
 
+* Handle non-Label friendly column names well
+  (and then un-hack all the example csv files)
 * Dynamic rendering failures
   - Either fix the rendering falures; or, ideally...
   - Eliminate the need for the whole Dynamic dance
@@ -16,6 +18,7 @@ python's pandas) in Haskell.
 * Mutable implementation
   - Possibly using the same existential wrapper type of deal as
     the ASeries, AFrame, etc.
+* Lots more tests
 
 ## Example CSVs
 

@@ -1,12 +1,13 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module VecTest where
+module AVecTest where
 
 import           Data.Frame.Prelude
 
 import           Test.Tasty.Hspec
 
-import qualified Data.Vec.Lazy.X as Vec
+import qualified Data.Vec.Lazy.AVec as AVec
+import qualified Data.Vec.Lazy.X    as Vec
 
 spec_VecX :: Spec
 spec_VecX =
@@ -19,17 +20,17 @@ spec_VecX =
         Just rOdd  = Vec.fromList [1, 3]
 
     it "should find one even" $
-      Vec.recoverVec (Vec.filter even v)
+      AVec.recoverVec (AVec.filter even v)
         `shouldBe` Just rEven
 
     it "should find two odd" $
-      Vec.recoverVec (Vec.filter odd v)
+      AVec.recoverVec (AVec.filter odd v)
         `shouldBe` Just rOdd
 
     it "should find three under 10" $
-      Vec.recoverVec (Vec.filter (<10) v)
+      AVec.recoverVec (AVec.filter (<10) v)
         `shouldBe` Just v
 
     it "should find none over 10" $
-      Vec.recoverVec (Vec.filter (>10) v)
+      AVec.recoverVec (AVec.filter (>10) v)
         `shouldBe` Just Vec.empty
