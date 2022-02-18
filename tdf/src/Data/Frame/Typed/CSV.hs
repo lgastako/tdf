@@ -86,16 +86,17 @@ recFromCSV s = case map (T.splitOn ",") (T.lines s) of
     where
       makeRecord s' = Rec.fromLabelsA @FromField @(Either String) @ρ (makeField s')
 
-      makeField :: ( KnownSymbol l
+      makeField :: ( KnownSymbol k
                    , FromField a
                    )
                 => [Text]
-                -> Label l
+                -> Label k
                 -> Either String a
-      makeField val l = maybe
-        (Left $ "Missing field " ++ (sid . show) l)
+      makeField val k = maybe
+        (Left $ "Missing field " ++ (sid . show) k
+                   ++ " header=" ++ show header)
         fromField
-        $ L.lookup (T.pack $ show l) (zip header val)
+        $ L.lookup (T.pack $ show k) (zip header val)
         where
           sid :: Text -> String
           sid = show

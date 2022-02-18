@@ -27,11 +27,13 @@ source-repository head
 
 library
   exposed-modules:
+      Data.Frame.DeleteMe
       Data.Frame.Prelude
       Data.Frame.Typed
       Data.Frame.Typed.CSV
       Data.Frame.Typed.DeleteMe
       Data.Frame.Typed.Examples
+      Data.Frame.Typed.Examples.Prestige
       Data.Frame.Typed.Index
       Data.Frame.Typed.Options
       Data.Frame.Typed.Series

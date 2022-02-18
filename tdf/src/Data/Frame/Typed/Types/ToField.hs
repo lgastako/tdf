@@ -36,5 +36,9 @@ instance ToField String where
   toField = Text.pack
 
 -- TODO uhhhh
+instance ToField Double where
+  toField = Text.pack . show
+
+-- TODO uhhhh
 instance ToField Float where
   toField = Text.pack . show
