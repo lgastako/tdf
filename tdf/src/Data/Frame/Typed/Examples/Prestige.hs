@@ -1,7 +1,6 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 
@@ -40,7 +39,7 @@ type PrestigeLen = Plus
 thePrestige :: IO ()
 thePrestige = do
   let n :: Nat
-      n = reify (snatToNat $ snat @PrestigeLen) $ reflect
+      n = reify (snatToNat $ snat @PrestigeLen) reflect
   print ("PrestigeLen", n)
   df :: Frame PrestigeLen Int Prestige
     <- CSV.unsafeFromHeadedCSV "data/prestige.csv"
