@@ -10,8 +10,8 @@ import           Test.Tasty.Hspec
 
 import qualified Data.Vec.Lazy             as Vec
 import qualified Data.Frame.Typed.CSV      as CSV
-import           Data.Frame.Typed.Frame           ( Frame )
-import qualified Data.Frame.Typed.Frame    as DF
+import           Data.Frame.Typed                 ( Frame )
+import qualified Data.Frame.Typed          as DF
 import           Data.Frame.Typed.Examples        ( PersonFields )
 
 spec_CSV :: Spec

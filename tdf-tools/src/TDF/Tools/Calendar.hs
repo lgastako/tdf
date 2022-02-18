@@ -4,9 +4,9 @@
 {-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -Wno-orphans     #-}
 
-module TDF.Tools.Calendar where
+module Data.Frame.Typed.Tools.Calendar where
 
-import TDF.Prelude
+import           Data.Frame.Prelude
 
 import           Data.Time.Calendar       ( Day
                                           , DayOfMonth
@@ -14,9 +14,9 @@ import           Data.Time.Calendar       ( Day
                                           , Year
                                           , fromGregorian
                                           )
-import           TDF.Frame                ( Frame )
-import qualified TDF.Frame         as DF
-import           TDF.Types.ToField        ( ToField( toField ) )
+import           Data.Frame.Typed.Frame                ( Frame )
+import qualified Data.Frame.Typed.Frame         as DF
+import           Data.Frame.Typed.Types.ToField        ( ToField( toField ) )
 
 import           Data.Row.Records.X      ( Extend )
 

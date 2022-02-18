@@ -3,15 +3,14 @@
 
 module DynTest where
 
-import           TDF.Prelude
+import           Data.Frame.Prelude
 
-import           Data.Dynamic                   ( fromDynamic
-                                                , toDyn
-                                                )
+import           Data.Dynamic                          ( fromDynamic
+                                                       , toDyn
+                                                       )
 import           Test.Tasty.Hspec
-import qualified Data.HashMap.Strict as HashMap
-
-import qualified TDF.Utils.Dyn       as Dyn
+import qualified Data.Frame.Typed.Utils.Dyn as Dyn
+import qualified Data.HashMap.Strict        as HashMap
 
 spec_Dyn :: Spec
 spec_Dyn = do

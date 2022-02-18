@@ -2,16 +2,17 @@
 
 module VecTest where
 
-import           TDF.Prelude
+import           Data.Frame.Prelude
+
+import           Test.Tasty.Hspec
+
+import qualified Data.Vec.Lazy.X as Vec
 
 -- import           GHC.Natural            ( Natural )
-import           Test.Tasty.Hspec
 
 -- import qualified Data.Fin        as Fin
 -- import qualified Data.Nat        as Nat
 -- import           Data.Type.Nat          ( SNat )
-
-import qualified Data.Vec.Lazy.X as Vec
 
 spec_VecX :: Spec
 spec_VecX = do

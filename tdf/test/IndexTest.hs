@@ -5,12 +5,12 @@
 
 module IndexTest where
 
-import           TDF.Prelude
+import           Data.Frame.Prelude
 
-import           Orphans                   ()
+import qualified Data.Frame.Typed.Index as Index
+import           Data.Frame.Typed.Index          ( Index )
 import           Test.Tasty.Hspec
-import qualified TDF.Index        as Index
-import           TDF.Index                 ( Index )
+import           Orphans                         ()
 
 spec_Index :: Spec
 spec_Index = do

@@ -7,15 +7,15 @@
 
 module FrameTest where
 
-import           TDF.Prelude
+import           Data.Frame.Prelude
 
 import           Test.Tasty.Hspec
 
-import qualified Data.Vec.Lazy as Vec
-import           TDF.Frame                 ( Frame )
-import qualified TDF.Frame     as DF
-import qualified TDF.Series    as Series
-import qualified TDF.Examples  as Examples
+import qualified Data.Vec.Lazy              as Vec
+import           Data.Frame.Typed                       ( Frame )
+import qualified Data.Frame.Typed           as DF
+import qualified Data.Frame.Typed.Series    as Series
+import qualified Data.Frame.Typed.Examples  as Examples
 
 type Animal = "animal" .== Text
 

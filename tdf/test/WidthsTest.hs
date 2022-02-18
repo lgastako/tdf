@@ -4,13 +4,13 @@
 
 module WidthsTest where
 
-import           TDF.Prelude
+import           Data.Frame.Prelude
 
+import           Data.Frame.Typed.Types.Widths           ( unWidths
+                                                         , widths
+                                                         )
+import qualified Data.Frame.Typed.Types.Widths as Widths
 import           Test.Tasty.Hspec
-import           TDF.Types.Widths           ( unWidths
-                                            , widths
-                                            )
-import qualified TDF.Types.Widths as Widths
 
 spec_Widths :: Spec
 spec_Widths = do

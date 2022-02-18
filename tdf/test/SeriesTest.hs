@@ -3,14 +3,14 @@
 
 module SeriesTest where
 
-import           TDF.Prelude
+import           Data.Frame.Prelude
 
-import           Orphans                    ()
+import qualified Data.Frame.Typed.Index  as Index
+import           Data.Frame.Typed.Series           ( Series )
+import qualified Data.Frame.Typed.Series as Series
+import qualified Data.Vec.Lazy           as Vec
+import           Orphans                           ()
 import           Test.Tasty.Hspec
-import qualified TDF.Index        as Index
-import           TDF.Series                 ( Series )
-import qualified TDF.Series       as Series
-import qualified Data.Vec.Lazy    as Vec
 
 spec_Series :: Spec
 spec_Series = do

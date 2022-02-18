@@ -3,13 +3,13 @@
 
 module TableTest where
 
-import           TDF.Prelude
+import           Data.Frame.Prelude
 
-import qualified Data.Text       as Text
-import           TDF.Types.Table          ( Row( Row ) )
-import qualified TDF.Types.Table as Table
+import qualified Data.Text                    as Text
+import           Data.Frame.Typed.Types.Table          ( Row( Row ) )
+import qualified Data.Frame.Typed.Types.Table as Table
 import           Test.Tasty.Hspec
-import           WidthsTest               ( example1 )
+import           WidthsTest                            ( example1 )
 
 spec_Tables :: Spec
 spec_Tables = do

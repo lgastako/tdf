@@ -6,14 +6,15 @@
 
 module Orphans () where
 
-import Data.Text.Arbitrary()
-import TDF.Prelude
+import Data.Frame.Prelude
+
+import Data.Text.Arbitrary ()
 import Test.QuickCheck
 
-import           TDF.Index            ( Index )
-import qualified TDF.Index  as Index
-import           TDF.Series           ( Series )
-import qualified TDF.Series as Series
+import           Data.Frame.Typed.Index            ( Index )
+import qualified Data.Frame.Typed.Index  as Index
+import           Data.Frame.Typed.Series           ( Series )
+import qualified Data.Frame.Typed.Series as Series
 
 instance ( Arbitrary a
          , Arbitrary (Series.Options n idx a)

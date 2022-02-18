@@ -7,10 +7,10 @@ module Data.Row.Records.X
   , fieldLabels
   ) where
 
-import           TDF.Prelude
+import           Data.Frame.Prelude
 
-import           TDF.Types.ToField
-import qualified Data.Row.Records  as Rec
+import           Data.Frame.Typed.Types.ToField
+import qualified Data.Row.Records               as Rec
 
 fieldLabels :: Forall a ToField => Rec a -> [Text]
 fieldLabels = Rec.erase @ToField @_ @Text toField
