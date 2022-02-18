@@ -61,8 +61,7 @@ library
       src
   ghc-options: -Wall -freduction-depth=0
   build-depends:
-      QuickCheck
-    , base >=4.7 && <5
+      base >=4.7 && <5
     , containers
     , deepseq
     , fin
@@ -70,7 +69,6 @@ library
     , lens
     , mtl
     , protolude
-    , quickcheck-text
     , row-types
     , text
     , unordered-containers

@@ -14,6 +14,8 @@ import           Data.Frame.Typed.Index                ( Index )
 import qualified Data.Frame.Typed.Index      as Index
 import           Data.Frame.Typed.Series               ( Series )
 import qualified Data.Frame.Typed.Series     as Series
+import           Data.Frame.Typed.Types.Name           ( Name )
+import qualified Data.Frame.Typed.Types.Name as Name
 
 instance ( Arbitrary a
          , Arbitrary (Series.Options n idx a)
@@ -33,3 +35,6 @@ instance ( Arbitrary idx
          , SNatI n
          ) => Arbitrary (Index n idx) where
   arbitrary = Index.fromVec <$> arbitrary
+
+instance Arbitrary Name where
+  arbitrary = maybe arbitrary pure =<< Name.fromText <$> arbitrary

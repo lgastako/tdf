@@ -20,9 +20,6 @@ module Data.Frame.Typed.Types.Name
 
 import Data.Frame.Prelude
 
-import Test.QuickCheck     ( Arbitrary( arbitrary ) )
-import Data.Text.Arbitrary ()
-
 import qualified Data.Text as T
 
 newtype Name = Name { unName :: Text }
@@ -32,9 +29,6 @@ data Error = TrimmedNameIsEmpty
   deriving (Eq, Generic, Ord, Show)
 
 instance Exception Error
-
-instance Arbitrary Name where
-  arbitrary = maybe arbitrary pure =<< fromText <$> arbitrary
 
 -- ================================================================ --
 --   Values
