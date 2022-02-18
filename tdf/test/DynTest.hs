@@ -19,18 +19,18 @@ spec_Dyn = do
     context "given a dyn with a Text in it" $ do
       let d = toDyn ("foo" :: Text)
 
-      it "should be able to read text" $ do
+      it "should be able to read text" $
         Dyn.fromAnyDyn d
           `shouldBe` Just "foo"
 
     context "given a dyn with an Intt in it" $ do
       let d = toDyn (5 :: Int)
 
-      it "should be able to read text" $ do
+      it "should be able to read text" $
         Dyn.fromAnyDyn d
           `shouldBe` Just "5"
 
-  context "getValue" $ do
+  context "getValue" $
 
     context "given a map with a Text in it" $ do
       let k = "someKey"

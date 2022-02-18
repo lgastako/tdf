@@ -36,7 +36,7 @@ spec_Tables = do
   context "with example1 with headers" $ do
     let Just t = Table.fromHeadedRows (map Row example1)
 
-    it "should render properly" $ do
+    it "should render properly" $
       Table.render t
         `shouldBe` Text.unlines
           [ "    name | age val"

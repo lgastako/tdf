@@ -15,7 +15,7 @@ import qualified Data.Frame.Typed          as DF
 import           Data.Frame.Typed.Examples        ( PersonFields )
 
 spec_CSV :: Spec
-spec_CSV = do
+spec_CSV =
   context "with example.csv" $ do
     df <- fromMaybe (panic "spec_CSV.1")
           <$> runIO (fromRight boom <$> CSV.fromHeadedCSV "data/example.csv")

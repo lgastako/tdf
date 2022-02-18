@@ -3,6 +3,20 @@
 My latest attempt to implement effective (if not efficient) DataFrames (ala
 python's pandas) in Haskell.
 
+## Biggest Problems to Solve
+
+* Dynamic rendering failures
+  - Either fix the rendering falures; or, ideally...
+  - Eliminate the need for the whole Dynamic dance
+* Finish all the a_ implementations
+  - Including moving the A* versions out of the current modules into
+    their own sub-modules
+* Melt, append, concat, other dynamic shape changers.
+  - Maybe existentials will save us here
+* Mutable implementation
+  - Possibly using the same existential wrapper type of deal as
+    the ASeries, AFrame, etc.
+
 ## Example CSVs
 
 You can see some examples of manipulating CSV files with data frames on the
@@ -55,8 +69,6 @@ We take vectors of rows as input and turn it into rows of vectors to operate on.
     https://pandas-docs.github.io/pandas-docs-travis/user_guide/advanced.html#advanced-hierarchical
   - TODOs in code...
   - Clean up/standardize on terminology.
-  - Look into https://hackage.haskell.org/package/accelerate-1.3.0.0/docs/Data-Array-Accelerate.html
-  - Look into https://hackage.haskell.org/package/repa
   - https://stackoverflow.com/questions/29954263/what-does-the-term-broadcasting-mean-in-pandas-documentation
 
 ## More
@@ -64,6 +76,10 @@ We take vectors of rows as input and turn it into rows of vectors to operate on.
 - https://stackoverflow.com/questions/53217607/how-do-i-operate-on-a-dataframe-with-a-series-for-every-column
 - https://www.youtube.com/watch?v=iYie42M1ZyU
 - https://www.kdnuggets.com/2021/03/pandas-big-data-better-options.html
+
+High perf vectors?
+- https://hackage.haskell.org/package/accelerate-1.3.0.0/docs/Data-Array-Accelerate.html
+- https://hackage.haskell.org/package/repa
 
 Possibly good thing to try for comparison:
 - https://www.architecture-performance.fr/ap_blog/loading-data-into-a-pandas-dataframe-a-performance-study/

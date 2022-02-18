@@ -13,7 +13,7 @@ import           Test.Tasty.Hspec
 import           Orphans                         ()
 
 spec_Index :: Spec
-spec_Index = do
+spec_Index =
   context "with defaultIntsFor 'bar'" $ do
     let idx :: Index Nat3 Int
         Just idx = Index.defaultIntsFor ("bar" :: FilePath)

@@ -25,6 +25,7 @@ module Data.Frame.Typed
   , Frame
   , Verbosity(..)
   -- Constructors
+  , cons
   , construct
   , empty
   , fromList
@@ -46,6 +47,7 @@ module Data.Frame.Typed
   , pop
   , rename
   , restrict
+  , snoc
   , tail
   -- Optics
   , series
@@ -300,6 +302,16 @@ column :: forall n k v idx a b rest.
        -> Frame n idx b
 column _ = restrict
 
+cons :: forall n idx a.
+        ( Forall a Unconstrained1
+        , SNatI n
+        , idx ~ Int
+        )
+     => Rec a
+     -> Frame n idx a
+     -> Frame (Plus Nat1 n) idx a
+cons x = overSeries (Series.cons x)
+
 dropColumn :: forall k n idx a b r v.
               ( Disjoint r b
               , Forall a Unconstrained1
@@ -424,7 +436,7 @@ overSeries :: forall m n idx a b.
         -> Frame n idx a
         -> Frame m idx b
 overSeries f Frame {..} = Frame
-  { dfIndex = Index.defaultIntsFor srb `onCrash` "overVec.dfIndex"
+  { dfIndex = Index.defaultIntsFor srb `onCrash` "overSeries.dfIndex"
   , dfData  = Rec.distribute srb
   }
   where
@@ -466,6 +478,16 @@ restrict :: forall b n idx a.
          => Frame n idx a
          -> Frame n idx b
 restrict = map Rec.restrict
+
+snoc :: forall n idx a.
+        ( Forall a Unconstrained1
+        , SNatI n
+        , idx ~ Int
+        )
+     => Rec a
+     -> Frame n idx a
+     -> Frame (Plus Nat1 n) idx a
+snoc x = overSeries (Series.snoc x)
 
 tail :: forall m n idx a.
         ( Forall a Unconstrained1

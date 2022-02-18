@@ -11,11 +11,11 @@ import           Data.Frame.Prelude
 
 import           Test.Tasty.Hspec
 
-import qualified Data.Vec.Lazy              as Vec
+import qualified Data.Vec.Lazy             as Vec
 import           Data.Frame.Typed                       ( Frame )
-import qualified Data.Frame.Typed           as DF
-import qualified Data.Frame.Typed.Series    as Series
-import qualified Data.Frame.Typed.Examples  as Examples
+import qualified Data.Frame.Typed          as DF
+import qualified Data.Frame.Typed.Series   as Series
+import qualified Data.Frame.Typed.Examples as Examples
 
 type Animal = "animal" .== Text
 
@@ -103,7 +103,7 @@ spec_Frame = do
 
       it "should read" $
         Just (df ^. DF.series #age)
-          `shouldBe` (Series.fromList [23, 45]) --  <&> #sName ?~ "age")
+          `shouldBe` Series.fromList [23, 45] --  <&> #sName ?~ "age")
 
       it "should write" $
         (df & DF.series #age . each *~ 100)

@@ -8,14 +8,8 @@ import           Test.Tasty.Hspec
 
 import qualified Data.Vec.Lazy.X as Vec
 
--- import           GHC.Natural            ( Natural )
-
--- import qualified Data.Fin        as Fin
--- import qualified Data.Nat        as Nat
--- import           Data.Type.Nat          ( SNat )
-
 spec_VecX :: Spec
-spec_VecX = do
+spec_VecX =
   context "given [1,2,3]" $ do
     let rEven :: Vec Nat1 Int
         rOdd  :: Vec Nat2 Int
@@ -24,7 +18,7 @@ spec_VecX = do
         Just rEven = Vec.fromList [2]
         Just rOdd  = Vec.fromList [1, 3]
 
-    it "should find one even" $ do
+    it "should find one even" $
       Vec.recoverVec (Vec.filter even v)
         `shouldBe` Just rEven
 

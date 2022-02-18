@@ -13,7 +13,7 @@ import           Orphans                           ()
 import           Test.Tasty.Hspec
 
 spec_Series :: Spec
-spec_Series = do
+spec_Series =
   context "with simple series" $ do
     let s :: Series Nat3 Int Float
         s = case Series.fromList [1.1, 2.2, 3.3] of
@@ -44,5 +44,5 @@ spec_Series = do
         `shouldBe` [0, 1, 2]
 
     it "should function applicatively" $
-      (pure (+(5 :: Float)) <*> s)
+      (+) <$> s <*> pure (5 :: Float)
         `shouldBe` (s & each +~ 5)
