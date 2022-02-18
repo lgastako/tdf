@@ -29,4 +29,10 @@ zipListOfPairs = sequenceA pairOfZipLists
 pairOfSeries :: Pair (Series Nat3 Int Int)
 pairOfSeries = Pair (mk [1,2,3]) (mk [4,5,6])
   where
-    mk xs = S.fromList xs `orAbortWith` "pairOfSeries"
+    mk xs = S.fromList xs `onCrash` "pairOfSeries"
+
+seriesOfPairs :: Series Nat3 Int (Pair Int)
+seriesOfPairs = sequenceA pairOfSeries
+
+wowza :: IO ()
+wowza = S.display $ toTup <$> seriesOfPairs

@@ -25,11 +25,11 @@ import qualified Data.List          as List
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Text          as Text
 import qualified Data.Vec.Lazy      as Vec
-import           TDF.DataFrame                 ( Axes
-                                               , DataFrame
+import           TDF.Frame                 ( Axes
+                                               , Frame
                                                )
 import qualified TDF.CSV            as CSV
-import qualified TDF.DataFrame      as DF
+import qualified TDF.Frame      as DF
 import qualified TDF.Options        as Options
 import           TDF.Series                    ( Series
                                                , a_
@@ -96,21 +96,21 @@ greet :: (r ≈ "name" .== Text)
       -> Text
 greet = ("Hello " <>) . (.! #name)
 
-df1 :: DataFrame Nat2 Int PersonFields
+df1 :: Frame Nat2 Int PersonFields
 df1 = DF.fromList
   [ person
   , person2
   ]
   & fromMaybe (panic "Examples.df1")
 
-df1Times100 :: DataFrame Nat2 Int PersonFields
+df1Times100 :: Frame Nat2 Int PersonFields
 df1Times100 = DF.fromList
   [ personTimes100
   , person2Times100
   ]
   & fromMaybe (panic "Examples.df1Times100")
 
-df1Renamed :: DataFrame Nat2 Int FullPersonFields
+df1Renamed :: Frame Nat2 Int FullPersonFields
 df1Renamed = DF.rename #name #fullName df1
 
 -- TODO can we make it easy to do the same thing with just "age" (or #age) to
@@ -118,14 +118,14 @@ df1Renamed = DF.rename #name #fullName df1
 --      type of "age" is in in df1?  maybe we don't want to lose the type info?
 --      so perhaps DF.restrict replaces both select_types and whatever other
 --      subsetting facilities? let's assume so for now.
-ages :: DataFrame Nat2 Int ("age" .== Int)
+ages :: Frame Nat2 Int ("age" .== Int)
 ages = DF.restrict df1
 
 df1Axes :: Axes Int
 df1Axes = DF.axes df1
 
 -- Neat.
-df1Restricted :: DataFrame Nat2 Int NameFields
+df1Restricted :: Frame Nat2 Int NameFields
 df1Restricted = DF.restrict df1
 
 -- λ> DF.display $ DF.restrict @NameFields df1
@@ -134,26 +134,26 @@ df1Restricted = DF.restrict df1
 -- Alex
 -- Dave
 
-df1' :: DataFrame Nat2 Int PersonFields
+df1' :: Frame Nat2 Int PersonFields
 df1' = df1 -- undefined -- DF.reindex [0, 1] df1
 
 -- λ> DF.memSize df1'
 -- 1096
 -- Yeesh that's a lot of overhead for [{name:Alex,age:23},{name:Dave,age:45}]
 
-df1'' :: DataFrame Nat2 Int (PersonFields .+ "foo" .== Text)
+df1'' :: Frame Nat2 Int (PersonFields .+ "foo" .== Text)
 df1'' = DF.map (\x -> x .+ #foo .== ("bar" ::Text)) df1'
 
-df2 :: DataFrame Nat2 Int NameFields
+df2 :: Frame Nat2 Int NameFields
 df2 = DF.map justName df1
 
-df3' :: DataFrame Nat2 Int (PersonFields .+ "fullName" .== Text)
+df3' :: Frame Nat2 Int (PersonFields .+ "fullName" .== Text)
 df3' = DF.map plusFull df1
 
-df3 :: DataFrame Nat2 Int NameFields
+df3 :: Frame Nat2 Int NameFields
 df3 = DF.column #name df1
 
-df6 :: DataFrame Nat3 Int PersonFields
+df6 :: Frame Nat3 Int PersonFields
 df6 = DF.fromNativeVec nativeVector
 
 nativeVector :: Vec Nat3 Person'
@@ -177,7 +177,7 @@ type DateExampleFields = "year"  .== Integer
 
 type DateColsLen = Nat6
 
-dateAcrossCols :: DataFrame DateColsLen Int DateExampleFields
+dateAcrossCols :: Frame DateColsLen Int DateExampleFields
 dateAcrossCols = DF.construct
   . Options.fromVec
   . fromMaybe (panic  "Examples.dateCols")
@@ -199,10 +199,10 @@ dateAcrossCols = DF.construct
 -- Need to move this to a demo of tdf-tools
 --
 -- -- These same things could be done for Date+Time and other formats.  Ultimately
--- -- I would like to avoid having the core DataFrame package avoid a dependency
+-- -- I would like to avoid having the core Frame package avoid a dependency
 -- -- on the `time` package.  So I'll probably move this out to separate add-on
 -- -- lib sooner or later.
--- dateInCol :: DataFrame DateColsLen Int ("date" .== Day .+ "value" .== Int)
+-- dateInCol :: Frame DateColsLen Int ("date" .== Day .+ "value" .== Int)
 -- dateInCol = dateAcrossCols
 --   & DF.extendWithDay #date
 --       ((,,) <$> (.! #year) <*> (.! #month) <*> (.! #day))
@@ -210,7 +210,7 @@ dateAcrossCols = DF.construct
 
 -- Example from
 --   https://pandas.pydata.org/pandas-docs/version/0.23.0/generated/pandas.Series.tail.html
-animals :: DataFrame Nat9 Int ("animal" .== Text)
+animals :: Frame Nat9 Int ("animal" .== Text)
 animals = DF.construct $ Options.fromVec v
   where
     v :: Vec Nat9 (Rec ("animal" .== Text))
@@ -261,7 +261,7 @@ rd = putStr rendered
 displayDf1 :: IO ()
 displayDf1 = DF.display df1
 
-flagged :: DataFrame Nat2 Int (PersonFields .+ "flagged" .== Bool)
+flagged :: Frame Nat2 Int (PersonFields .+ "flagged" .== Bool)
 flagged = DF.extend #flagged False df1
 
 plusFull :: Rec PersonFields
@@ -271,22 +271,22 @@ plusFull r = Rec.extend #fullName fname r
     fname = r .! #name
 
 capitalize :: SNatI n
-           => DataFrame n Int PersonFields
-           -> DataFrame n Int (PersonFields .+ "capsName" .== Text)
+           => Frame n Int PersonFields
+           -> Frame n Int (PersonFields .+ "capsName" .== Text)
 capitalize = DF.extendWith #capsName (\r -> Text.toUpper $ r .! #name)
 
-capitalizedDf1 :: DataFrame Nat2 Int (PersonFields .+ "capsName" .== Text)
+capitalizedDf1 :: Frame Nat2 Int (PersonFields .+ "capsName" .== Text)
 capitalizedDf1 = capitalize df1
 
 withNameLens :: SNatI n
-             => DataFrame n Int PersonFields
-             -> DataFrame n Int (PersonFields .+ "nameLen" .== Int)
+             => Frame n Int PersonFields
+             -> Frame n Int (PersonFields .+ "nameLen" .== Int)
 withNameLens = DF.extendFrom #name #nameLen Text.length
 
-nameLengthed :: DataFrame Nat2 Int (PersonFields .+ "nameLen" .== Int)
+nameLengthed :: Frame Nat2 Int (PersonFields .+ "nameLen" .== Int)
 nameLengthed = withNameLens df1
 
-filteredByIndexes :: DataFrame Nat4 Int ("animal" .== Text)
+filteredByIndexes :: Frame Nat4 Int ("animal" .== Text)
 filteredByIndexes = DF.filterIndexes f animals
   where
     f =  Vec.toList
@@ -339,18 +339,18 @@ s1_div2 :: Series Nat3 Int Float
 s1_div2 = Series.op (/) (2 :: Float) s1
 
 {-# NOINLINE examples #-}
-examples :: DataFrame Nat6 Int PersonFields
+examples :: Frame Nat6 Int PersonFields
 examples = unsafePerformIO $ CSV.fromHeadedCSV "data/example.csv" >>= \case
   Left error      -> panic $ "Examples.examples.1: " <> show error
   Right Nothing   -> panic   "Examples.examples.2: Nothing"
   Right (Just df) -> pure df
 
 {-# NOINLINE examples' #-}
-examples' :: DataFrame Nat6 Int PersonFields
+examples' :: Frame Nat6 Int PersonFields
 examples' = unsafePerformIO
   $ CSV.unsafeFromHeadedCSV "data/example.csv"
 
--- product=pd.DataFrame({
+-- product=pd.Frame({
 --     'Product_ID':[101,102,103,104,105,106,107],
 --     'Product_name':['Watch','Bag','Shoes','Smartphone','Books','Oil','Laptop'],
 --     'Category':['Fashion','Fashion','Fashion','Electronics','Study','Grocery','Electronics'],
@@ -372,7 +372,7 @@ data NativeProduct = NativeProduct
   , city     :: Text
   } deriving (Eq, Generic, Ord, Show)
 
-products :: SNatI n => Either Text (DataFrame n Int Product)
+products :: SNatI n => Either Text (Frame n Int Product)
 products = panic "Examples.products" -- DF.fromTexts productTexts
 
 productTexts :: [(Text, [Text])]

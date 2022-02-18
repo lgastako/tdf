@@ -7,19 +7,14 @@ module TDF.Utils.Dyn
   , getValue
   ) where
 
-import           TDF.Prelude              hiding ( empty
-                                                 , foldr
-                                                 , head
-                                                 , map
-                                                 , toList
-                                                 )
+import           TDF.Prelude
 
-import           Data.Dynamic                    ( Dynamic
-                                                 , fromDynamic
-                                                 )
-import           Data.HashMap.Strict             ( HashMap )
-import qualified Data.HashMap.Strict  as HashMap
-import           Data.String                     ( String )
+import           Data.Dynamic                   ( Dynamic
+                                                , fromDynamic
+                                                )
+import           Data.HashMap.Strict            ( HashMap )
+import qualified Data.HashMap.Strict as HashMap
+import           Data.String                    ( String )
 
 -- TODO I tried to do something like this:
 --

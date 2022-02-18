@@ -14,11 +14,11 @@ import           Data.Time.Calendar       ( Day
                                           , Year
                                           , fromGregorian
                                           )
-import           TDF.DataFrame            ( DataFrame )
-import qualified TDF.DataFrame     as DF
+import           TDF.Frame                ( Frame )
+import qualified TDF.Frame         as DF
 import           TDF.Types.ToField        ( ToField( toField ) )
 
-import           Data.Row.Records         ( Extend )
+import           Data.Row.Records.X      ( Extend )
 
 instance ToField Day where
   toField = show
@@ -31,8 +31,8 @@ extendWithDay :: forall n idx k r.
                  )
               => Label k
               -> (Rec r -> (Year, MonthOfYear, DayOfMonth))
-              -> DataFrame n idx r
-              -> DataFrame n idx (Extend k Day r)
+              -> Frame n idx r
+              -> Frame n idx (Extend k Day r)
 extendWithDay k f = DF.extendWith k g
   where
     g :: Rec r -> Day

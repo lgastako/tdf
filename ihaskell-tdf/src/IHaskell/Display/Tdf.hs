@@ -1,5 +1,5 @@
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -25,8 +25,8 @@ import           Lucid.Html5                      ( table_
                                                   , thead_
                                                   , tr_
                                                   )
-import           TDF.DataFrame                    ( DataFrame )
-import qualified TDF.DataFrame          as DF
+import           TDF.Frame                    ( Frame )
+import qualified TDF.Frame          as DF
 import           TDF.Series                       ( Series )
 import qualified TDF.Series             as Series
 import           TDF.Types.ToField                ( ToField )
@@ -37,7 +37,7 @@ instance ( AllUniqueLabels (Map (Vec n) a)
          , Forall a ToField
          , Forall (Map (Vec n) a) Unconstrained1
          , SNatI n
-         ) => IHaskellDisplay (DataFrame n Int a) where
+         ) => IHaskellDisplay (Frame n Int a) where
   display df = do
     let (header:rows) =  DF.toTexts df
         --    ^-- should always have at least a header if we got here

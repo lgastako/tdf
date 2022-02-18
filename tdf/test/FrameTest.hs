@@ -5,24 +5,24 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module DataFrameTest where
+module FrameTest where
 
 import           TDF.Prelude
 
 import           Test.Tasty.Hspec
 
 import qualified Data.Vec.Lazy as Vec
-import           TDF.DataFrame             ( DataFrame )
-import qualified TDF.DataFrame as DF
+import           TDF.Frame                 ( Frame )
+import qualified TDF.Frame     as DF
 import qualified TDF.Series    as Series
 import qualified TDF.Examples  as Examples
 
 type Animal = "animal" .== Text
 
-spec_DataFrame :: Spec
-spec_DataFrame = do
+spec_Frame :: Spec
+spec_Frame = do
   context "with animals" $ do
-    let df :: DataFrame Nat9 Int Animal
+    let df :: Frame Nat9 Int Animal
         df = Examples.animals
 
     it "should have the right shape" $ DF.shape df `shouldBe` (9, 1)
@@ -31,7 +31,7 @@ spec_DataFrame = do
     it "at 5 #animal" $ DF.at 5 #animal df `shouldBe` Just "parrot"
 
     it "head 3" $ do
-      let actual :: DataFrame Nat3 Int Animal
+      let actual :: Frame Nat3 Int Animal
           actual = DF.head df
       (map (.! #animal) . DF.toList $ actual)
         `shouldBe` ["alligator", "bee", "falcon"]
@@ -39,7 +39,7 @@ spec_DataFrame = do
     -- it "head -3" -- No longer possible - but should it be?
 
     it "tail 3" $ do
-      let actual :: DataFrame Nat3 Int Animal
+      let actual :: Frame Nat3 Int Animal
           actual = DF.tail df
       (map (.! #animal) . DF.toList $ actual)
         `shouldBe` ["shark", "whale", "zebra"]

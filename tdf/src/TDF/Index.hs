@@ -28,16 +28,16 @@ module TDF.Index
   , toVec
   ) where
 
-import           TDF.Prelude       hiding ( drop
-                                          , length
-                                          , take
-                                          , toList
-                                          )
+import           TDF.Prelude    hiding ( drop
+                                       , length
+                                       , take
+                                       , toList
+                                       )
 
-import qualified Data.Fin         as Fin
-import qualified Data.Foldable    as F
-import qualified Data.Vec.Lazy    as Vec
-import qualified Data.List        as List
+import qualified Data.Fin      as Fin
+import qualified Data.Foldable as F
+import qualified Data.Vec.Lazy as Vec
+import qualified Data.List     as List
 
 newtype Index n idx = Index { toVec :: Vec n idx }
   deriving (Foldable, Functor, Eq, Generic, Ord, Show, Traversable)

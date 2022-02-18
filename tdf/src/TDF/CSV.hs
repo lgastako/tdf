@@ -25,11 +25,11 @@ import qualified Data.List           as L
 import qualified Data.Row.Records    as Rec
 import           Data.String                ( String )
 import qualified Data.Text           as T
-import           TDF.DataFrame              ( -- AFrame
-                                            -- ,
-                                              DataFrame
+import           TDF.Frame                  ( -- AFrame
+                                                -- ,
+                                              Frame
                                             )
-import qualified TDF.DataFrame       as DF
+import qualified TDF.Frame           as DF
 import           TDF.Types.FromField        ( FromField( fromField ) )
 import           TDF.Types.ToField          ( ToField( toField ) )
 
@@ -64,7 +64,7 @@ fromHeadedCSV :: ( AllUniqueLabels a
                  , SNatI n
                  )
               => FilePath
-              -> IO (Either Error (Maybe (DataFrame n Int a)))
+              -> IO (Either Error (Maybe (Frame n Int a)))
 fromHeadedCSV path = (recFromCSV <$> readFile path)
   <&> either (Left . FromCSVError)
              (Right . DF.fromList)
@@ -107,7 +107,7 @@ toHeadedCSV :: ( AllUniqueLabels (Map (Vec n) a)
                , SNatI n
                )
             => FilePath
-            -> DataFrame n Int a
+            -> Frame n Int a
             -> IO ()
 toHeadedCSV path = writeFile path . recToCSV . DF.toList
 
@@ -118,7 +118,7 @@ unsafeFromHeadedCSV :: forall n a.
                        , SNatI n
                        )
                     => FilePath
-                    -> IO (DataFrame n Int a)
+                    -> IO (Frame n Int a)
 unsafeFromHeadedCSV path = fromHeadedCSV path >>= \case
   Left error     -> panic (show error)
   Right Nothing  -> panic "unsafeFromHeadedCSV: Nothing"

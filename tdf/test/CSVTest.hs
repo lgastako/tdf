@@ -8,18 +8,18 @@ import           TDF.Prelude
 
 import           Test.Tasty.Hspec
 
-import qualified Data.Vec.Lazy    as Vec
-import qualified TDF.CSV          as CSV
-import           TDF.DataFrame              ( DataFrame )
-import qualified TDF.DataFrame    as DF
-import           TDF.Examples               ( PersonFields )
+import qualified Data.Vec.Lazy as Vec
+import qualified TDF.CSV       as CSV
+import           TDF.Frame            ( Frame )
+import qualified TDF.Frame     as DF
+import           TDF.Examples         ( PersonFields )
 
 spec_CSV :: Spec
 spec_CSV = do
   context "with example.csv" $ do
     df <- fromMaybe (panic "spec_CSV.1")
           <$> runIO (fromRight boom <$> CSV.fromHeadedCSV "data/example.csv")
-    let _ = df :: DataFrame Nat6 Int PersonFields
+    let _ = df :: Frame Nat6 Int PersonFields
 
     it "should have the right number of rows" $
       DF.nrows df `shouldBe` 6

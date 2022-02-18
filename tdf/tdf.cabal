@@ -28,9 +28,11 @@ source-repository head
 library
   exposed-modules:
       Data.Vec.Lazy.X
+      Datq.Row.Records.X
       TDF.CSV
-      TDF.DataFrame
+      TDF.DeleteMe
       TDF.Examples
+      TDF.Frame
       TDF.Index
       TDF.Options
       TDF.Prelude
@@ -43,7 +45,6 @@ library
       TDF.Types.ToVecN
       TDF.Types.Widths
       TDF.Utils.Dyn
-      TDF.Utils.Row
   other-modules:
       Paths_tdf
   hs-source-dirs:

@@ -85,7 +85,6 @@ import           TDF.Prelude           hiding ( drop
                                               , zip
                                               , zipWith
                                               )
--- import qualified TDF.Prelude        as P
 
 import           Control.Lens                 ( Each )
 import qualified Data.List          as List

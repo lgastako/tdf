@@ -11,10 +11,10 @@ module TDF.Tutorial where
 
 import TDF.Prelude
 
-import qualified TDF.CSV       as CSV
-import           TDF.DataFrame           ( DataFrame )
-import qualified TDF.DataFrame as DF
-import qualified TDF.Series    as Series
+import qualified TDF.CSV    as CSV
+import           TDF.Frame            ( Frame )
+import qualified TDF.Frame  as DF
+import qualified TDF.Series as Series
 
 type PersonFields = NameField .+ AgeField .+ LocationField
 
@@ -63,7 +63,7 @@ headDemo :: IO ()
 headDemo = withExamples $ \df -> do
   nl
   DF.display df
-  let top3 :: DataFrame Nat3 Int PersonFields
+  let top3 :: Frame Nat3 Int PersonFields
       top3 = DF.head df
   nl
   DF.display top3
@@ -83,12 +83,12 @@ popDemo = withExamples $ \df -> do
 --  Helpers
 -- ================================================================ --
 readExamplesIO :: SNatI n
-               => IO (Maybe (DataFrame n Int PersonFields))
+               => IO (Maybe (Frame n Int PersonFields))
 readExamplesIO = either boom identity <$> CSV.fromHeadedCSV "data/example.csv"
   where
     boom = explode . show
 
-withExamples :: (DataFrame Nat6 Int PersonFields -> IO ())
+withExamples :: (Frame Nat6 Int PersonFields -> IO ())
              -> IO ()
 withExamples f = readExamplesIO >>= \case
   Nothing -> panic "invalid csv - maybe not 7 rows (6 + header)?"

@@ -11,11 +11,11 @@ module TDF.Options
   , fromVec
   ) where
 
-import           TDF.Prelude              hiding ( empty )
+import           TDF.Prelude     hiding ( empty )
 
-import qualified Data.Vec.Lazy        as Vec
-import           TDF.Index                       ( Index )
-import qualified TDF.Index            as Index
+import qualified Data.Vec.Lazy as Vec
+import           TDF.Index              ( Index )
+import qualified TDF.Index     as Index
 
 data Options (n :: Nat) idx a = Options
   { optIndex :: Index n idx
