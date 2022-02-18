@@ -37,10 +37,13 @@ type PrestigeLen = Plus
   (Mult Nat3 Nat7)
   (Mult Nat9 Nat9)
 
-foo :: IO ()
-foo = do
+thePrestige :: IO ()
+thePrestige = do
   let n :: Nat
       n = reify (snatToNat $ snat @PrestigeLen) $ reflect
   print ("PrestigeLen", n)
-  df :: Frame PrestigeLen Int Prestige <- CSV.unsafeFromHeadedCSV "data/prestige.csv"
-  DF.display df
+  df :: Frame PrestigeLen Int Prestige
+    <- CSV.unsafeFromHeadedCSV "data/prestige.csv"
+  print . DF.columnNames $ df
+  print . DF.toTexts $ df
+  DF.display . DF.head @Nat5 $ df

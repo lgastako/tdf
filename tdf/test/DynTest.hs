@@ -23,12 +23,19 @@ spec_Dyn = do
         Dyn.fromAnyDyn d
           `shouldBe` Just "foo"
 
-    context "given a dyn with an Intt in it" $ do
+    context "given a dyn with an Int in it" $ do
       let d = toDyn (5 :: Int)
 
       it "should be able to read text" $
         Dyn.fromAnyDyn d
           `shouldBe` Just "5"
+
+    context "given a dyn with a Double in it" $ do
+      let d = toDyn (5 :: Double)
+
+      it "should be able to read text" $
+        Dyn.fromAnyDyn d
+          `shouldBe` Just "5.0"
 
   context "getValue" $
 

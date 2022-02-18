@@ -38,9 +38,10 @@ fromAnyDyn dyn = case fromDynamic dyn of
             Nothing -> Nothing
 
 getValue :: Text -> HashMap Text Dynamic -> Text
+getValue "" _ = ""
 getValue k m = maybe noKeyError f $ HashMap.lookup k m
   where
     f v = fromAnyDyn v & fromMaybe noDynError
 
-    noKeyError = "getValue failed: key not found in map: " <> k
+    noKeyError = "getValue failed: key not found in map: " <> show k
     noDynError = "getValue failed: no value undynamicable"

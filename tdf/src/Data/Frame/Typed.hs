@@ -808,10 +808,10 @@ toTexts df = (headers:)
   $ df
   where
     headers :: [Text]
-    headers = mempty:columnNames df
+    headers = columnNames df
 
     f :: (idx, Rec a) -> [Text]
-    f (n, r) = show n:toFields headers r
+    f (n, r) = toFields headers r
 
 toVec :: forall n idx a.
          ( AllUniqueLabels (Map (Vec n) a)

@@ -28,15 +28,15 @@ spec_CSV =
       Just (DF.toVec df)
         `shouldBe`
           Vec.fromList
-            [ #age .== 46 .+ #name .== "John"
-            , #age .== 21 .+ #name .== "Kaialynn"
-            , #age .== 51 .+ #name .== "Zeke"
-            , #age .== 46 .+ #name .== "Eric"
-            , #age .== 47 .+ #name .== "Sean"
-            , #age .== 147 .+ #name .== "Gandalf"
+            [ #name .== "John"     .+ #age .== 46
+            , #name .== "Kaialynn" .+ #age .== 21
+            , #name .== "Zeke"     .+ #age .== 51
+            , #name .== "Eric"     .+ #age .== 46
+            , #name .== "Sean"     .+ #age .== 47
+            , #name .== "Gandalf"  .+ #age .== 147
             ]
 
-    it "should toTexts prooperly" $
+    it "should toTexts properly" $
       DF.toTexts df `shouldBe`
         [ ["age","name"]
         , ["46","John"]
