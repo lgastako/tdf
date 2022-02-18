@@ -92,3 +92,12 @@ Possibly good thing to try for comparison:
 
     {-# LANGUAGE DuplicateRecordFields     #-}
     {-# LANGUAGE NoMonomorphismRestriction #-}
+
+## Similar Work:
+
+- https://hackage.haskell.org/package/Frames
+  Uses `vinyl` records instead of `row-types` and regular `Vector`s instead
+  of fixed-sized `vecs` but otherwise pretty similar.
+
+  Notably provides a streaming interface (via pipes) which I should investigate.
+
