@@ -8,6 +8,8 @@ Candidate names:
 
 ## Biggest Problems to Solve
 
+NB. `append` is deprecated in pandas and replaced by `concat.
+
 * Column ordering (Series of Series?)
 * Handle non-Label friendly column names well
   (and then un-hack all the example csv files)

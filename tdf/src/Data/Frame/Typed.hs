@@ -89,40 +89,43 @@ module Data.Frame.Typed
   , valueCounts
   ) where
 
-import           Data.Frame.Prelude                hiding ( bool
-                                                          , empty
-                                                          , foldr
-                                                          , head
-                                                          , map
-                                                          , toList
-                                                          )
-import qualified Prelude                      as P
-import qualified Data.Frame.Prelude           as DP
+import           Data.Frame.Prelude                 hiding ( bool
+                                                           , empty
+                                                           , foldr
+                                                           , head
+                                                           , map
+                                                           , toList
+                                                           )
+import qualified Prelude                         as P
+import qualified Data.Frame.Prelude              as DP
 
-import qualified Data.List                    as List
-import qualified Data.Map.Strict              as Map
-import qualified Data.Row.Records             as Rec
-import qualified Data.Text                    as Text
-import qualified Data.Vec.Lazy.X              as Vec
-import           Data.Frame.Typed.Index                  ( Index )
-import qualified Data.Frame.Typed.Index       as Index
-import           Data.Frame.Typed.Options                ( Options )
-import qualified Data.Frame.Typed.Options     as Options
-import qualified Data.Frame.Typed.Types.Table as Table
-import           Data.Frame.Typed.Types.ToField          ( ToField )
-import qualified Data.Frame.Typed.Utils.Dyn   as Dyn
-import           Data.Frame.Typed.Series                 ( Series )
-import qualified Data.Frame.Typed.Series      as Series
+import qualified Data.List                       as List
+import qualified Data.Map.Strict                 as Map
+import qualified Data.Row.Records                as Rec
+import qualified Data.Text                       as Text
+import qualified Data.Vec.Lazy.X                 as Vec
+import           Data.Frame.Typed.Index                     ( Index )
+import qualified Data.Frame.Typed.Index          as Index
+import           Data.Frame.Typed.Options                   ( Options )
+import qualified Data.Frame.Typed.Options        as Options
+import           Data.Frame.Typed.Types.Name                ( Name )
+import qualified Data.Frame.Typed.Types.Name     as Name
+import qualified Data.Frame.Typed.Types.Table    as Table
+import           Data.Frame.Typed.Types.ToField             ( ToField )
+import qualified Data.Frame.Typed.Utils.Dyn      as Dyn
+import           Data.Frame.Typed.Series                    ( Series )
+import qualified Data.Frame.Typed.Series         as Series
+import qualified Data.Frame.Typed.SubIndex       as SubIndex
 
 data Frame (n :: Nat) idx a = Frame
   { dfIndex :: Index n idx
   , dfData  :: Rec (Map (Series n idx) a)
   } deriving (Generic)
 
-instance ( Forall (Map (Series n idx) a)  NFData
-         , NFData idx
-         )
-  => NFData (Frame n idx a)
+-- instance ( Forall (Map (Series n idx) a)  NFData
+--          , NFData idx
+--          )
+--   => NFData (Frame n idx a)
 
 -- TODO: not the representaton we want but fine for Show... need
 --       "real" functions  for rendering
@@ -184,7 +187,7 @@ toLabeledSeries :: forall n idx a.
                    ( SNatI n
                    , idx ~ Int
                    )
-                => Text
+                => Name
                 -> Vec n a
                 -> Series n idx a
 toLabeledSeries label v = Series.construct $ Series.Options
@@ -199,7 +202,7 @@ toSeries :: forall n idx a.
             )
          => Vec n a
          -> Series n idx a
-toSeries = toLabeledSeries "series"
+toSeries = toLabeledSeries Name.series
 
 empty :: Frame 'Z Int Empty
 empty = construct . Options.fromVec $ Vec.empty
@@ -518,10 +521,11 @@ overSeries :: forall m n idx a b.
         -> Frame n idx a
         -> Frame m idx b
 overSeries f Frame {..} = Frame
-  { dfIndex = Index.defaultIntsFor srb `onCrash` "overSeries.dfIndex"
+  { dfIndex = Index.defaultIntsFor v `onCrash` "overSeries.dfIndex"
   , dfData  = Rec.distribute srb
   }
   where
+    v = Series.toVec srb
     srb = (f . Rec.sequence) dfData :: Series m idx (Rec b)
 
 pop :: forall n idx r k v rest.
@@ -660,7 +664,8 @@ asSeries :: forall n idx a k v.
 asSeries Frame {..} = Series.construct $ Series.Options
   { optIndex = dfIndex
   , optData  = v
-  , optName  = Just $ Text.intercalate "-" (Rec.labels @a @ToField)
+  , optName  = Just . Name.unsafeFromText . Text.intercalate "-" $
+                 (Rec.labels @a @ToField)
   }
   where
     v :: Vec n v
@@ -683,11 +688,15 @@ at idx k df = (.! k) <$> lookup idx df
 
 -- TODO: Can't implement `iat` until we have some sense of column ordering
 
-axes :: Forall a ToField
+axes :: forall n idx a.
+        ( Enum idx
+        , Forall a ToField
+        , SNatI n
+        )
      => Frame n idx a
      -> Axes idx
 axes df = Axes
-  { rowLabels    = df ^. index . to (Vec.toList . Index.toVec)
+  { rowLabels    = df ^. index . to (Vec.toList . SubIndex.toVec)
   , columnLabels = columnNames df
   }
 
@@ -752,8 +761,10 @@ indexes Frame {..} = Vec.map fst . Index.index dfIndex $ rows
     seriesOfRecs :: Series n idx (Rec a)
     seriesOfRecs = Rec.sequence dfData
 
-isEmpty :: ( Enum idx
+isEmpty :: forall n idx a.
+           ( Enum idx
            , Forall a ToField
+           , SNatI n
            )
         => Frame n idx a
         -> Bool
@@ -787,7 +798,10 @@ ndims df
   | length (columnNames df) <= 1 = 1
   | otherwise                = 2
 
-nrows :: Enum idx
+nrows :: forall n idx a.
+         ( Enum idx
+         , SNatI n
+         )
       => Frame n idx a
       -> Int
 nrows df = Index.length $ df ^. index
@@ -832,22 +846,28 @@ render df@Frame {..} = Table.render . Table.fromTexts $ headers:rows
     seriesOfRecs :: Series n idx (Rec a)
     seriesOfRecs = Rec.sequence dfData
 
-shape :: ( Enum idx
+shape :: forall n idx a.
+         ( Enum idx
          , Forall a ToField
+         , SNatI n
          )
       => Frame n idx a
       -> (Int, Int)
 shape = _onRC (,)
 
-size :: ( Enum idx
+size :: forall n idx a.
+        ( Enum idx
         , Forall a ToField
+        , SNatI n
         )
      => Frame n idx a
      -> Int
 size = _onRC (*)
 
-_onRC :: ( Enum idx
+_onRC :: forall n idx a b.
+         ( Enum idx
          , Forall a ToField
+         , SNatI n
          )
       => (Int -> Int -> b)
       -> Frame n idx a
@@ -894,7 +914,7 @@ toTexts df = addIndexes
   . (headers:)
   . Vec.toList
   . Vec.map f
-  . Vec.zip (Index.toVec idx)
+  . Vec.zip (SubIndex.toVec idx)
   . toVec
   $ df
   where
@@ -907,7 +927,7 @@ toTexts df = addIndexes
     f (_n, r) = toFields headers r
 
     addIndexes :: [[Text]] -> [[Text]]
-    addIndexes = zipWith (:) (mempty:fmap show (Index.toList idx))
+    addIndexes = zipWith (:) (mempty:fmap show (SubIndex.toLst idx))
 
 toVec :: forall n idx a.
          ( AllUniqueLabels (Map (Vec n) a)
@@ -1004,14 +1024,14 @@ toFields headers r = List.map f headers
 
 filterIndexes :: forall m n idx a.
                 ( Forall a Unconstrained1
-                , Ord idx
+                , Enum idx
                 , SNatI n
                 )
              => (Vec n idx -> Vec m idx)
              -> Frame n idx a
              -> Frame m idx a
 filterIndexes f Frame {..} = Frame
-  { dfIndex = Index.fromVec . f . Index.toVec $ dfIndex
+  { dfIndex = Index.fromVec . f . SubIndex.toVec $ dfIndex
   , dfData  = dfData'
   }
   where

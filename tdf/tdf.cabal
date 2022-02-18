@@ -36,10 +36,16 @@ library
       Data.Frame.Typed.Examples
       Data.Frame.Typed.Examples.Prestige
       Data.Frame.Typed.Index
+      Data.Frame.Typed.Index.Categorical
+      Data.Frame.Typed.Index.DateTime
+      Data.Frame.Typed.Index.Interval
+      Data.Frame.Typed.Index.Range
       Data.Frame.Typed.Options
       Data.Frame.Typed.Series
+      Data.Frame.Typed.SubIndex
       Data.Frame.Typed.Tutorial
       Data.Frame.Typed.Types.FromField
+      Data.Frame.Typed.Types.Name
       Data.Frame.Typed.Types.Positive
       Data.Frame.Typed.Types.Table
       Data.Frame.Typed.Types.ToField
@@ -78,6 +84,7 @@ test-suite tdf-test
       CSVTest
       DynTest
       FrameTest
+      Index.RangeTest
       IndexTest
       Orphans
       SeriesTest

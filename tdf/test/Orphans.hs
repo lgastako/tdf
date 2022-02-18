@@ -10,10 +10,10 @@ import Data.Frame.Prelude
 import Data.Text.Arbitrary ()
 import Test.QuickCheck
 
-import           Data.Frame.Typed.Index            ( Index )
-import qualified Data.Frame.Typed.Index  as Index
-import           Data.Frame.Typed.Series           ( Series )
-import qualified Data.Frame.Typed.Series as Series
+import           Data.Frame.Typed.Index                ( Index )
+import qualified Data.Frame.Typed.Index      as Index
+import           Data.Frame.Typed.Series               ( Series )
+import qualified Data.Frame.Typed.Series     as Series
 
 instance ( Arbitrary a
          , Arbitrary (Series.Options n idx a)

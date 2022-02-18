@@ -17,15 +17,12 @@ module Data.Frame.Prelude
 
 import Protolude             as X hiding ( Map
                                          , Nat
+                                         , from
+                                         , to
                                          )
 
 import Control.Arrow         as X ( (>>>) )
-import Control.Lens          as X ( Lens'
-                                  , each
-                                  , lens
-                                  , set
-                                  , view
-                                  , (%~)
+import Control.Lens          as X ( (%~)
                                   , (*~)
                                   , (+~)
                                   , (-~)
@@ -33,6 +30,14 @@ import Control.Lens          as X ( Lens'
                                   , (//~)
                                   , (?~)
                                   , (^.)
+                                  , Lens'
+                                  , ala
+                                  , each
+                                  , from
+                                  , lens
+                                  , set
+                                  , to
+                                  , view
                                   )
 import Data.Fin              as X ( Fin )
 import Data.Generics.Labels  as X ()

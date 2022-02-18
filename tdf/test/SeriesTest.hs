@@ -5,11 +5,11 @@ module SeriesTest where
 
 import           Data.Frame.Prelude
 
-import qualified Data.Frame.Typed.Index  as Index
-import           Data.Frame.Typed.Series           ( Series )
-import qualified Data.Frame.Typed.Series as Series
-import qualified Data.Vec.Lazy           as Vec
-import           Orphans                           ()
+import           Data.Frame.Typed.Series               ( Series )
+import qualified Data.Frame.Typed.Series   as Series
+import qualified Data.Frame.Typed.SubIndex as SubIndex
+import qualified Data.Vec.Lazy             as Vec
+import           Orphans                               ()
 import           Test.Tasty.Hspec
 
 spec_Series :: Spec
@@ -21,9 +21,9 @@ spec_Series =
               Just  x -> x
 
         ss :: Series Nat6 Int Float
-        ss = Series.append s s
+        ss = Series.concat s s
 
-    it "should self append" $
+    it "should self concat" $
       length ss `shouldBe` 6
 
     it "should filter" $
@@ -32,15 +32,15 @@ spec_Series =
 
     it "should produce these exact indexes" $ do
       let ab :: Series Nat3 Int Bool
-          ab = Series.append a b
+          ab = Series.concat a b
 
           a :: Series Nat1 Int Bool
-          Just a = Series.fromList [True]
+          a = pure True
 
           b :: Series Nat2 Int Bool
-          Just b = Series.fromList [False, False]
+          b = pure False
 
-      (Vec.toList . Index.toVec . view Series.index) ab
+      (Vec.toList . SubIndex.toVec . view Series.index) ab
         `shouldBe` [0, 1, 2]
 
     it "should function applicatively" $

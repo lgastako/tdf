@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveTraversable     #-}
 {-# LANGUAGE DeriveGeneric         #-}
@@ -30,9 +31,10 @@ module Data.Frame.Typed.Series
   , fromList
   , fromScalar
   , fromVec
+  , mkSeries
   , repeat
   -- Combinators
-  , append
+  , concat
   , cons
   , drop
   , dropNaNs
@@ -50,6 +52,8 @@ module Data.Frame.Typed.Series
   , zipWith
   -- Optics
   , at
+  , dataVec
+  , index
   , name
   -- Eliminators
   , aseries
@@ -61,7 +65,6 @@ module Data.Frame.Typed.Series
   , filterWithIndex
   , filterWithIndexThen
   , hasNaNs
-  , index
   , isEmpty
   , ncols
   , ndims
@@ -76,27 +79,31 @@ module Data.Frame.Typed.Series
   , unique
   ) where
 
-import           Data.Frame.Prelude             hiding ( drop
-                                                       , empty
-                                                       , filter
-                                                       , repeat
-                                                       , reverse
-                                                       , take
-                                                       , toList
-                                                       , zip
-                                                       , zipWith
-                                                       )
+import           Data.Frame.Prelude                 hiding ( concat
+                                                           , drop
+                                                           , empty
+                                                           , filter
+                                                           , repeat
+                                                           , reverse
+                                                           , take
+                                                           , toList
+                                                           , zip
+                                                           , zipWith
+                                                           )
 
-import           Control.Lens                          ( Each )
-import qualified Data.List                    as List
-import qualified Data.Map.Strict              as Map
-import qualified Data.Vec.Lazy.X              as Vec
-import qualified Data.Vec.Lazy.AVec           as AVec
-import qualified Data.Vec.Lazy.Lens           as VL
-import           Data.Frame.Typed.Index                ( Index )
-import qualified Data.Frame.Typed.Index       as Index
-import qualified Data.Frame.Typed.Types.Table as Table
-import           Data.Frame.Typed.Types.ToVecN         ( ToVecN( toVecN ) )
+import           Control.Lens                              ( Each )
+import qualified Data.List                     as List
+import qualified Data.Map.Strict               as Map
+import qualified Data.Vec.Lazy.X               as Vec
+import qualified Data.Vec.Lazy.AVec            as AVec
+import qualified Data.Vec.Lazy.Lens            as VL
+import qualified Data.Frame.Typed.SubIndex     as SubIndex
+import           Data.Frame.Typed.Index                    ( Index )
+import qualified Data.Frame.Typed.Index        as Index
+import           Data.Frame.Typed.Types.Name               ( Name )
+import qualified Data.Frame.Typed.Types.Name   as Name
+import qualified Data.Frame.Typed.Types.Table  as Table
+import           Data.Frame.Typed.Types.ToVecN             ( ToVecN( toVecN ) )
 
 -- import qualified Control.Applicative as A
 
@@ -106,8 +113,7 @@ import           Data.Frame.Typed.Types.ToVecN         ( ToVecN( toVecN ) )
 data Series (n :: Nat) idx a = Series
   { sIndex  :: Index n idx
   , sData   :: Vec n a
-  , sLength :: Int
-  , sName   :: Maybe Text
+  , sName   :: Maybe Name
   } deriving (Eq, Foldable, Functor, Generic, Ord, Traversable, Show)
 
 -- instance (SNatI n, idx ~ Int) => Alternative (Series n idx) where
@@ -124,7 +130,8 @@ data Series (n :: Nat) idx a = Series
 --   (<|>) = undefined
 
 instance Semigroup a => Semigroup (Series n idx a) where
-  s1 <> s2 = s1 { sData = sData s1 <> sData s2 }
+  s1 <> s2 = s1 & dataVec .~ s1 ^. dataVec
+                          <> s2 ^. dataVec
 
 instance (Monoid a, SNatI n, idx ~ Int) => Monoid (Series n idx a) where
   mempty = pure mempty
@@ -132,16 +139,8 @@ instance (Monoid a, SNatI n, idx ~ Int) => Monoid (Series n idx a) where
 instance ( SNatI n
          , idx ~ Int
          ) => Applicative (Series n idx) where
+  pure x = mkSeries Nothing (Vec.repeat x)
   sf <*> sx = sf { sData = Vec.zipWith ($) (sData sf) (sData sx) }
-
-  pure x = Series
-    { sIndex  = Index.defaultIntsFor sData' & fromMaybe (panic "Series.pure")
-    , sData   = sData'
-    , sLength = Vec.length sData'
-    , sName   = Nothing
-    }
-    where
-      sData' = Vec.repeat x
 
 instance ( SNatI n
          , idx ~ Int
@@ -155,7 +154,7 @@ instance ( SNatI n
 instance ToVecN (Series n idx a) n a where
   toVecN = toVec
 
-instance (NFData idx, NFData a) => NFData (Series n idx a)
+-- instance (NFData idx, NFData a) => NFData (Series n idx a)
 
 data ASeries idx a = forall n. SNatI n => ASeries
   { asSize   :: SNat n
@@ -188,7 +187,7 @@ deriving instance Traversable (ASeries idx)
 data Options (n :: Nat) idx a = Options
   { optIndex :: Index n idx
   , optData  :: Vec n a
-  , optName  :: Maybe Text
+  , optName  :: Maybe Name
   } deriving (Eq, Foldable, Functor, Generic, Ord, Traversable, Show)
 
 instance Each (Series n idx a) (Series n idx a) a a
@@ -207,7 +206,6 @@ construct :: forall n idx a. Options n idx a -> Series n idx a
 construct Options {..} = Series
   { sIndex  = optIndex
   , sData   = optData
-  , sLength = Vec.length optData
   , sName   = optName
   }
 
@@ -255,15 +253,7 @@ fromScalar :: forall n idx a.
               )
            => a
            -> Series n idx a
-fromScalar x = Series
-  { sIndex  = Index.defaultIntsFor sData' `onCrash` "Series.fromScalar"
-  , sData   = sData'
-  , sLength = length sData'
-  , sName   = Nothing
-  }
-  where
-    sData' :: Vec n a
-    sData' = Vec.repeat x
+fromScalar = repeat
 
 fromVec :: forall n idx a.
            ( SNatI n
@@ -271,13 +261,12 @@ fromVec :: forall n idx a.
            )
         => Vec n a
         -> Maybe (Series n idx a)
-fromVec optData = f <$> Index.defaultIntsFor optData
+fromVec v = f <$> Index.defaultIntsFor v
   where
     f:: Index n idx -> Series n idx a
     f idx = Series
       { sIndex  = idx
-      , sData   = optData
-      , sLength = Vec.length optData
+      , sData   = v
       , sName   = Nothing
       }
 
@@ -287,14 +276,7 @@ repeat :: forall n idx a.
           )
        => a
        -> Series n idx a
-repeat x = Series
-  { sIndex  = Index.defaultIntsFor v `onCrash` "Series.repeat"
-  , sData   = v
-  , sLength = length v
-  , sName   = Nothing
-  }
-  where
-    v = Vec.repeat x
+repeat x = fromVec (Vec.repeat x) `onCrash` "Series.repeat"
 
 -- ================================================================ --
 --   Combinators
@@ -305,19 +287,26 @@ repeat x = Series
 -- https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.append.html
 -- does and only append rows that aren't in the target already (presumably
 -- via idx)
-append :: forall m n idx a.
-          ( Num idx
+concat :: forall m n idx a.
+          ( LE (Plus n m) (Plus n m)
           , Ord idx
+          , SNatI n
+          , SNatI m
           )
        => Series n idx a
        -> Series m idx a
        -> Series (Plus n m) idx a
-append a b = Series
-  { sIndex  = Index.append (sIndex a) (sIndex b)
-  , sData   = (Vec.++) (sData a) (sData b)
-  , sLength = sLength a + sLength b
-  , sName   = sName a  -- TODO
+concat a b = Series
+  { sIndex  = Index.concat (a ^. index) (b ^. index)
+  , sData   = a ^. dataVec Vec.++ b ^. dataVec
+  , sName   = Name.combine nameA nameB
   }
+  where
+    nameA :: Maybe Name
+    nameA = a ^. name
+
+    nameB :: Maybe Name
+    nameB = b ^. name
 
 drop :: forall m n idx a.
         ( SNatI n
@@ -340,14 +329,7 @@ duplicated s = map ((>1) . (counts Map.!)) s
 
 empty :: forall idx a. ( idx ~ Int )
       => Series Nat0 idx a
-empty = Series
-  { sIndex  = Index.defaultIntsFor sData' `onCrash` "Series.empty"
-  , sData   = sData'
-  , sLength = length sData'
-  , sName   = Nothing
-  }
-  where
-    sData' = Vec.empty
+empty = fromVec Vec.empty `onCrash` "Series.empty"
 
 filter :: forall n idx a.
           ( SNatI n
@@ -397,7 +379,7 @@ filterWithIndex :: forall n idx a.
 filterWithIndex p s@Series {..} = AVec.reify (mkASeries sName)
   . map snd
   . AVec.filter p
-  . Vec.zip (Index.toVec sIndex)
+  . Vec.zip (SubIndex.toVec sIndex)
   . toVec
   $ s
 
@@ -415,15 +397,15 @@ mkASeries :: forall n idx a.
              ( SNatI n
              , idx ~ Int
              )
-          => Maybe Text
+          => Maybe Name
           -> Vec n a
           -> ASeries idx a
-mkASeries sName v = ASeries (snat @n) $ Series
-  { sIndex  = Index.defaultIntsFor v `onCrash` "f.Sindex"
-  , sData   = v
-  , sLength = Vec.length v
-  , sName   = sName
-  }
+mkASeries n v = ASeries (snat @n) (mkSeries n v)
+
+mkSeries :: SNatI n => Maybe Name -> Vec n a -> Series n Int a
+mkSeries n v = fromVec v
+  & orCrash "mkASeries.s"
+  & name .~ n
 
 normalize :: forall n idx a.
              ( Fractional a
@@ -466,22 +448,22 @@ standardizeWith mu s = map f s
 
 -- This implementation avoids the SNat (and idx ~ Int) constraints that would
 -- be required if we used updateVec instead
-op :: ToVecN x n a
+op :: forall n idx a b x.
+      ToVecN x n a
    => (a -> a -> b)
    -> x
    -> Series n idx a
    -> Series n idx b
-op f x s = s { sData =  Vec.zipWith f v v' }
-  where
-    v  = sData s
-    v' = toVecN x
+op f x s = s { sData = Vec.zipWith f (sData s) (toVecN x) }
 
-reverse :: Series n idx a -> Series n idx a
-reverse = #sData %~ Vec.reverse
+reverse :: forall n idx a.
+           Series n idx a
+        -> Series n idx a
+reverse = dataVec %~ Vec.reverse
 
 -- | The transpose of the Series, which according to Pandas, is the
 -- series itself.
-t :: Series n idx a -> Series n idx a
+t :: forall n idx a. Series n idx a -> Series n idx a
 t = identity
 
 take :: forall m n idx a.
@@ -501,16 +483,10 @@ updateVec :: forall m n idx a b.
           => (Vec n a -> Vec m b)
           -> Series n idx a
           -> Series m idx b
-updateVec f Series {..} = Series
-  { sIndex  = Index.defaultIntsFor v `onCrash` "Series.join'"
-  , sData   = v
-  , sLength = length v
-  , sName   = sName
-  }
-  where
-    v = f sData
+updateVec f s = mkSeries (s ^. name) (f $ s ^. dataVec)
 
-zip :: ( SNatI n
+zip :: forall n idx a b.
+       ( SNatI n
        , idx ~ Int
        )
     => Series n idx a
@@ -536,7 +512,8 @@ zipWith f s1 s2 = updateVec (const $ Vec.zipWith f (sData s1) (sData s2)) s1
 --      TODO advanced mode: providing Indexing types that prohiibit
 --           invalid access by contrusvtion
 at :: forall n idx a.
-      ( Eq idx
+      ( Enum idx
+      , Eq idx
       , SNatI n
       )
    => idx
@@ -544,29 +521,24 @@ at :: forall n idx a.
 at idx = lens get' set'
   where
     get' :: Series n idx a -> a
-    get' s = view (#sData . VL.ix vecIdx) s
+    get' s = view (dataVec . VL.ix vecIdx) s
       where
         vecIdx :: Fin n
         vecIdx = Index.toFin idx (sIndex s)
           & fromMaybe (panic "Series.at.vecIdx.get' boom")
 
     set' :: Series n idx a -> a -> Series n idx a
-    set' s x = set (#sData . VL.ix vecIdx) x s
+    set' s x = set (dataVec . VL.ix vecIdx) x s
       where
         vecIdx :: Fin n
         vecIdx = Index.toFin idx (sIndex s)
           & fromMaybe (panic "Series.at.vecIdx.set boom")
 
-name :: Lens' (Series n idx a) (Maybe Text)
-name = lens get' set'
-  where
-    get' :: Series n idx a -> Maybe Text
-    get' = sName
+dataVec :: forall n idx a. Lens' (Series n idx a) (Vec n a)
+dataVec = field @"sData"
 
-    set' :: Series n idx a
-         -> Maybe Text
-         -> Series n idx a
-    set' s n = s { sName = n }
+name :: forall n idx a. Lens' (Series n idx a) (Maybe Name)
+name = field @"sName"
 
 -- ================================================================ --
 --   Eliminators
@@ -595,18 +567,8 @@ dropNaNs :: forall n idx a.
          -> ASeries idx a
 dropNaNs = filter (not . isNaN)
 
--- index :: Series n idx a -> Index n idx
--- index = sIndex
-
--- TODO could make these through generics ...?
 index :: forall n idx a. Lens' (Series n idx a) (Index n idx)
-index = lens get' set'
-  where
-    get' :: Series n idx a -> Index n idx
-    get' = sIndex
-
-    set' :: Series n idx a -> Index n idx -> Series n idx a
-    set' s idx = s { sIndex = idx }
+index = field @"sIndex"
 
 isEmpty :: forall n idx a.
            ( SNatI n )
@@ -652,22 +614,33 @@ toTextsVia :: forall n idx a. (a -> Text) -> Series n idx a -> [[Text]]
 toTextsVia tt s = map pure . f . toVec $ s
   where
     f :: Vec n a -> [Text]
-    f = (fromMaybe "series" (s ^. name):) . Vec.toList . Vec.map tt
+    f = (renderedName:) . Vec.toList . Vec.map tt
+
+    renderedName :: Text
+    renderedName = Name.unName $ fromMaybe defaultName (s ^. name)
+
+    defaultName :: Name
+    defaultName = Name.series
 
 toList :: Series n idx a -> [a]
 toList = Vec.toList . toVec
 
-toIndexedList :: Series n idx a -> [(idx, a)]
-toIndexedList Series {..} = List.zip idxes vals
+toIndexedList :: forall n idx a.
+                 ( Enum idx
+                 , SNatI n
+                 )
+              => Series n idx a
+              -> [(idx, a)]
+toIndexedList s = List.zip idxes vals
   where
-    idxes = Index.toList sIndex
-    vals  = Vec.toList sData
+    idxes = SubIndex.toLst $ s ^. index
+    vals  = Vec.toList $ s ^. dataVec
 
 toTexts :: Show a => Series n idx a -> [[Text]]
 toTexts = toTextsVia show
 
 toVec :: Series n idx a -> Vec n a
-toVec Series {..} = sData
+toVec = view dataVec
 
 -- TODO ifCtx for the (Ord a) with a fallback to Eq via compared nub to itself
 unique :: forall n idx a.
