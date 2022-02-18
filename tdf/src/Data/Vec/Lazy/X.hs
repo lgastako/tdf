@@ -1,3 +1,6 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
+
 module Data.Vec.Lazy.X
   ( module Data.Vec.Lazy
   -- Constructors
