@@ -800,18 +800,24 @@ toTexts :: forall n idx a.
            )
         => Frame n idx a
         -> [[Text]]
-toTexts df = (headers:)
+toTexts df = addIndexes
+  . (headers:)
   . Vec.toList
   . Vec.map f
-  . Vec.zip (Index.toVec . dfIndex $ df)
+  . Vec.zip (Index.toVec idx)
   . toVec
   $ df
   where
     headers :: [Text]
     headers = columnNames df
 
+    idx = dfIndex df
+
     f :: (idx, Rec a) -> [Text]
-    f (n, r) = toFields headers r
+    f (_n, r) = toFields headers r
+
+    addIndexes :: [[Text]] -> [[Text]]
+    addIndexes = zipWith (:) (mempty:fmap show (Index.toList idx))
 
 toVec :: forall n idx a.
          ( AllUniqueLabels (Map (Vec n) a)

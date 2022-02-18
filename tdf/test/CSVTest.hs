@@ -38,13 +38,13 @@ spec_CSV =
 
     it "should toTexts properly" $
       DF.toTexts df `shouldBe`
-        [ ["age","name"]
-        , ["46","John"]
-        , ["21","Kaialynn"]
-        , ["51","Zeke"]
-        , ["46","Eric"]
-        , ["47","Sean"]
-        , ["147","Gandalf"]
+        [ ["", "age","name"]
+        , ["0", "46","John"]
+        , ["1", "21","Kaialynn"]
+        , ["2", "51","Zeke"]
+        , ["3", "46","Eric"]
+        , ["4", "47","Sean"]
+        , ["5", "147","Gandalf"]
         ]
 
 boom :: a
