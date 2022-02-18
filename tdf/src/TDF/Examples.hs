@@ -395,48 +395,68 @@ productTexts =
     )
   ]
 
-aDemo :: IO ()
-aDemo = do
-  let df = examples
-      s  = df ^. DF.series #age
+getDemoS :: IO (Series Nat6 Int Int)
+getDemoS = do
   nl >> DF.display df
   nl >> Series.display s
-  nl >> (a_ Series.display $ Series.filter even s)
+  pure s
+  where
+    df = examples
+    s  = df ^. DF.series #age
+
+aDemo :: IO ()
+aDemo = do
+  s <- getDemoS
+  nl >> adisplay (Series.filter even . map (*10) $ s)
   nl
 
 cpsDemo :: IO ()
 cpsDemo = do
-  let df = examples
-      s  = df ^. DF.series #age
-  nl >> DF.display df
-  nl >> Series.display s
-  nl >> Series.filterThen even s (a_ Series.display)
+  s <- getDemoS
+  nl >> Series.filterThen even s (adisplay . map (*10))
   nl
 
 cpsContDemo :: IO ()
 cpsContDemo = do
-  let df = examples
-      s  = df ^. DF.series #age
-  nl >> DF.display df
-  nl >> Series.display s
+  s <- getDemoS
   run $ do
-    s' <- ct $ Series.filterThen even s
-    lift nl >> lift (a_ Series.display s')
+    s'  <- ct $ Series.filterThen even s
+    let s'' = map (*10) s'
+    lift nl >> lift (a_ Series.display s'')
     lift nl
   where
     ct = ContT
 
+aseriesDemo :: IO ()
+aseriesDemo = do
+  as <- Series.aseries <$> getDemoS
+  let bs = afilter even as
+      ds = map (*10) bs
+  nl >> adisplay ds
+  nl
+
+afilter :: forall a. (a -> Bool)
+        -> Series.ASeries Int a
+        -> Series.ASeries Int a
+afilter p = a_ (Series.filter p)
+
+adisplay :: Series.ASeries Int Int -> IO ()
+adisplay = a_ Series.display
+
 run :: ContT r IO r -> IO r
 run = flip runContT pure
 
-monadExample :: Monad m => m Int
-monadExample = do
-  x <- pure (1 :: Int)
-  y <- pure (2 :: Int)
+monadExample :: Monad m => m Int -> m Int -> m Int
+monadExample a b = do
+  x <- a
+  y <- b
   pure (x + y)
 
 meSeries :: Series Nat1 Int Int
-meSeries = monadExample
+meSeries = monadExample (pure 1) (pure 2)
+
+meList :: [Int]
+meList = monadExample [1,2,3] [4,5,6]
 
 newSeries :: Series Nat3 Int Float
 newSeries = do

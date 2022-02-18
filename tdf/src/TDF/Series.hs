@@ -644,7 +644,7 @@ unique :: forall n idx a.
           ( Ord a )
        => Series n idx a
        -> Bool
-unique = not . any identity . duplicated
+unique = not . or . duplicated
 
 -- ================================================================ --
 --   Helpers
