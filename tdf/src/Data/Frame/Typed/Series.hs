@@ -225,8 +225,8 @@ fake :: forall n idx a.
         )
      => Fake a
      -> IO (Series n idx a)
-fake gen = Faker.generateNonDeterministic (Fake.listOf n gen) >>=
-  pure . orCrash error2 . fromVec . orCrash error . Vec.fromList @n
+fake gen = Faker.generateNonDeterministic (Fake.listOf n gen)
+  <&> orCrash error2 . fromVec . orCrash error . Vec.fromList @n
   where
     error  = "The fake data that was generated was the wrong size."
     error2 = error <> " (case 2)"
