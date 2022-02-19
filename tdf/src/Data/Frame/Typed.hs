@@ -29,6 +29,7 @@ module Data.Frame.Typed
   , cons
   , construct
   , empty
+  , fake
   , fromList
   , fromNativeVec
   , fromScalar
@@ -54,6 +55,7 @@ module Data.Frame.Typed
   , snoc
   , tail
   -- Optics
+  , at
   , series
   -- Eliminators
   , a_
@@ -61,7 +63,6 @@ module Data.Frame.Typed
   , asBool
   , asScalar
   , asSeries
-  , at
   , axes
   , bool
   , columnNames
@@ -93,34 +94,38 @@ module Data.Frame.Typed
   , valueCounts
   ) where
 
-import           Data.Frame.Prelude                 hiding ( bool
-                                                           , empty
-                                                           , foldr
-                                                           , head
-                                                           , map
-                                                           , toList
-                                                           )
+import Data.Frame.Prelude      hiding ( bool
+                                      , empty
+                                      , foldr
+                                      , head
+                                      , map
+                                      , toList
+                                      )
+
+import Faker                          ( Fake )
+import Data.Frame.Typed.Index         ( Index )
+import Data.Frame.Typed.Options       ( Options )
+import Data.Frame.Typed.Types.Name    ( Name )
+import Data.Frame.Typed.Types.ToField ( ToField )
+import Data.Frame.Typed.Series        ( Series )
+import Faker.Combinators              ( listOf )
+
 import qualified Prelude                         as P
 import qualified Data.Frame.Prelude              as DP
-
 import qualified Data.List                       as List
 import qualified Data.Map.Strict                 as Map
 import qualified Data.Row.Records                as Rec
 import qualified Data.Text                       as Text
 -- import qualified Data.Vec.Lazy.Lens              as VL
 import qualified Data.Vec.Lazy.X                 as Vec
-import           Data.Frame.Typed.Index                     ( Index )
 import qualified Data.Frame.Typed.Index          as Index
-import           Data.Frame.Typed.Options                   ( Options )
 import qualified Data.Frame.Typed.Options        as Options
-import           Data.Frame.Typed.Types.Name                ( Name )
 import qualified Data.Frame.Typed.Types.Name     as Name
 import qualified Data.Frame.Typed.Types.Table    as Table
-import           Data.Frame.Typed.Types.ToField             ( ToField )
 import qualified Data.Frame.Typed.Utils.Dyn      as Dyn
-import           Data.Frame.Typed.Series                    ( Series )
 import qualified Data.Frame.Typed.Series         as Series
 import qualified Data.Frame.Typed.SubIndex       as SubIndex
+import qualified Faker
 
 data Frame (n :: Nat) idx a = Frame
   { dfIndex :: Index n idx
@@ -201,16 +206,27 @@ toLabeledSeries label v = Series.construct $ Series.Options
   , optName  = Just label
   }
 
-toSeries :: forall n idx a.
-            ( SNatI n
-            , idx ~ Int
-            )
-         => Vec n a
-         -> Series n idx a
-toSeries = toLabeledSeries Name.series
-
 empty :: Frame 'Z Int Empty
 empty = construct . Options.fromVec $ Vec.empty
+
+fake :: forall n idx a.
+        ( Enum idx
+        , Forall a Unconstrained1
+        , SNatI n
+        , idx ~ Int  -- For now, to make it easy to call.
+        )
+     => Rec (Map Fake a)
+     -> IO (Frame n idx a)
+fake rf = orCrash error . fromList
+  <$> Faker.generateNonDeterministic (listOf n gen)
+  where
+    gen :: Fake (Rec a)
+    gen = Rec.sequence rf
+
+    n :: Int
+    n = fromIntegral $ snatToNat (snat @n)
+
+    error = "Typed.fake: something went wrong."
 
 fromList :: forall n idx a.
             ( Forall a Unconstrained1
@@ -608,6 +624,30 @@ tail Frame {..} = Frame
 --   Optics
 -- ================================================================ --
 
+at :: forall n idx a k v.
+      ( Enum idx
+      , Eq idx
+      , Forall a Unconstrained1
+      , KnownSymbol k
+      , LE n n
+      , SNatI n
+      , v ~ (a .! k)
+      )
+   => idx
+   -> Label k
+   -> Lens' (Frame n idx a) (Maybe v)
+at idx k = lens get' set'
+  where
+    get' :: Frame n idx a -> Maybe v
+    get' = ((.! k) <$>) . lookup idx
+
+    set' :: Frame n idx a
+         -> Maybe v
+         -> Frame n idx a
+    set' df = \case
+      Nothing -> df -- TODO is this right? surely it's not?
+      Just v  -> df & record idx . _Just %~ Rec.update k v
+
 series :: forall n idx r k v a rest.
           ( Disjoint r rest
           , (Map (Series n idx) a .! k) ~ Series n idx v
@@ -719,29 +759,13 @@ recSerSeq = iso there back
          -> Rec (Map (Series n idx) a)
     back = Rec.distribute
 
-at :: forall n idx a k v.
-      ( Enum idx
-      , Eq idx
-      , Forall a Unconstrained1
-      , KnownSymbol k
-      , LE n n
-      , SNatI n
-      , v ~ (a .! k)
-      )
-   => idx
-   -> Label k
-   -> Lens' (Frame n idx a) (Maybe v)
-at idx k = lens get' set'
-  where
-    get' :: Frame n idx a -> Maybe v
-    get' = ((.! k) <$>) . lookup idx
-
-    set' :: Frame n idx a
-         -> Maybe v
-         -> Frame n idx a
-    set' df = \case
-      Nothing -> df -- TODO is this right? surely it's not?
-      Just v  -> df & record idx . _Just %~ Rec.update k v
+toSeries :: forall n idx a.
+            ( SNatI n
+            , idx ~ Int
+            )
+         => Vec n a
+         -> Series n idx a
+toSeries = toLabeledSeries Name.series
 
 -- TODO: Can't implement `iat` until we have some sense of column ordering
 

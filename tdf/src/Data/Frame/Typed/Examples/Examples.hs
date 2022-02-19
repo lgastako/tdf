@@ -12,31 +12,37 @@
 
 module Data.Frame.Typed.Examples.Examples where
 
-import           Data.Frame.Prelude           hiding ( Product
-                                                     , drop
-                                                     , take
-                                                     )
+import Data.Frame.Prelude hiding ( Product
+                                 , drop
+                                 , take
+                                 )
 
-import           Control.Monad.Cont                  ( ContT( ContT )
-                                                     , runContT
-                                                     )
-import qualified Data.Row.Records         as Rec
-import qualified Data.List                as List
-import qualified Data.List.NonEmpty       as NE
-import qualified Data.Text                as Text
-import qualified Data.Vec.Lazy            as Vec
-import           Data.Frame.Typed                    ( Axes
-                                                     , Frame
-                                                     )
-import qualified Data.Frame.Typed.CSV     as CSV
+import Control.Monad.Cont        ( ContT( ContT )
+                                 , runContT
+                                 )
+import Data.Frame.Typed          ( Axes
+                                 , Frame
+                                 )
+import Data.Frame.Typed.Series   ( Series
+                                 , a_
+                                 )
+import Faker                     ( Fake )
+import System.IO.Unsafe          ( unsafePerformIO )
+
 import qualified Data.Frame.Typed         as DF
+import qualified Data.Frame.Typed.CSV     as CSV
 import qualified Data.Frame.Typed.Index   as Index
 import qualified Data.Frame.Typed.Options as Options
-import           Data.Frame.Typed.Series             ( Series
-                                                     , a_
-                                                     )
 import qualified Data.Frame.Typed.Series  as Series
-import           System.IO.Unsafe                    ( unsafePerformIO )
+import qualified Data.List                as List
+import qualified Data.List.NonEmpty       as NE
+import qualified Data.Row.Records         as Rec
+import qualified Data.Text                as Text
+import qualified Data.Vec.Lazy            as Vec
+import qualified Faker.Address            as FakeA
+import qualified Faker.FunnyName          as FakeFN
+import qualified Faker.Name               as FakeN
+import qualified Faker.PhoneNumber        as FakeP
 
 type PersonFields = NameFields .+ AgeFields
 
@@ -494,3 +500,28 @@ someThing = do
   nl >> DF.display (df1 & DF.record 1 . _Just . #age *~ 15)
   nl >> DF.display (df1 & DF.record 2 . _Just . #age *~ 15)
   nl
+
+nineAddresses :: IO (Series Nat9 Int Text)
+nineAddresses = Series.fake FakeA.fullAddress
+
+type X = "name"    .== Text
+      .+ "phone"   .== Text
+      .+ "address" .== Text
+
+type FakeX = "name"    .== Fake Text
+          .+ "phone"   .== Fake Text
+          .+ "address" .== Fake Text
+
+nineXs :: IO (Frame Nat9 Int X)
+nineXs = DF.fake
+  (  #name    .== FakeN.name
+  .+ #phone   .== FakeP.cellPhoneFormat
+  .+ #address .== FakeA.fullAddress
+  )
+
+nineFunnyXs :: IO (Frame Nat9 Int X)
+nineFunnyXs = DF.fake
+  (  #name    .== FakeFN.name
+  .+ #phone   .== FakeP.cellPhoneFormat
+  .+ #address .== FakeA.fullAddress
+  )
