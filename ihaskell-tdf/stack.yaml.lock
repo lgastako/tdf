@@ -25,6 +25,34 @@ packages:
       sha256: c575e93caf206d5824a1c9e6233ad1e34efd4dc58c92fd4a8872b75ebdf156c9
   original:
     hackage: vec-lens-0.4@sha256:a32ae456c2b6f8f04f7610a959a349f83688708bf1995ddd098da1b18254089c,1725
+- completed:
+    hackage: barchart-0.1.1.1@sha256:84c763d07af43a43f8c784d721365afb2d64db47857dad675c7c8d97cefdcfff,2213
+    pantry-tree:
+      size: 716
+      sha256: 02437c3c67ae12973f595e732ffb53c7e8ba60a3bb0f32160fe6e7085b57a1b3
+  original:
+    hackage: barchart-0.1.1.1
+- completed:
+    hackage: diagrams-0.2.2.3@sha256:e4d1fb2d2e22982376f303f719c0bb9e3d576534434a1e468ce6b728b272b952,1625
+    pantry-tree:
+      size: 1441
+      sha256: fecfbb452513cb41261112ee9114ab65d2e93f99cb85e28697cdfb26154c957b
+  original:
+    hackage: diagrams-0.2.2.3@sha256:e4d1fb2d2e22982376f303f719c0bb9e3d576534434a1e468ce6b728b272b952,1625
+- completed:
+    hackage: cairo-0.12.5.3@sha256:424b59d5ab4bd349b850a1cc26b594c18e0ad7f3346693b5212ae9c09527e1f2,3493
+    pantry-tree:
+      size: 2469
+      sha256: efc2e91be24bf4a5c0601fd61a2757b9122d637a266e9b6115d665db1b9a97d8
+  original:
+    hackage: cairo-0.12.5.3@sha256:424b59d5ab4bd349b850a1cc26b594c18e0ad7f3346693b5212ae9c09527e1f2,3493
+- completed:
+    hackage: gtk2hs-buildtools-0.13.8.2@sha256:01c4a6cc3679008bd4caec32b49843acb27a5f48ee2b22484218f097835548f6,5238
+    pantry-tree:
+      size: 3588
+      sha256: 1c3b449a69f4bb2d27c09a89e447552a58201a3febf5418e67af0001a0cbb0a7
+  original:
+    hackage: gtk2hs-buildtools-0.13.8.2@sha256:01c4a6cc3679008bd4caec32b49843acb27a5f48ee2b22484218f097835548f6,5238
 snapshots:
 - completed:
     size: 586103

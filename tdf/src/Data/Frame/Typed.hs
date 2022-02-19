@@ -77,6 +77,7 @@ module Data.Frame.Typed
   , ndims
   , nrows
   , onColumn
+  , record
   , reify
   , render
   , shape
@@ -103,6 +104,7 @@ import qualified Data.List                       as List
 import qualified Data.Map.Strict                 as Map
 import qualified Data.Row.Records                as Rec
 import qualified Data.Text                       as Text
+-- import qualified Data.Vec.Lazy.Lens              as VL
 import qualified Data.Vec.Lazy.X                 as Vec
 import           Data.Frame.Typed.Index                     ( Index )
 import qualified Data.Frame.Typed.Index          as Index
@@ -373,6 +375,7 @@ benford k df = case fmap bumpIndexes . fromList $ dfreqs of
     s :: Series n idx v
     s = view (series k) df
 
+-- TODO Give this a better name
 column :: forall n k v idx a b rest.
           ( Forall a Unconstrained1
           , Forall b Unconstrained1
@@ -542,7 +545,10 @@ pop :: forall n idx r k v rest.
     -> (Frame n idx rest, Series n idx v)
 pop k df = (restrict df, df ^. series k)
 
-reindex :: Index n idx -> Frame n idx a -> Frame n idx a
+reindex :: forall n idx a.
+           Index n idx
+        -> Frame n idx a
+        -> Frame n idx a
 reindex idx df = df & index .~ idx
 
 rename :: ( Extend k' (sa .! k) (sa .- k) ~ Map (Series n idx) b
@@ -674,17 +680,78 @@ asSeries Frame {..} = Series.construct $ Series.Options
       . Rec.sequence
       $ dfData
 
-at :: ( Forall a Unconstrained1
+record :: forall n idx a. idx -> Lens' (Frame n idx a) (Maybe (Rec a))
+record _idx = panic "Typed.record"
+
+at :: forall n idx a k.
+      ( Enum idx
+      , Eq idx
+      , Forall a Unconstrained1
       , KnownSymbol k
       , LE n n
       , SNatI n
-      , idx ~ Int
       )
    => idx
    -> Label k
-   -> Frame n idx a
-   -> Maybe (a .! k)
-at idx k df = (.! k) <$> lookup idx df
+   -> Lens' (Frame n idx a) (Maybe (a .! k))
+at idx k = lens get' set'
+  where
+    get' :: Frame n idx a
+         -> Maybe (a .! k)
+    get' df = case lookup idx df of
+      Nothing -> Nothing
+      Just x  -> Just (x .! k)
+
+    set' :: Frame n idx a
+         -> Maybe (a .! k)
+         -> Frame n idx a
+    set' df vMay = df & series k . Series.at idx .~ undefined
+
+
+--        s = DF.column
+        -- dfData' :: Rec (Map (Series n idx) a)
+        -- dfData' = Rec.distribute sr'
+
+        -- sr' :: Series n idx (Rec a)
+        -- sr' = doTheUpdate sr
+
+        -- sr :: Series n idx (Rec a)
+        -- sr = Rec.sequence (df ^. recSeries)
+
+        -- doTheUpdate :: Series n idx (a .! k)
+        --             -> Series n idx (a .! k)
+        -- doTheUpdate s = case vMay of
+        --   Nothing -> panic "this code is wrong"
+        --   Just v  -> s & Series.at idx .~ v
+
+
+    -- set' df rMay = df { dfData = dfData' }
+    --   where
+    --     _  = df :: Frame n idx a
+
+    --     dfData' :: Rec (Map (Series n idx) a)
+    --     dfData' = Rec.distribute sr'
+
+    --     sr' :: Series n idx (Rec a)
+    --     sr' = sr & Series.at idx .~ rMay
+
+    --     sr :: Series n idx (Rec a)
+    --     sr = Rec.sequence rs
+
+    --     rs :: Rec (Map (Series n idx) a)
+    --     rs = df ^. recSeries
+
+-- at :: ( Forall a Unconstrained1
+--       , KnownSymbol k
+--       , LE n n
+--       , SNatI n
+--       , idx ~ Int
+--       )
+--    => idx
+--    -> Label k
+--    -> Frame n idx a
+--    -> Maybe (a .! k)
+-- at idx k df = (.! k) <$> lookup idx df
 
 -- TODO: Can't implement `iat` until we have some sense of column ordering
 
@@ -740,6 +807,13 @@ display = putStr
 
 index :: Lens' (Frame n idx a) (Index n idx)
 index = field @"dfIndex"
+
+-- field @"dfData" didn't seem to work, so we'll do it the old
+-- fashoined way
+recSeries :: Lens' (Frame n idx a) (Rec (Map (Series n idx) a))
+recSeries = lens dfData set'
+  where
+    set' df r = df { dfData = r }
 
 -- | The index (row labels) of the Frame.
 indexes :: forall n idx a.
@@ -992,22 +1066,30 @@ colFoldr k f z df = Vec.foldr f z ( columnVec k df )
 -- ================================================================ --
 
 -- TODO this obviously needs to be SOOO much better
+--   ...but for now it works... again.
 lookup :: forall n idx a.
           ( Forall a Unconstrained1
+          , Enum idx
+          , Eq idx
           , LE n n
           , SNatI n
-          , idx ~ Int
           )
-       => Int
+       => idx
        -> Frame n idx a
        -> Maybe (Rec a)
-lookup k Frame {..} = snd <$> find ((k ==) . fst) indexed
+lookup idx Frame {..} = snd <$> find ((idx ==) . fst) indexed
   where
     indexed :: Vec n (idx, Rec a)
     indexed = Index.index dfIndex vecOfRecs
 
     vecOfRecs :: Vec n (Rec a)
-    vecOfRecs = Series.toVec . Rec.sequence $ dfData
+    vecOfRecs = seriesOfRecs ^. Series.dataVec
+
+    seriesOfRecs :: Series n idx (Rec a)
+    seriesOfRecs = Rec.sequence recOfSeries
+
+    recOfSeries :: Rec (Map (Series n idx) a)
+    recOfSeries = dfData
 
 toFields :: ( Forall a ToField
             , Forall a Typeable

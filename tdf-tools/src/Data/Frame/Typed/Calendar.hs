@@ -29,7 +29,6 @@ extendWithDay :: forall n idx k r.
                  , Forall (Extend k Day r) Unconstrained1
                  , KnownSymbol k
                  , SNatI n
-                 , idx ~ Int
                  )
               => Label k
               -> (Rec r -> (Year, MonthOfYear, DayOfMonth))

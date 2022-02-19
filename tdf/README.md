@@ -48,8 +48,6 @@ from the `row-types` package.
 
 We take vectors of rows as input and turn it into rows of vectors to operate on.
 
-** BIG TODO: mutability **
-
 - Bugs
   - asSeries (eg animalSeries in Examples.hs) ends up show'ing strings
     on the ToField/FromField round trip I'm guessing?  But it shouldn't

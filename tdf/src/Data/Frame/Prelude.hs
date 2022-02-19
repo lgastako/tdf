@@ -50,6 +50,7 @@ import Data.Row             as X ( AllUniqueLabels
                                  , Forall
                                  , Label
                                  , Rec
+                                 , Row
                                  , type (.!)
                                  , type (.+)
                                  , type (.-)

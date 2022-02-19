@@ -64,9 +64,10 @@ import qualified Data.Foldable as F
 
 type MultiIndex :: Nat -> Type -> Type
 data MultiIndex (n :: Nat) idx = forall l r.
-  ( LE (Plus l r) n
+  ( SNatI n
   , SNatI l
   , SNatI r
+  , n ~ Plus l r
   ) => MultiIndex
     { leftIndex  :: Index l idx
     , rightIndex :: Index r idx
@@ -81,10 +82,8 @@ instance Ord (MultiIndex n idx) where
 instance Show (MultiIndex n idx) where
   show = panic "Index.MultiIndex.show"
 
--- data WrappedVec (n :: Nat) a = forall l r. ( LE (Plus l r) n
---                                            , LE n (Plus l r)
---                                            )
---        => WrappedVec (Vec l a) (Vec r a)
+-- data WrappedVec (n :: Nat) a
+--   = forall l r. ( n ~ Plus l r ) => WrappedVec (Vec l a) (Vec r a)
 
 -- wrapped :: WrappedVec Nat5 Bool
 -- wrapped = WrappedVec a b
@@ -95,40 +94,18 @@ instance Show (MultiIndex n idx) where
 --     b :: Vec Nat3 Bool
 --     b = pure False
 
--- unwrapped  :: Vec Nat5 Bool
--- unwrapped = case wrapped of
+-- extractVect :: WrappedVec n a -> Vec n a
+-- extractVect = \case
 --   WrappedVec a b -> a Vec.++ b
---                  ^
--- src/Data/Frame/Typed/Index.hs:100:21-30: error: …
---     • Couldn't match type ‘Plus l r’ with ‘'S Nat4’
---       Expected type: Vec Nat5 Bool
---         Actual type: Vec (Plus l r) Bool
---     • In the expression: a Vec.++ b
---       In a case alternative: WrappedVec a b -> a Vec.++ b
---       In the expression: case wrapped of { WrappedVec a b -> a Vec.++ b }
---     • Relevant bindings include
---         b :: Vec r Bool
---           (bound at /Users/john/src/tdf/tdf/src/Data/Frame/Typed/Index.hs:100:16)
---         a :: Vec l Bool
---           (bound at /Users/john/src/tdf/tdf/src/Data/Frame/Typed/Index.hs:100:14)
---     |
--- Compilation failed.
+
+-- unwrapped  :: Vec Nat5 Bool
+-- unwrapped = extractVect wrapped
 
 instance (Enum idx, SNatI n) => SubIndex MultiIndex n idx where
-  toVec :: (Enum idx, SNatI n) => MultiIndex n idx -> Vec n idx
-  toVec MultiIndex {..} = result
-    where
-      result :: Vec n idx -- forall m l r. Plus l r ~ m => Vec m idx
-      result = panic "Index.MultiIndex.toVec.result"
+  toVec (MultiIndex a b) = SubIndex.toVec a Vec.++ SubIndex.toVec b
 
-      -- result' :: Vec (Plus l r) idx
-      _result' = SubIndex.toVec leftIndex Vec.++ SubIndex.toVec rightIndex
-
-      -- _ = leftIndex  :: forall leftN.  SNatI leftN  => Index leftN  idx
-      -- _ = rightIndex :: forall rightN. SNatI rightN => Index rightN idx
-
-  drop  = panic "Index.MultiIndex.drop"
-  take  = panic "Index.MultiIndex.take"
+  drop = panic "Index.MultiIndex.drop"
+  take = panic "Index.MultiIndex.take"
 
 instance (Enum idx, SNatI n) => ToVecN (MultiIndex n idx) n idx where
   toVecN = toVec
@@ -213,10 +190,10 @@ fromVec = IdxCategorical . CategoricalIndex.fromVec
 -- ================================================================ --
 
 concat :: forall n m idx.
-          ( LE (Plus n m) (Plus n m)
-          , Ord idx
+          ( Ord idx
           , SNatI n
           , SNatI m
+          , SNatI (Plus n m)
           )
        => Index n idx
        -> Index m idx

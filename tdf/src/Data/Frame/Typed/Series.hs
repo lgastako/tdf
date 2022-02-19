@@ -116,7 +116,7 @@ data Series (n :: Nat) idx a = Series
   , sName   :: Maybe Name
   } deriving (Eq, Foldable, Functor, Generic, Ord, Traversable, Show)
 
--- instance (SNatI n, idx ~ Int) => Alternative (Series n idx) where
+-- instance (Enum idx, SNatI n) => Alternative (Series n idx) where
 --   empty :: forall a. Series n idx a
 --   empty = undefined
 --     where
@@ -133,22 +133,25 @@ instance Semigroup a => Semigroup (Series n idx a) where
   s1 <> s2 = s1 & dataVec .~ s1 ^. dataVec
                           <> s2 ^. dataVec
 
-instance (Monoid a, SNatI n, idx ~ Int) => Monoid (Series n idx a) where
+instance ( Enum idx
+         , Monoid a
+         , SNatI n
+         ) => Monoid (Series n idx a) where
   mempty = pure mempty
 
-instance ( SNatI n
-         , idx ~ Int
+instance ( Enum idx
+         , SNatI n
          ) => Applicative (Series n idx) where
   pure x = mkSeries Nothing (Vec.repeat x)
   sf <*> sx = sf { sData = Vec.zipWith ($) (sData sf) (sData sx) }
 
-instance ( SNatI n
-         , idx ~ Int
+instance ( Enum idx
+         , SNatI n
          ) => Monad (Series n idx) where
   (>>=) :: forall a b.
-           Series n Int a
-        -> (a -> Series n Int b)
-        -> Series n Int b
+           Series n idx a
+        -> (a -> Series n idx b)
+        -> Series n idx b
   ma >>= mf = join' (fmap mf ma)
 
 instance ToVecN (Series n idx a) n a where
@@ -210,8 +213,8 @@ construct Options {..} = Series
   }
 
 fromList :: forall n idx a.
-            ( SNatI n
-            , idx ~ Int
+            ( Enum idx
+            , SNatI n
             )
          => [a]
          -> Maybe (Series n idx a)
@@ -223,15 +226,15 @@ fromList = fromVec <=< Vec.fromList
 --   | p x, AVec _ v <- filter p xs = AVec SS (x ::: v)
 --   | otherwise = filter p xs
 afromList :: forall idx a.
-             ( idx ~ Int )
+             ( Enum idx )
           => [a]
           -> ASeries idx a
 afromList [] = ASeries SZ empty
 afromList (_x:_xs) = panic "afromList" -- cons x (afromList xs)
 
 cons :: forall n idx a.
-        ( SNatI n
-        , idx ~ Int
+        ( Enum idx
+        , SNatI n
         )
      => a
      -> Series n idx a
@@ -239,8 +242,8 @@ cons :: forall n idx a.
 cons x = updateVec (Vec.cons x)
 
 snoc :: forall n idx a.
-        ( SNatI n
-        , idx ~ Int
+        ( Enum idx
+        , SNatI n
         )
      => a
      -> Series n idx a
@@ -248,20 +251,20 @@ snoc :: forall n idx a.
 snoc x = updateVec (`Vec.snoc` x)
 
 fromScalar :: forall n idx a.
-              ( SNatI n
-              , idx ~ Int
+              ( Enum idx
+              , SNatI n
               )
            => a
            -> Series n idx a
 fromScalar = repeat
 
 fromVec :: forall n idx a.
-           ( SNatI n
-           , idx ~ Int
+           ( Enum idx
+           , SNatI n
            )
         => Vec n a
         -> Maybe (Series n idx a)
-fromVec v = f <$> Index.defaultIntsFor v
+fromVec v = f <$> Index.defaultFromFor (toEnum 0) v
   where
     f:: Index n idx -> Series n idx a
     f idx = Series
@@ -271,8 +274,8 @@ fromVec v = f <$> Index.defaultIntsFor v
       }
 
 repeat :: forall n idx a.
-          ( SNatI n
-          , idx ~ Int
+          ( Enum idx
+          , SNatI n
           )
        => a
        -> Series n idx a
@@ -288,10 +291,10 @@ repeat x = fromVec (Vec.repeat x) `onCrash` "Series.repeat"
 -- does and only append rows that aren't in the target already (presumably
 -- via idx)
 concat :: forall m n idx a.
-          ( LE (Plus n m) (Plus n m)
-          , Ord idx
+          ( Ord idx
           , SNatI n
           , SNatI m
+          , SNatI (Plus n m)
           )
        => Series n idx a
        -> Series m idx a
@@ -309,10 +312,10 @@ concat a b = Series
     nameB = b ^. name
 
 drop :: forall m n idx a.
-        ( SNatI n
-        , SNatI m
+        ( Enum idx
         , LE m n
-        , idx ~ Int
+        , SNatI n
+        , SNatI m
         )
      => Series n idx a
      -> Series m idx a
@@ -327,13 +330,13 @@ duplicated s = map ((>1) . (counts Map.!)) s
     counts :: Map.Map a Int
     counts = Map.fromListWith (+) . map (, 1) . toList $ s
 
-empty :: forall idx a. ( idx ~ Int )
+empty :: forall idx a. Enum idx
       => Series Nat0 idx a
 empty = fromVec Vec.empty `onCrash` "Series.empty"
 
 filter :: forall n idx a.
-          ( SNatI n
-          , idx ~ Int
+          ( Enum idx
+          , SNatI n
           )
        => (a -> Bool)
        -> Series n idx a
@@ -341,8 +344,8 @@ filter :: forall n idx a.
 filter p = filterWithIndex (\(_, x) -> p x)
 
 filterThen :: forall n idx a r.
-              ( SNatI n
-              , idx ~ Int
+              ( Enum idx
+              , SNatI n
               )
            => (a -> Bool)
            -> Series n idx a
@@ -351,8 +354,8 @@ filterThen :: forall n idx a r.
 filterThen p s c = c . filter p $ s
 
 filterByIndex :: forall n idx a.
-                 ( SNatI n
-                 , idx ~ Int
+                 ( Enum idx
+                 , SNatI n
                  )
               => (idx -> Bool)
               -> Series n idx a
@@ -360,8 +363,8 @@ filterByIndex :: forall n idx a.
 filterByIndex p = filterWithIndex (\(idx, _) -> p idx)
 
 filterByIndexThen :: forall n idx a r.
-                     ( SNatI n
-                     , idx ~ Int
+                     ( Enum idx
+                     , SNatI n
                      )
                   => (idx -> Bool)
                   -> Series n idx a
@@ -370,8 +373,8 @@ filterByIndexThen :: forall n idx a r.
 filterByIndexThen p s c = c . filterByIndex p $ s
 
 filterWithIndex :: forall n idx a.
-                   ( SNatI n
-                   , idx ~ Int
+                   ( Enum idx
+                   , SNatI n
                    )
                 => ((idx, a) -> Bool)
                 -> Series n idx a
@@ -384,8 +387,8 @@ filterWithIndex p s@Series {..} = AVec.reify (mkASeries sName)
   $ s
 
 filterWithIndexThen :: forall n idx a r.
-                       ( SNatI n
-                       , idx ~ Int
+                       ( Enum idx
+                       , SNatI n
                        )
                     => ((idx, a) -> Bool)
                     -> Series n idx a
@@ -394,15 +397,21 @@ filterWithIndexThen :: forall n idx a r.
 filterWithIndexThen p s c = c . filterWithIndex p $ s
 
 mkASeries :: forall n idx a.
-             ( SNatI n
-             , idx ~ Int
+             ( Enum idx
+             , SNatI n
              )
           => Maybe Name
           -> Vec n a
           -> ASeries idx a
 mkASeries n v = ASeries (snat @n) (mkSeries n v)
 
-mkSeries :: SNatI n => Maybe Name -> Vec n a -> Series n Int a
+mkSeries :: forall n idx a.
+            ( Enum idx
+            , SNatI n
+            )
+         => Maybe Name
+         -> Vec n a
+         -> Series n idx a
 mkSeries n v = fromVec v
   & orCrash "mkASeries.s"
   & name .~ n
@@ -446,8 +455,9 @@ standardizeWith mu s = map f s
   where
     f x = (x - mu) / stdDev s
 
--- This implementation avoids the SNat (and idx ~ Int) constraints that would
--- be required if we used updateVec instead
+-- This implementation avoids the SNat constraint that would be required if we
+-- used updateVec instead.  Don't know if there's any real value in that or
+-- not.
 op :: forall n idx a b x.
       ToVecN x n a
    => (a -> a -> b)
@@ -467,18 +477,18 @@ t :: forall n idx a. Series n idx a -> Series n idx a
 t = identity
 
 take :: forall m n idx a.
-        ( LE m n
+        ( Enum idx
+        , LE m n
         , SNatI m
         , SNatI n
-        , idx ~ Int
         )
      => Series n idx a
-     -> Series m Int a
+     -> Series m idx a
 take = updateVec Vec.take
 
 updateVec :: forall m n idx a b.
-             ( SNatI m
-             , idx ~ Int
+             ( Enum idx
+             , SNatI m
              )
           => (Vec n a -> Vec m b)
           -> Series n idx a
@@ -486,8 +496,8 @@ updateVec :: forall m n idx a b.
 updateVec f s = mkSeries (s ^. name) (f $ s ^. dataVec)
 
 zip :: forall n idx a b.
-       ( SNatI n
-       , idx ~ Int
+       ( Enum idx
+       , SNatI n
        )
     => Series n idx a
     -> Series n idx b
@@ -495,8 +505,8 @@ zip :: forall n idx a b.
 zip = zipWith (,)
 
 zipWith :: forall n idx a b c.
-           ( SNatI n
-           , idx ~ Int
+           ( Enum idx
+           , SNatI n
            )
         => (a -> b -> c)
         -> Series n idx a
@@ -544,7 +554,7 @@ name = field @"sName"
 --   Eliminators
 -- ================================================================ --
 
-display :: (Show idx, Show a) => Series n idx a -> IO ()
+display :: forall n idx a. (Show idx, Show a) => Series n idx a -> IO ()
 display = putStr
   . Table.render
   . (`onCrash` "Series.display")
@@ -559,9 +569,9 @@ hasNaNs :: forall n idx a.
 hasNaNs = any isNaN
 
 dropNaNs :: forall n idx a.
-            ( RealFloat a
+            ( Enum idx
+            , RealFloat a
             , SNatI n
-            , idx ~ Int
             )
          => Series n idx a
          -> ASeries idx a
@@ -654,8 +664,8 @@ unique = not . or . duplicated
 -- ================================================================ --
 
 join' :: forall n idx a.
-         ( SNatI n
-         , idx ~ Int
+         ( Enum idx
+         , SNatI n
          )
       => Series n idx (Series n idx a)
       -> Series n idx a

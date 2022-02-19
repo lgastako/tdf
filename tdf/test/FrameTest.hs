@@ -27,8 +27,8 @@ spec_Frame = do
 
     it "should have the right shape" $ DF.shape df `shouldBe` (9, 1)
 
-    it "at 1 #animal" $ DF.at 1 #animal df `shouldBe` Just "bee"
-    it "at 5 #animal" $ DF.at 5 #animal df `shouldBe` Just "parrot"
+    it "at 1 #animal" $ df ^. DF.at 1 #animal `shouldBe` Just "bee"
+    it "at 5 #animal" $ df ^. DF.at 5 #animal `shouldBe` Just "parrot"
 
     it "head 3" $ do
       let actual :: Frame Nat3 Int Animal
@@ -70,18 +70,22 @@ spec_Frame = do
     context "at 0" $ do
       let idx = 0
 
-      it "at 0 #name" $
-        DF.at idx #name df
+      it "should view (at 0 #name)" $
+        df ^. DF.at idx #name
           `shouldBe` Just "Alex"
+
+      it "set (at 0 #name)" $
+        (df & DF.at idx #name ?~ "Fred")
+          `shouldBe` df
 
     context "at 1" $ do
       let idx = 1
       it "at 1 #name" $
-        DF.at idx #name df
+        df ^. DF.at idx #name
           `shouldBe` Just "Dave"
 
       it "at 1 #age" $
-        DF.at idx #age df
+        df ^. DF.at idx #age
           `shouldBe` Just 45
 
     it "toList should produce proper results" $

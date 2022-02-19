@@ -15,7 +15,9 @@ module Data.Frame.Typed.Types.Table
   , render
   ) where
 
-import           Data.Frame.Prelude               hiding ( from )
+import           Data.Frame.Prelude               hiding ( Row
+                                                         , from
+                                                         )
 
 import qualified Data.Text                     as Text
 import           Data.Frame.Typed.Types.Widths           ( widths )
