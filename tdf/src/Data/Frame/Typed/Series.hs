@@ -37,6 +37,7 @@ module Data.Frame.Typed.Series
   , concat
   , cons
   , drop
+  , drop5
   , dropNaNs
   , duplicated
   , normalize
@@ -47,6 +48,7 @@ module Data.Frame.Typed.Series
   , standardizeWith
   , t
   , take
+  , take5
   , updateVec
   , zip
   , zipWith
@@ -335,6 +337,17 @@ drop :: forall m n idx a.
      -> Series m idx a
 drop = updateVec Vec.drop
 
+drop5 :: forall m n idx a.
+         ( Enum idx
+         , LE m n
+         , SNatI n
+         , SNatI m
+         , m ~ Nat5
+         )
+      => Series n idx a
+      -> Series m idx a
+drop5 = drop
+
 duplicated :: forall n idx a.
               ( Ord a )
            => Series n idx a
@@ -499,6 +512,17 @@ take :: forall m n idx a.
      => Series n idx a
      -> Series m idx a
 take = updateVec Vec.take
+
+take5 :: forall m n idx a.
+         ( Enum idx
+         , LE m n
+         , SNatI m
+         , SNatI n
+         , m ~ Nat5
+         )
+     => Series n idx a
+     -> Series m idx a
+take5 = take
 
 updateVec :: forall m n idx a b.
              ( Enum idx
