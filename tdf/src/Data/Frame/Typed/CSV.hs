@@ -101,7 +101,8 @@ recFromCSV s = case map (T.splitOn ",") (T.lines s) of
           sid :: Text -> String
           sid = show
 
-toHeadedCSV :: ( AllUniqueLabels (Map (Vec n) a)
+toHeadedCSV :: forall n a.
+               ( AllUniqueLabels (Map (Vec n) a)
                , Forall a ToField
                , Forall (Map (Vec n) a) Unconstrained1
                , Forall a Unconstrained1

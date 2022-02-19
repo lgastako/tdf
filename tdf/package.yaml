@@ -23,9 +23,11 @@ dependencies:
 - base                    >= 4.7 && < 5
 - containers
 - deepseq
+- fakedata
 - fin
 - generic-lens
 - lens
+- mersenne-random
 - mtl
 - protolude
 - row-types

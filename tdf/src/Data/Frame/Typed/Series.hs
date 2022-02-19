@@ -27,6 +27,7 @@ module Data.Frame.Typed.Series
   , afromList
   , construct
   , empty
+  , fake
   , fromList
   , fromScalar
   , fromVec
@@ -103,6 +104,9 @@ import           Data.Frame.Typed.Types.Name               ( Name )
 import qualified Data.Frame.Typed.Types.Name   as Name
 import qualified Data.Frame.Typed.Types.Table  as Table
 import           Data.Frame.Typed.Types.ToVecN             ( ToVecN( toVecN ) )
+import           Faker                                     ( Fake )
+import qualified Faker
+import           Faker.Combinators                         ( listOf )
 
 -- import qualified Control.Applicative as A
 
@@ -210,6 +214,19 @@ construct Options {..} = Series
   , sData   = optData
   , sName   = optName
   }
+
+fake :: forall n idx a.
+        ( Enum idx
+        , SNatI n
+        )
+     => Fake a
+     -> IO (Series n idx a)
+fake gen = Faker.generateNonDeterministic (listOf n gen) >>=
+  pure . orCrash error2 . fromVec . orCrash error . Vec.fromList @n
+  where
+    error  = "The fake data that was generated was the wrong size."
+    error2 = error <> " (case 2)"
+    n      = fromIntegral $ snatToNat (snat @n)
 
 fromList :: forall n idx a.
             ( Enum idx

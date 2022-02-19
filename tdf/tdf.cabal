@@ -54,6 +54,7 @@ library
       Data.Frame.Typed.Types.ToVecN
       Data.Frame.Typed.Types.Widths
       Data.Frame.Typed.Utils.Dyn
+      Data.Random.X
       Data.Row.Records.X
       Data.Vec.Lazy.AVec
       Data.Vec.Lazy.X
@@ -66,9 +67,11 @@ library
       base >=4.7 && <5
     , containers
     , deepseq
+    , fakedata
     , fin
     , generic-lens
     , lens
+    , mersenne-random
     , mtl
     , protolude
     , row-types
@@ -101,9 +104,11 @@ test-suite tdf-test
     , base >=4.7 && <5
     , containers
     , deepseq
+    , fakedata
     , fin
     , generic-lens
     , lens
+    , mersenne-random
     , mtl
     , protolude
     , quickcheck-text
