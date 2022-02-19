@@ -1,4 +1,4 @@
-Order ID,Product,Quantity Ordered,Price Each,Order Date,Purchase Address
+orderID,product,quantityOrdered,priceEach,orderDate,purchaseAddress
 295665,Macbook Pro Laptop,1,1700,12/30/19 00:01,"136 Church St, New York City, NY 10001"
 295666,LG Washing Machine,1,600.0,12/29/19 07:03,"562 2nd St, New York City, NY 10001"
 295667,USB-C Charging Cable,1,11.95,12/12/19 18:21,"277 Main St, New York City, NY 10001"

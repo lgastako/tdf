@@ -1,4 +1,4 @@
-Order ID,Product,Quantity Ordered,Price Each,Order Date,Purchase Address
+orderID,product,quantityOrdered,priceEach,orderDate,purchaseAddress
 236670,Wired Headphones,2,11.99,08/31/19 22:21,"359 Spruce St, Seattle, WA 98101"
 236671,Bose SoundSport Headphones,1,99.99,08/15/19 15:11,"492 Ridge St, Dallas, TX 75001"
 236672,iPhone,1,700.0,08/06/19 14:40,"149 7th St, Portland, OR 97035"

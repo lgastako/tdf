@@ -12,13 +12,13 @@ To access all of the files I recommend you fork this repo and then clone it loca
 The other option is to click the green "clone or download" button and then click "Download ZIP". You then should extract all of the files to the location you want to edit your code.
 
 Installing Jupyter Notebook: https://jupyter.readthedocs.io/en/latest/install.html <br/>
-Installing Pandas library: https://pandas.pydata.org/pandas-docs/stable/install.html 
+Installing Pandas library: https://pandas.pydata.org/pandas-docs/stable/install.html
 
 ## Background Information:
 
 This repo goes with [my video](https://youtu.be/eMOA1pPVUc4) on "Solving real world data science videos with Python Pandas!". Here is some information on that video.
 
-In this video we use Python Pandas & Python Matplotlib to analyze and answer business questions about 12 months worth of sales data. The data contains hundreds of thousands of electronics store purchases broken down by month, product type, cost, purchase address, etc. 
+In this video we use Python Pandas & Python Matplotlib to analyze and answer business questions about 12 months worth of sales data. The data contains hundreds of thousands of electronics store purchases broken down by month, product type, cost, purchase address, etc.
 
 We start by cleaning our data. Tasks during this section include:
 - Drop NaN values from DataFrame
@@ -42,7 +42,7 @@ To answer these questions we walk through many different pandas & matplotlib met
 - Labeling our graphs
 
 Check out the first video I did on Pandas: <br/>
-https://youtu.be/vmEHCJofslg 
+https://youtu.be/vmEHCJofslg
 
 Check out the videos I did on Matplotlib: <br/>
 https://youtu.be/DAQNHzOcO5A <br/>

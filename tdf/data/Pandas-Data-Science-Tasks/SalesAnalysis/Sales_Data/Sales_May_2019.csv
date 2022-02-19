@@ -1,4 +1,4 @@
-Order ID,Product,Quantity Ordered,Price Each,Order Date,Purchase Address
+orderID,product,quantityOrdered,priceEach,orderDate,purchaseAddress
 194095,Wired Headphones,1,11.99,05/16/19 17:14,"669 2nd St, New York City, NY 10001"
 194096,AA Batteries (4-pack),1,3.84,05/19/19 14:43,"844 Walnut St, Dallas, TX 75001"
 194097,27in FHD Monitor,1,149.99,05/24/19 11:36,"164 Madison St, New York City, NY 10001"

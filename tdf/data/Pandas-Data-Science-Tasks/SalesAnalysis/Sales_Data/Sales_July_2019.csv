@@ -1,4 +1,4 @@
-Order ID,Product,Quantity Ordered,Price Each,Order Date,Purchase Address
+orderID,product,quantityOrdered,priceEach,orderDate,purchaseAddress
 222910,Apple Airpods Headphones,1,150,07/26/19 16:51,"389 South St, Atlanta, GA 30301"
 222911,Flatscreen TV,1,300,07/05/19 08:55,"590 4th St, Seattle, WA 98101"
 222912,AA Batteries (4-pack),1,3.84,07/29/19 12:41,"861 Hill St, Atlanta, GA 30301"

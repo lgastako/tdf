@@ -1,4 +1,4 @@
-Order ID,Product,Quantity Ordered,Price Each,Order Date,Purchase Address
+orderID,product,quantityOrdered,priceEach,orderDate,purchaseAddress
 209921,USB-C Charging Cable,1,11.95,06/23/19 19:34,"950 Walnut St, Portland, ME 04101"
 209922,Macbook Pro Laptop,1,1700.0,06/30/19 10:05,"80 4th St, San Francisco, CA 94016"
 209923,ThinkPad Laptop,1,999.99,06/24/19 20:18,"402 Jackson St, Los Angeles, CA 90001"

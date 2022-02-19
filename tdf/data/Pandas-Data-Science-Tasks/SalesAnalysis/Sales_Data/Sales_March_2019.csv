@@ -1,4 +1,4 @@
-Order ID,Product,Quantity Ordered,Price Each,Order Date,Purchase Address
+orderID,product,quantity Ordered,priceEach,orderDate,purchaseAddress
 162009,iPhone,1,700,03/28/19 20:59,"942 Church St, Austin, TX 73301"
 162009,Lightning Charging Cable,1,14.95,03/28/19 20:59,"942 Church St, Austin, TX 73301"
 162009,Wired Headphones,2,11.99,03/28/19 20:59,"942 Church St, Austin, TX 73301"
