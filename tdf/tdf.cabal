@@ -31,15 +31,17 @@ library
       Data.Frame.Prelude
       Data.Frame.Typed
       Data.Frame.Typed.CSV
-      Data.Frame.Typed.DeleteBenford
-      Data.Frame.Typed.DeleteMe
-      Data.Frame.Typed.Examples
+      Data.Frame.Typed.Examples.Benford
+      Data.Frame.Typed.Examples.DeleteMe
+      Data.Frame.Typed.Examples.Examples
       Data.Frame.Typed.Examples.Prestige
       Data.Frame.Typed.Index
       Data.Frame.Typed.Index.Categorical
       Data.Frame.Typed.Index.DateTime
       Data.Frame.Typed.Index.Interval
+      Data.Frame.Typed.Index.Period
       Data.Frame.Typed.Index.Range
+      Data.Frame.Typed.Index.TimeDelta
       Data.Frame.Typed.Options
       Data.Frame.Typed.Series
       Data.Frame.Typed.SubIndex

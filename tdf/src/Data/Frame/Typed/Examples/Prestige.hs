@@ -7,12 +7,13 @@
 module Data.Frame.Typed.Examples.Prestige where
 
 import Data.Frame.Prelude
+
 import Data.Frame.Typed   ( Frame )
-import Data.Type.Nat
--- import Data.Nat
+import Data.Type.Nat      ( Mult )
 
 import qualified Data.Frame.Typed     as DF
 import qualified Data.Frame.Typed.CSV as CSV
+import qualified Data.Type.Nat        as Nat
 
 type Prestige = "id"        .== Text
              .+ "education" .== Float
@@ -39,7 +40,7 @@ type PrestigeLen = Plus
 thePrestige :: IO ()
 thePrestige = do
   let n :: Nat
-      n = reify (snatToNat $ snat @PrestigeLen) reflect
+      n = Nat.reify (snatToNat $ snat @PrestigeLen) Nat.reflect
   print ("PrestigeLen", n)
   df :: Frame PrestigeLen Int Prestige
     <- CSV.unsafeFromHeadedCSV "data/prestige.csv"

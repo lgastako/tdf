@@ -1,4 +1,4 @@
-module Data.Frame.Typed.DeleteBenford where
+module Data.Frame.Typed.Examples.Benford where
 
 import           Data.Char      ( digitToInt )
 import qualified Data.Map  as M

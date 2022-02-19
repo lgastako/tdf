@@ -10,7 +10,7 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 
-module Data.Frame.Typed.Examples where
+module Data.Frame.Typed.Examples.Examples where
 
 import           Data.Frame.Prelude           hiding ( Product
                                                      , drop

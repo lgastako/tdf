@@ -2,7 +2,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Frame.Typed.DeleteMe where
+module Data.Frame.Typed.Examples.DeleteMe where
 
 import Data.Frame.Prelude
 
