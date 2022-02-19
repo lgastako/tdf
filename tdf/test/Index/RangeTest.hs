@@ -19,14 +19,14 @@ import qualified Data.Vec.Lazy.X              as Vec
 
 spec_Range :: Spec
 spec_Range =
-  context "defaultIntsFor 'bar'" $ do
+  context "defaultFor 'bar'" $ do
 
     it "should have 0, 1, 2" $
       SubIndex.toLst mockIdx
         `shouldBe` [0, 1, 2]
 
-    it "should append to itself correctly" $ do
-      let Just ri = RangeIndex.append mockIdx mockIdx
+    it "should concat to itself correctly" $ do
+      let Just ri = RangeIndex.concat mockIdx mockIdx
       SubIndex.toLst ri
         `shouldBe` [0, 1, 2, 3, 4, 5]
 
@@ -34,4 +34,4 @@ mockData :: Vec Nat3 Bool
 mockData = Vec.repeat True
 
 mockIdx :: RangeIndex Nat3 Int
-mockIdx = RangeIndex.defaultIntsFor mockData
+mockIdx = RangeIndex.defaultFor mockData

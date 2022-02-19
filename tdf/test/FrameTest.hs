@@ -31,6 +31,8 @@ spec_Frame = do
     let df :: Frame Nat9 Int Animal
         df = Examples.animals
 
+    it "should produce the right column names" $ DF.columnNames df
+      `shouldBe` ["animal"]
     it "should have the right shape" $ DF.shape df `shouldBe` (9, 1)
 
     it "at 1 #animal" $ df ^. DF.at 1 #animal `shouldBe` Just "bee"

@@ -69,7 +69,7 @@ We take vectors of rows as input and turn it into rows of vectors to operate on.
     https://pandas-docs.github.io/pandas-docs-travis/user_guide/merging.html
     https://pandas.pydata.org/pandas-docs/stable/user_guide/merging.html
     https://pypancsv.github.io/pypancsv/quickexamples/#first-the-csv-files-within-the-examples
-  - append/join/etc too
+  - concat/join/etc too
     https://datagy.io/pandas-merge-concat/
     https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.join.html#pandas.DataFrame.join
     https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.append.html

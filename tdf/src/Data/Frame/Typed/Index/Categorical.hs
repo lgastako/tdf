@@ -17,16 +17,20 @@ import Data.Frame.Prelude
 import Data.Frame.Typed.SubIndex ( SubIndex(..) )
 import Data.Frame.Typed.ToVecN   ( ToVecN( toVecN ) )
 
-newtype CategoricalIndex (n :: Nat) idx = CategoricalIndex (Vec n idx)
+import qualified Data.Frame.Typed.SubIndex as SubIndex
+
+data CategoricalIndex (n :: Nat) idx = CategoricalIndex
+  { toVec :: Vec n idx }
   deriving (Eq, Generic, Ord, Show)
 
 instance SNatI n => SubIndex CategoricalIndex n idx where
-  toLst = panic "Index.Categorical.toLst"
+  toLst = toList . SubIndex.toVec
+
   drop  = panic "Index.Categorical.drop"
   take  = panic "Index.Categorical.take"
 
-instance ToVecN (CategoricalIndex n idx) n idx where
-  toVecN = panic "Index.Categorical.toVecN"
+instance SNatI n => ToVecN (CategoricalIndex n idx) n idx where
+  toVecN = SubIndex.toVec
 
 -- ================================================================ --
 --   Constructors

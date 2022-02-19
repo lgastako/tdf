@@ -508,9 +508,7 @@ type X = "name"    .== Text
       .+ "phone"   .== Text
       .+ "address" .== Text
 
-type FakeX = "name"    .== Fake Text
-          .+ "phone"   .== Fake Text
-          .+ "address" .== Fake Text
+type FakeX = Map Fake X
 
 nineXs :: IO (Frame Nat9 Int X)
 nineXs = DF.fake

@@ -1,8 +1,8 @@
-{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
@@ -14,22 +14,24 @@
 module Data.Frame.Typed.Index.Range
   ( RangeIndex(..)
   -- Constructors
+  , defaultFor
   , defaultFromFor
-  , defaultIntsFor
   -- Optics
   , name
   , start
   , step
   , stop
   -- Combinators
-  , append
+  , concat
   -- Eliminators
   , isMonotonicDecreasing
   , isMonotonicIncreasing
   , len
   ) where
 
-import Data.Frame.Prelude     hiding ( toList )
+import Data.Frame.Prelude hiding ( concat
+                                 , toList
+                                 )
 
 import Data.Frame.Typed.SubIndex ( SubIndex(..) )
 import Data.Frame.Typed.Name     ( Name )
@@ -78,25 +80,20 @@ instance forall n idx.
          ( Enum idx
          , SNatI n
          ) => SubIndex RangeIndex n idx where
-  toLst RangeIndex {..} = [riStart, next..pred riStop]
+  toLst ri = [start', next..stop']
     where
-      next = ala Endo foldMap (replicate riStep succ) riStart
+      start' = ri ^. start
+      stop'  = pred (ri ^.stop)
+      next   = ala Endo foldMap (replicate (ri ^. step) succ) $ ri ^. start
 
   drop = panic "Index.Range.drop"
 
-  take :: ( SNatI n )
-       => forall m. RangeIndex n idx
-       -> RangeIndex m idx
+  -- take :: ( SNatI n )
+  --      => forall m.
+  --         (LE m n)
+  --      => RangeIndex n idx
+  --      -> RangeIndex m idx
   take = panic "Index.Range.take"
-  -- take RangeIndex {..} = RangeIndex
-  --   { riName  = riName
-  --   , riStart = riStart
-  --   , riStep  = riStep
-  --   , riStop  = riStop
-  --   }
-  --   where
-  --     n = fromIntegral . snatToNat $ (snat @n)
-  --     m = fromIntegral . snatToNat $ (snat @m)
 
 instance ToVecN (RangeIndex n idx) n idx where
   toVecN = panic "Index.Range.toVecN"
@@ -117,17 +114,20 @@ defaultFromFor idx v = RangeIndex
   , riName  = Nothing
   }
 
-defaultIntsFor :: forall n a. Vec n a -> RangeIndex n Int
-defaultIntsFor v = RangeIndex
-  { riStart = 0
+defaultFor :: forall n a. Vec n a -> RangeIndex n Int
+defaultFor v = RangeIndex
+  { riStart = toEnum 0
   , riStep  = 1
-  , riStop  = Vec.length v
+  , riStop  = toEnum $ Vec.length v
   , riName  = Nothing
   }
 
 -- ================================================================ --
 --   Optics
 -- ================================================================ --
+
+name :: Lens' (RangeIndex n idx) (Maybe Name)
+name = field @"riName"
 
 start :: Lens' (RangeIndex n idx) idx
 start = field @"riStart"
@@ -138,21 +138,18 @@ step = field @"riStep"
 stop :: Lens' (RangeIndex n idx) idx
 stop = field @"riStop"
 
-name :: Lens' (RangeIndex n idx) (Maybe Name)
-name = field @"riName"
-
 -- ================================================================ --
 --   Combinators
 -- ================================================================ --
 
-append :: forall n m idx.
+concat :: forall n m idx.
           ( Enum idx
           , Ord idx
           )
        => RangeIndex n idx
        -> RangeIndex m idx
        -> Maybe (RangeIndex (Plus m n) idx)
-append a b
+concat a b
   | riStep a /= riStep b = Nothing
   | otherwise = case stopMay of
       Nothing -> Nothing
