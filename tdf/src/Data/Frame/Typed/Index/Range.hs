@@ -31,12 +31,12 @@ module Data.Frame.Typed.Index.Range
 
 import Data.Frame.Prelude     hiding ( toList )
 
-import Data.Frame.Typed.SubIndex     ( SubIndex(..) )
-import Data.Frame.Typed.Types.Name   ( Name )
-import Data.Frame.Typed.Types.ToVecN ( ToVecN( toVecN ) )
+import Data.Frame.Typed.SubIndex ( SubIndex(..) )
+import Data.Frame.Typed.Name     ( Name )
+import Data.Frame.Typed.ToVecN   ( ToVecN( toVecN ) )
 
-import qualified Data.Frame.Typed.Types.Name as Name
-import qualified Data.Vec.Lazy.X             as Vec
+import qualified Data.Frame.Typed.Name as Name
+import qualified Data.Vec.Lazy.X       as Vec
 
 -- TODO prevent zero or negative steps, ensure stop > start, and/or
 --      support negative indexes properly too

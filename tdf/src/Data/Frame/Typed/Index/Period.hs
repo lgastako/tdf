@@ -12,8 +12,8 @@ module Data.Frame.Typed.Index.Period
 
 import Data.Frame.Prelude
 
-import Data.Frame.Typed.SubIndex     ( SubIndex(..) )
-import Data.Frame.Typed.Types.ToVecN ( ToVecN( toVecN ) )
+import Data.Frame.Typed.SubIndex ( SubIndex(..) )
+import Data.Frame.Typed.ToVecN   ( ToVecN( toVecN ) )
 
 data PeriodIndex (n :: Nat) idx = PeriodIndex
   deriving (Eq, Generic, Ord, Show)

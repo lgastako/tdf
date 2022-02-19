@@ -4,7 +4,7 @@
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Data.Frame.Typed.Types.FromField
+module Data.Frame.Typed.FromField
   ( FromField(..)
   , genericReadFF
   ) where

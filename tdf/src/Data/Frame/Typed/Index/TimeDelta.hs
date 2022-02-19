@@ -12,8 +12,8 @@ module Data.Frame.Typed.Index.TimeDelta
 
 import Data.Frame.Prelude
 
-import Data.Frame.Typed.SubIndex     ( SubIndex(..) )
-import Data.Frame.Typed.Types.ToVecN ( ToVecN( toVecN ) )
+import Data.Frame.Typed.SubIndex ( SubIndex(..) )
+import Data.Frame.Typed.ToVecN   ( ToVecN( toVecN ) )
 
 data TimeDeltaIndex (n :: Nat) idx = TimeDeltaIndex
   deriving (Eq, Generic, Ord, Show)

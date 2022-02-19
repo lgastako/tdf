@@ -3,7 +3,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Frame.Typed.Types.Table
+module Data.Frame.Typed.Table
   ( Row( Row )
   , Table
   -- Constructors
@@ -18,13 +18,13 @@ module Data.Frame.Typed.Types.Table
   , render
   ) where
 
-import           Data.Frame.Prelude               hiding ( Row
-                                                         , from
-                                                         )
+import           Data.Frame.Prelude         hiding ( Row
+                                                   , from
+                                                   )
 
-import qualified Data.Text                     as Text
-import           Data.Frame.Typed.Types.Widths           ( widths )
-import qualified Data.Frame.Typed.Types.Widths as Widths
+import qualified Data.Text               as Text
+import           Data.Frame.Typed.Widths           ( widths )
+import qualified Data.Frame.Typed.Widths as Widths
 
 newtype Table = Table (Maybe Header, [Row])
   deriving (Eq, Generic, Ord, Show)

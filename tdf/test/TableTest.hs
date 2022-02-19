@@ -7,7 +7,7 @@ module TableTest
 
 import Data.Frame.Prelude
 
-import Data.Frame.Typed.Types.Table ( Row( Row ) )
+import Data.Frame.Typed.Table ( Row( Row ) )
 import Test.Tasty.Hspec             ( Spec
                                     , context
                                     , it
@@ -15,8 +15,8 @@ import Test.Tasty.Hspec             ( Spec
                                     )
 import WidthsTest                   ( example1 )
 
-import qualified Data.Text                    as Text
-import qualified Data.Frame.Typed.Types.Table as Table
+import qualified Data.Text              as Text
+import qualified Data.Frame.Typed.Table as Table
 
 spec_Table :: Spec
 spec_Table = do

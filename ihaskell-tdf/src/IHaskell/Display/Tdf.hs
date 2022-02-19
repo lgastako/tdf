@@ -12,24 +12,24 @@ module IHaskell.Display.Tdf
 
 import Data.Frame.Prelude
 
-import Data.Frame.Typed               ( Frame )
-import Data.Frame.Typed.Series        ( Series )
-import Data.Frame.Typed.Types.ToField ( ToField )
-import Data.String                    ( fromString )
-import IHaskell.IPython.Types         ( MimeType( MimeHtml ) )
-import IHaskell.Display               ( Display( Display )
-                                      , DisplayData( DisplayData )
-                                      , IHaskellDisplay( display )
-                                      )
-import IHaskell.Display.Tdf.Chart     ( chartExample )
-import Lucid                          ( Html )
-import Lucid.Html5                    ( table_
-                                      , tbody_
-                                      , td_
-                                      , th_
-                                      , thead_
-                                      , tr_
-                                      )
+import Data.Frame.Typed           ( Frame )
+import Data.Frame.Typed.Series    ( Series )
+import Data.Frame.Typed.ToField   ( ToField )
+import Data.String                ( fromString )
+import IHaskell.IPython.Types     ( MimeType( MimeHtml ) )
+import IHaskell.Display           ( Display( Display )
+                                  , DisplayData( DisplayData )
+                                  , IHaskellDisplay( display )
+                                  )
+import IHaskell.Display.Tdf.Chart ( chartExample )
+import Lucid                      ( Html )
+import Lucid.Html5                ( table_
+                                  , tbody_
+                                  , td_
+                                  , th_
+                                  , thead_
+                                  , tr_
+                                  )
 
 import qualified Lucid
 import qualified Data.Frame.Typed        as DF

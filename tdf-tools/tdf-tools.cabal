@@ -27,7 +27,7 @@ source-repository head
 
 library
   exposed-modules:
-      TDF.Tools.Calendar
+      Data.Frame.Typed.Calendar
   other-modules:
       Paths_tdf_tools
   hs-source-dirs:

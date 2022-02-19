@@ -19,19 +19,17 @@ module Data.Frame.Typed.CSV
   , unsafeFromHeadedCSV
   ) where
 
-import           Data.Frame.Prelude
+import Data.Frame.Prelude
 
-import qualified Data.List                        as L
-import qualified Data.Row.Records                 as Rec
-import           Data.String                             ( String )
-import qualified Data.Text                        as T
-import           Data.Frame.Typed                        ( -- AFrame
-                                                             -- ,
-                                                           Frame
-                                                         )
-import qualified Data.Frame.Typed                 as DF
-import           Data.Frame.Typed.Types.FromField        ( FromField( fromField ) )
-import           Data.Frame.Typed.Types.ToField          ( ToField( toField ) )
+import Data.String                ( String )
+import Data.Frame.Typed           ( Frame  )
+import Data.Frame.Typed.FromField ( FromField( fromField ) )
+import Data.Frame.Typed.ToField   ( ToField( toField ) )
+
+import qualified Data.List        as L
+import qualified Data.Row.Records as Rec
+import qualified Data.Text        as T
+import qualified Data.Frame.Typed as DF
 
 data Error
   = FileNotFound FilePath

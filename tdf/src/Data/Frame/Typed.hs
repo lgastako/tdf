@@ -95,36 +95,37 @@ module Data.Frame.Typed
   , valueCounts
   ) where
 
-import Data.Frame.Prelude      hiding ( bool
-                                      , empty
-                                      , foldr
-                                      , head
-                                      , map
-                                      , toList
-                                      )
+import Data.Frame.Prelude hiding ( bool
+                                 , empty
+                                 , foldr
+                                 , head
+                                 , map
+                                 , toList
+                                 )
 
-import Faker                          ( Fake )
-import Data.Frame.Typed.Index         ( Index )
-import Data.Frame.Typed.Options       ( Options )
-import Data.Frame.Typed.Types.Name    ( Name )
-import Data.Frame.Typed.Types.ToField ( ToField )
-import Data.Frame.Typed.Series        ( Series )
-import Faker.Combinators              ( listOf )
+import Faker                     ( Fake )
+import Data.Frame.Typed.Index    ( Index )
+import Data.Frame.Typed.Options  ( Options )
+import Data.Frame.Typed.Name     ( Name )
+import Data.Frame.Typed.ToField  ( ToField )
+import Data.Frame.Typed.Series   ( Series )
+import Faker.Combinators         ( listOf )
 
-import qualified Prelude                         as P
-import qualified Data.Frame.Prelude              as DP
-import qualified Data.List                       as List
-import qualified Data.Map.Strict                 as Map
-import qualified Data.Row.Records                as Rec
-import qualified Data.Text                       as Text
-import qualified Data.Vec.Lazy.X                 as Vec
-import qualified Data.Frame.Typed.Index          as Index
-import qualified Data.Frame.Typed.Options        as Options
-import qualified Data.Frame.Typed.Types.Name     as Name
-import qualified Data.Frame.Typed.Types.Table    as Table
-import qualified Data.Frame.Typed.Utils.Dyn      as Dyn
-import qualified Data.Frame.Typed.Series         as Series
-import qualified Data.Frame.Typed.SubIndex       as SubIndex
+import qualified Prelude                    as P
+
+import qualified Data.Frame.Prelude         as DP
+import qualified Data.List                  as List
+import qualified Data.Map.Strict            as Map
+import qualified Data.Row.Records           as Rec
+import qualified Data.Text                  as Text
+import qualified Data.Vec.Lazy.X            as Vec
+import qualified Data.Frame.Typed.Index     as Index
+import qualified Data.Frame.Typed.Options   as Options
+import qualified Data.Frame.Typed.Name      as Name
+import qualified Data.Frame.Typed.Table     as Table
+import qualified Data.Frame.Typed.Utils.Dyn as Dyn
+import qualified Data.Frame.Typed.Series    as Series
+import qualified Data.Frame.Typed.SubIndex  as SubIndex
 import qualified Faker
 
 data Frame (n :: Nat) idx a = Frame

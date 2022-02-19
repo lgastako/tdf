@@ -2,7 +2,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NoImplicitPrelude          #-}
 
-module Data.Frame.Typed.Types.Positive
+module Data.Frame.Typed.Positive
   ( Positive( unPositive )
   -- Constructors
   , fromNum

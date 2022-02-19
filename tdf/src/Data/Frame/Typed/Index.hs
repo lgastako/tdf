@@ -46,7 +46,7 @@ import Data.Frame.Typed.Index.Period      ( PeriodIndex(..) )
 import Data.Frame.Typed.Index.Range       ( RangeIndex(..) )
 import Data.Frame.Typed.Index.TimeDelta   ( TimeDeltaIndex(..) )
 import Data.Frame.Typed.SubIndex          ( SubIndex(..) )
-import Data.Frame.Typed.Types.ToVecN      ( ToVecN( toVecN ) )
+import Data.Frame.Typed.ToVecN            ( ToVecN( toVecN ) )
 
 import qualified Data.Fin                           as Fin
 import qualified Data.Foldable                      as F

@@ -91,22 +91,24 @@ import           Data.Frame.Prelude                 hiding ( concat
                                                            , zip
                                                            , zipWith
                                                            )
-import           Control.Lens                              ( Each )
-import qualified Data.List                     as List
-import qualified Data.Map.Strict               as Map
-import qualified Data.Vec.Lazy.X               as Vec
-import qualified Data.Vec.Lazy.AVec            as AVec
-import qualified Data.Vec.Lazy.Lens            as VL
-import qualified Data.Frame.Typed.SubIndex     as SubIndex
-import           Data.Frame.Typed.Index                    ( Index )
-import qualified Data.Frame.Typed.Index        as Index
-import           Data.Frame.Typed.Types.Name               ( Name )
-import qualified Data.Frame.Typed.Types.Name   as Name
-import qualified Data.Frame.Typed.Types.Table  as Table
-import           Data.Frame.Typed.Types.ToVecN             ( ToVecN( toVecN ) )
-import           Faker                                     ( Fake )
+
+import Control.Lens            ( Each )
+import Data.Frame.Typed.Index  ( Index )
+import Data.Frame.Typed.Name   ( Name )
+import Data.Frame.Typed.ToVecN ( ToVecN( toVecN ) )
+import Faker                   ( Fake )
+
+import qualified Data.List                 as List
+import qualified Data.Map.Strict           as Map
+import qualified Data.Vec.Lazy.X           as Vec
+import qualified Data.Vec.Lazy.AVec        as AVec
+import qualified Data.Vec.Lazy.Lens        as VL
+import qualified Data.Frame.Typed.SubIndex as SubIndex
+import qualified Data.Frame.Typed.Index    as Index
+import qualified Data.Frame.Typed.Name     as Name
+import qualified Data.Frame.Typed.Table    as Table
 import qualified Faker
-import           Faker.Combinators                         ( listOf )
+import qualified Faker.Combinators         as Fake
 
 -- import qualified Control.Applicative as A
 
@@ -223,7 +225,7 @@ fake :: forall n idx a.
         )
      => Fake a
      -> IO (Series n idx a)
-fake gen = Faker.generateNonDeterministic (listOf n gen) >>=
+fake gen = Faker.generateNonDeterministic (Fake.listOf n gen) >>=
   pure . orCrash error2 . fromVec . orCrash error . Vec.fromList @n
   where
     error  = "The fake data that was generated was the wrong size."
@@ -320,14 +322,8 @@ concat :: forall m n idx a.
 concat a b = Series
   { sIndex  = Index.concat (a ^. index) (b ^. index)
   , sData   = a ^. dataVec Vec.++ b ^. dataVec
-  , sName   = Name.combine nameA nameB
+  , sName   = Name.combine (a ^. name) (b ^. name)
   }
-  where
-    nameA :: Maybe Name
-    nameA = a ^. name
-
-    nameB :: Maybe Name
-    nameB = b ^. name
 
 drop :: forall m n idx a.
         ( Enum idx

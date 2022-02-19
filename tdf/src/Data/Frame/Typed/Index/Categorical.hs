@@ -14,8 +14,8 @@ module Data.Frame.Typed.Index.Categorical
 
 import Data.Frame.Prelude
 
-import Data.Frame.Typed.SubIndex     ( SubIndex(..) )
-import Data.Frame.Typed.Types.ToVecN ( ToVecN( toVecN ) )
+import Data.Frame.Typed.SubIndex ( SubIndex(..) )
+import Data.Frame.Typed.ToVecN   ( ToVecN( toVecN ) )
 
 newtype CategoricalIndex (n :: Nat) idx = CategoricalIndex (Vec n idx)
   deriving (Eq, Generic, Ord, Show)

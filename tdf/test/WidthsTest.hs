@@ -10,16 +10,16 @@ module WidthsTest
 
 import Data.Frame.Prelude
 
-import Data.Frame.Typed.Types.Widths ( unWidths
-                                     , widths
-                                     )
-import Test.Tasty.Hspec              ( Spec
-                                     , context
-                                     , it
-                                     , shouldBe
-                                     )
+import Data.Frame.Typed.Widths ( unWidths
+                               , widths
+                               )
+import Test.Tasty.Hspec        ( Spec
+                               , context
+                               , it
+                               , shouldBe
+                               )
 
-import qualified Data.Frame.Typed.Types.Widths as Widths
+import qualified Data.Frame.Typed.Widths as Widths
 
 spec_Widths :: Spec
 spec_Widths = do

@@ -31,10 +31,9 @@ library
       Data.Frame.Prelude
       Data.Frame.Typed
       Data.Frame.Typed.CSV
-      Data.Frame.Typed.Examples.Benford
-      Data.Frame.Typed.Examples.DeleteMe
-      Data.Frame.Typed.Examples.Examples
+      Data.Frame.Typed.Examples
       Data.Frame.Typed.Examples.Prestige
+      Data.Frame.Typed.FromField
       Data.Frame.Typed.Index
       Data.Frame.Typed.Index.Categorical
       Data.Frame.Typed.Index.DateTime
@@ -42,18 +41,17 @@ library
       Data.Frame.Typed.Index.Period
       Data.Frame.Typed.Index.Range
       Data.Frame.Typed.Index.TimeDelta
+      Data.Frame.Typed.Name
       Data.Frame.Typed.Options
+      Data.Frame.Typed.Positive
       Data.Frame.Typed.Series
       Data.Frame.Typed.SubIndex
+      Data.Frame.Typed.Table
+      Data.Frame.Typed.ToField
+      Data.Frame.Typed.ToVecN
       Data.Frame.Typed.Tutorial
-      Data.Frame.Typed.Types.FromField
-      Data.Frame.Typed.Types.Name
-      Data.Frame.Typed.Types.Positive
-      Data.Frame.Typed.Types.Table
-      Data.Frame.Typed.Types.ToField
-      Data.Frame.Typed.Types.ToVecN
-      Data.Frame.Typed.Types.Widths
       Data.Frame.Typed.Utils.Dyn
+      Data.Frame.Typed.Widths
       Data.Random.X
       Data.Row.Records.X
       Data.Vec.Lazy.AVec

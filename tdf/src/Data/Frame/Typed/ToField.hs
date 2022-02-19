@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Data.Frame.Typed.Types.ToField
+module Data.Frame.Typed.ToField
   ( ToField(..)
   ) where
 

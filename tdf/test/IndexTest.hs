@@ -31,6 +31,6 @@ spec_Index =
       SubIndex.toLst idx
         `shouldBe` [0, 1, 2]
 
-    it "should append to itself correctly" $
+    it "should concat to itself correctly" $
       SubIndex.toLst (Index.concat idx idx)
         `shouldBe` [0, 1, 2, 3, 4, 5]

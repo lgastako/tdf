@@ -4,7 +4,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 
-module Data.Frame.Typed.Types.Name
+module Data.Frame.Typed.Name
   ( Error(..)
   , Name( unName )
   -- Value

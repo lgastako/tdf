@@ -10,14 +10,14 @@ module Data.Frame.Typed.Calendar
 
 import Data.Frame.Prelude
 
-import Data.Time.Calendar             ( Day
-                                      , DayOfMonth
-                                      , MonthOfYear
-                                      , Year
-                                      , fromGregorian
-                                      )
-import Data.Frame.Typed               ( Frame )
-import Data.Frame.Typed.Types.ToField ( ToField( toField ) )
+import Data.Time.Calendar       ( Day
+                                , DayOfMonth
+                                , MonthOfYear
+                                , Year
+                                , fromGregorian
+                                )
+import Data.Frame.Typed         ( Frame )
+import Data.Frame.Typed.ToField ( ToField( toField ) )
 
 import qualified Data.Frame.Typed as DF
 

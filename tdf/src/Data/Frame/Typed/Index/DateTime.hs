@@ -13,8 +13,8 @@ module Data.Frame.Typed.Index.DateTime
 
 import Data.Frame.Prelude     hiding ( toList )
 
-import Data.Frame.Typed.SubIndex     ( SubIndex(..) )
-import Data.Frame.Typed.Types.ToVecN ( ToVecN( toVecN ) )
+import Data.Frame.Typed.SubIndex ( SubIndex(..) )
+import Data.Frame.Typed.ToVecN   ( ToVecN( toVecN ) )
 
 data DateTimeIndex (n :: Nat) idx = DateTimeIndex
   deriving (Eq, Generic, Ord, Show)

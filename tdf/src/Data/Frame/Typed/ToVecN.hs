@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
 
-module Data.Frame.Typed.Types.ToVecN
+module Data.Frame.Typed.ToVecN
   ( ToVecN(..)
   ) where
 

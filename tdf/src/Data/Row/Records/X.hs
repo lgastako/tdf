@@ -9,8 +9,8 @@ module Data.Row.Records.X
 
 import           Data.Frame.Prelude
 
-import           Data.Frame.Typed.Types.ToField
-import qualified Data.Row.Records               as Rec
+import           Data.Frame.Typed.ToField
+import qualified Data.Row.Records         as Rec
 
 fieldLabels :: Forall a ToField => Rec a -> [Text]
 fieldLabels = Rec.erase @ToField @_ @Text toField
