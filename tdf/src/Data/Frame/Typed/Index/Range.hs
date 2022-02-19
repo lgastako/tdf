@@ -1,3 +1,4 @@
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -73,7 +74,8 @@ data RangeIndex (n :: Nat) idx = RangeIndex
 -- Can't do it without a constraint (Num or Enum) on `a`.
 -- instance SNatI n => Foldable (RangeIndex n)
 
-instance ( Enum idx
+instance forall n idx.
+         ( Enum idx
          , SNatI n
          ) => SubIndex RangeIndex n idx where
   toLst RangeIndex {..} = [riStart, next..pred riStop]
@@ -81,7 +83,20 @@ instance ( Enum idx
       next = ala Endo foldMap (replicate riStep succ) riStart
 
   drop = panic "Index.Range.drop"
+
+  take :: ( SNatI n )
+       => forall m. RangeIndex n idx
+       -> RangeIndex m idx
   take = panic "Index.Range.take"
+  -- take RangeIndex {..} = RangeIndex
+  --   { riName  = riName
+  --   , riStart = riStart
+  --   , riStep  = riStep
+  --   , riStop  = riStop
+  --   }
+  --   where
+  --     n = fromIntegral . snatToNat $ (snat @n)
+  --     m = fromIntegral . snatToNat $ (snat @m)
 
 instance ToVecN (RangeIndex n idx) n idx where
   toVecN = panic "Index.Range.toVecN"

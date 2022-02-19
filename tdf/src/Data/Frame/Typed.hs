@@ -91,6 +91,7 @@ module Data.Frame.Typed
   , toNativeVec
   , toTexts
   , toVec
+  , unique
   , valueCounts
   ) where
 
@@ -116,7 +117,6 @@ import qualified Data.List                       as List
 import qualified Data.Map.Strict                 as Map
 import qualified Data.Row.Records                as Rec
 import qualified Data.Text                       as Text
--- import qualified Data.Vec.Lazy.Lens              as VL
 import qualified Data.Vec.Lazy.X                 as Vec
 import qualified Data.Frame.Typed.Index          as Index
 import qualified Data.Frame.Typed.Options        as Options
@@ -174,9 +174,9 @@ data Verbosity
 
 -- https://pandas.pydata.org/docs/reference/api/pandas.Frame.html#pandas.Frame
 construct :: forall n idx a.
-             ( Forall a Unconstrained1
+             ( Enum idx
+             , Forall a Unconstrained1
              , SNatI n
-             , idx ~ Int
              )
           => Options n idx a
           -> Frame n idx a
@@ -194,14 +194,14 @@ construct opts = Frame dfIndex d
     vecOfRecs = Options.optData opts
 
 toLabeledSeries :: forall n idx a.
-                   ( SNatI n
-                   , idx ~ Int
+                   ( Enum idx
+                   , SNatI n
                    )
                 => Name
                 -> Vec n a
                 -> Series n idx a
 toLabeledSeries label v = Series.construct $ Series.Options
-  { optIndex = Index.defaultIntsFor v & fromMaybe (explode "Nahh")
+  { optIndex = Index.defaultFromFor (toEnum 0) v `onCrash` "Nahh"
   , optData  = v
   , optName  = Just label
   }
@@ -229,9 +229,9 @@ fake rf = orCrash error . fromList
     error = "Typed.fake: something went wrong."
 
 fromList :: forall n idx a.
-            ( Forall a Unconstrained1
+            ( Enum idx
+            , Forall a Unconstrained1
             , SNatI n
-            , idx ~ Int
             )
          => [Rec a]
          -> Maybe (Frame n idx a)
@@ -248,7 +248,7 @@ fromNativeVec :: forall n idx a t.
               -> Frame n idx a
 fromNativeVec values = Frame
   { dfData  = dfData'
-  , dfIndex = Index.defaultIntsFor vecOfRecs `onCrash` "fromNativeVec.dfIndex"
+  , dfIndex = Index.defaultFor vecOfRecs `onCrash` "fromNativeVec.dfIndex"
   }
   where
     vecOfRecs :: Vec n (Rec (Rec.NativeRow t))
@@ -294,13 +294,13 @@ fromSeries :: forall n idx a.
 fromSeries = fromVec . Vec.map (#value .==) . Series.toVec
 
 fromVec :: forall n idx a.
-           ( Forall a Unconstrained1
+           ( Enum idx
+           , Forall a Unconstrained1
            , SNatI n
-           , idx ~ Int
            )
         => Vec n (Rec a)
         -> Maybe (Frame n idx a)
-fromVec v = f <$> Index.defaultIntsFor v
+fromVec v = f <$> Index.defaultFor v
   where
     f :: Index n idx -> Frame n idx a
     f idx = Frame
@@ -543,7 +543,7 @@ overSeries :: forall m n idx a b.
         -> Frame n idx a
         -> Frame m idx b
 overSeries f Frame {..} = Frame
-  { dfIndex = Index.defaultIntsFor v `onCrash` "overSeries.dfIndex"
+  { dfIndex = Index.defaultFor v `onCrash` "overSeries.dfIndex"
   , dfData  = Rec.distribute srb
   }
   where
@@ -740,32 +740,44 @@ record idx = lens get' set'
     set' :: Frame n idx a -> Maybe (Rec a) -> Frame n idx a
     set' df = \case
       Nothing -> df -- TODO this can't be right?
-      Just v -> df & recSeries . recSerSeq @n . Series.at idx .~ v
+      Just v -> df & recSeries . recSerToSerRec @n . Series.at idx .~ v
 
-recSerSeq :: forall n idx a.
-             ( Enum idx
-             , Forall a Unconstrained1
-             , SNatI n
-             )
-          => Iso' (Rec (Map (Series n idx) a))
-                  (Series n idx (Rec a))
-recSerSeq = iso there back
-  where
-    there :: Rec (Map (Series n idx) a)
-          -> Series n idx (Rec a)
-    there = Rec.sequence
-
-    back :: Series n idx (Rec a)
-         -> Rec (Map (Series n idx) a)
-    back = Rec.distribute
+recSerToSerRec :: forall n idx a.
+                  ( Enum idx
+                  , Forall a Unconstrained1
+                  , SNatI n
+                  )
+               => Iso' (Rec (Map (Series n idx) a))
+                       (Series n idx (Rec a))
+recSerToSerRec = iso Rec.sequence Rec.distribute
 
 toSeries :: forall n idx a.
-            ( SNatI n
-            , idx ~ Int
+            ( Enum idx
+            , SNatI n
             )
          => Vec n a
          -> Series n idx a
 toSeries = toLabeledSeries Name.series
+
+unique :: forall n idx a.
+          ( AllUniqueLabels (Map (Vec n) a)
+          , Enum idx
+          , Forall a Eq
+          , Forall a Unconstrained1
+          , Forall (Map (Vec n) a) Unconstrained1
+          , SNatI n
+          , Show idx
+          )
+       => Frame n idx a
+       -> Bool
+unique df = lfrecs == lrecs
+  where
+    lfrecs = length frecs
+    frecs = List.nub (Vec.toList recs)
+    lrecs = length recs
+
+    recs :: Vec n (Rec a)
+    recs = toVec df
 
 -- TODO: Can't implement `iat` until we have some sense of column ordering
 
@@ -988,13 +1000,14 @@ toNativeVec = Vec.map Rec.toNative . toVec
 
 toTexts :: forall n idx a.
            ( AllUniqueLabels (Map (Vec n) a)
+           , Enum idx
            , Forall (Map (Vec n) a) Unconstrained1
            , Forall a ToField
            , Forall a Typeable
            , Forall a Unconstrained1
            , Forall (Map (Vec n) a) Unconstrained1
            , SNatI n
-           , idx ~ Int
+           , Show idx
            )
         => Frame n idx a
         -> [[Text]]
@@ -1019,10 +1032,10 @@ toTexts df = addIndexes
 
 toVec :: forall n idx a.
          ( AllUniqueLabels (Map (Vec n) a)
+         , Enum idx
          , Forall (Map (Vec n) a) Unconstrained1
          , Forall a Unconstrained1
          , SNatI n
-         , idx ~ Int
          )
       => Frame n idx a
       -> Vec n (Rec a)
@@ -1181,7 +1194,7 @@ digit = digitToInt . P.head . show
 --  ~ merge :: Frame idx a -> Frame idx b -> Extend a b
 
 -- TODO group / groupBy
--- TODO append
+  -- TODO concat
 -- TODO join
 -- TODO melt
 

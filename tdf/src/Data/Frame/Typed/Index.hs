@@ -16,8 +16,8 @@ module Data.Frame.Typed.Index
   ( Index
   , MultiIndex(..)
   -- Constructors
+  , defaultFor
   , defaultFromFor
-  , defaultIntsFor
   , fromLst
   , fromVec
   -- Combinators
@@ -132,7 +132,14 @@ instance ( Enum a
     IdxRange       idx -> IdxRange       $ SubIndex.drop idx
     IdxTimeDelta   idx -> IdxTimeDelta   $ SubIndex.drop idx
 
-  take _ = panic "Index.take"
+  take = \case
+    IdxCategorical idx -> IdxCategorical $ SubIndex.take idx
+    IdxDateTime    idx -> IdxDateTime    $ SubIndex.take idx
+    IdxInterval    idx -> IdxInterval    $ SubIndex.take idx
+    IdxMulti       idx -> IdxMulti       $ SubIndex.take idx
+    IdxPeriod      idx -> IdxPeriod      $ SubIndex.take idx
+    IdxRange       idx -> IdxRange       $ SubIndex.take idx
+    IdxTimeDelta   idx -> IdxTimeDelta   $ SubIndex.take idx
 
 instance (Enum idx, SNatI n) => ToVecN (Index n idx) n idx where
   toVecN = \case
@@ -148,6 +155,14 @@ instance (Enum idx, SNatI n) => ToVecN (Index n idx) n idx where
 -- Constructors
 -- ================================================================ --
 
+defaultFor :: forall idx n a.
+              ( Enum idx
+              , SNatI n
+              )
+           => Vec n a
+           -> Maybe (Index n idx)
+defaultFor = defaultFromFor (toEnum 0)
+
 defaultFromFor :: forall idx n a.
                   ( Enum idx
                   , SNatI n
@@ -156,12 +171,6 @@ defaultFromFor :: forall idx n a.
                -> Vec n a
                -> Maybe (Index n idx)
 defaultFromFor idx v = Just . IdxRange $ RangeIndex.defaultFromFor idx v
-
-defaultIntsFor :: forall n a.
-                  SNatI n
-               => Vec n a
-               -> Maybe (Index n Int)
-defaultIntsFor = defaultFromFor 0
 
 fromLst :: forall n idx.
            SNatI n

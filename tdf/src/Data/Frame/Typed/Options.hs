@@ -1,7 +1,8 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE KindSignatures    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Data.Frame.Typed.Options
   ( Options( optData
@@ -26,25 +27,19 @@ data Options (n :: Nat) idx a = Options
 --   Constructors
 -- ================================================================ --
 
-fromVec :: SNatI n
+fromVec :: forall n idx a.
+           ( Enum idx
+           , SNatI n
+           )
         => Vec n (Rec a)
-        -> Options n Int a
+        -> Options n idx a
 fromVec v = Options
-  { optIndex = case Index.defaultIntsFor v of
-      Just idx -> idx
-      Nothing  -> panic "Options.fromVec.1"
+  { optIndex = Index.defaultFor v `onCrash` "Options.fromVec.1"
   , optData  = v
   }
 
 empty :: Options 'Z Int Empty
-empty = Options
-  { optIndex = case Index.defaultIntsFor v of
-      Just idx -> idx
-      Nothing  -> panic "Options.empty.1"
-  , optData  = v
-  }
-  where
-    v = Vec.empty
+empty = fromVec Vec.empty
 
 -- ================================================================ --
 --  Combinators

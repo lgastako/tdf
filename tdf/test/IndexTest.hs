@@ -23,9 +23,9 @@ import qualified Data.Vec.Lazy.X           as Vec
 
 spec_Index :: Spec
 spec_Index =
-  context "with defaultIntsFor 'bar'" $ do
+  context "with defaultFor 'bar'" $ do
     let idx :: Index Nat3 Int
-        Just idx = Index.defaultIntsFor (Vec.repeat True)
+        Just idx = Index.defaultFor (Vec.repeat True)
 
     it "should have 0, 1, 2" $
       SubIndex.toLst idx

@@ -208,7 +208,9 @@ a_ :: forall  idx a    b.
    -> (ASeries  idx a -> b)
 a_ = reify
 
-construct :: forall n idx a. Options n idx a -> Series n idx a
+construct :: forall n idx a.
+             Options n idx a
+          -> Series n idx a
 construct Options {..} = Series
   { sIndex  = optIndex
   , sData   = optData

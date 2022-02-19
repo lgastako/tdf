@@ -41,9 +41,9 @@ thePrestige :: IO ()
 thePrestige = do
   let n :: Nat
       n = Nat.reify (snatToNat $ snat @PrestigeLen) Nat.reflect
-  print ("PrestigeLen", n)
+  print ("PrestigeLen" :: Text, n)
   df :: Frame PrestigeLen Int Prestige
     <- CSV.unsafeFromHeadedCSV "data/prestige.csv"
   print . DF.columnNames $ df
-  print . DF.toTexts $ df
+--  print . DF.toTexts $ df
   DF.display . DF.head @Nat5 $ df
