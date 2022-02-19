@@ -22,6 +22,10 @@ module Data.Frame.Typed.Index.Range
   , stop
   -- Combinators
   , append
+  -- Eliminators
+  , isMonotonicDecreasing
+  , isMonotonicIncreasing
+  , len
   ) where
 
 import Data.Frame.Prelude     hiding ( toList )
@@ -38,13 +42,27 @@ import qualified Data.Vec.Lazy.X             as Vec
 
 -- | Immutable Index implementing a monotonic range over any Enum instance.
 --
--- RangeIndex is a memory-saving special case index limited to representing
--- monotonic ranges. Using RangeIndex may in some instances improve computing
+-- 'RangeIndex' is a memory-saving special case index limited to representing
+-- monotonic ranges. Using 'RangeIndex' may in some instances improve computing
 -- speed.
 --
--- For consistency with the pandas version with store the stop as one greater
+-- For consistency with the pandas version we store the 'stop' as one greater
 -- than the max index, so when we generate actual collections of indexes we
 -- need to stop one early.
+--
+-- This is the default index type used by 'Frame' and 'Series' when no explicit
+-- index is provided by the user.
+--
+-- Since this is Haskell we don't need the dtype or copy properties from the
+-- pandas version. We also don't need from range since ranges in Haskell are
+-- just lists and there's 'fromLst' already.
+--
+-- We also don't do any of the sneaking around with treating start as stop if
+-- it's an int and a full moon or mercury is in retrograde.  The types are what
+-- they are.  Uses can easily create helpers for common uses cases specific to
+-- their environments, or freel free to submit a pull-request if you think it
+-- may be useful for others.
+
 data RangeIndex (n :: Nat) idx = RangeIndex
   { riName  :: Maybe Name
   , riStart :: idx
@@ -141,3 +159,17 @@ append a b
     -- TODO assumes ascending indexes which may not be correct?
     deltaB :: Int
     deltaB = fromEnum (b ^. stop) - fromEnum (b ^. start)
+
+-- ================================================================ --
+--   Eliminators
+-- ================================================================ --
+
+isMonotonicDecreasing :: Enum idx => RangeIndex n idx -> Bool
+isMonotonicDecreasing idx = idx ^. step > 0 || len idx <= 1
+
+isMonotonicIncreasing :: Enum idx => RangeIndex n idx -> Bool
+isMonotonicIncreasing idx = idx ^. step < 0 || len idx <= 1
+
+-- TODO move into SubIndex?
+len :: Enum idx => RangeIndex n idx -> Int
+len idx = fromEnum (idx ^. stop) - fromEnum (idx ^. start)

@@ -6,12 +6,15 @@
 module Data.Frame.Typed.Types.Table
   ( Row( Row )
   , Table
-  , display
+  -- Constructors
   , from
   , fromHeadedRows
   , fromRows
   , fromTexts
+  -- Combinators
   , promoteHeader
+  -- Eliminators
+  , display
   , render
   ) where
 

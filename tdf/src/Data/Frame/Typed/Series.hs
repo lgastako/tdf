@@ -1,7 +1,7 @@
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveTraversable     #-}
 {-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE InstanceSigs          #-}
@@ -16,7 +16,6 @@
 {-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module Data.Frame.Typed.Series
@@ -69,6 +68,7 @@ module Data.Frame.Typed.Series
   , ncols
   , ndims
   , nrows
+  , nub
   , onVec
   , reify
   , shape
@@ -90,7 +90,6 @@ import           Data.Frame.Prelude                 hiding ( concat
                                                            , zip
                                                            , zipWith
                                                            )
-
 import           Control.Lens                              ( Each )
 import qualified Data.List                     as List
 import qualified Data.Map.Strict               as Map
@@ -588,6 +587,13 @@ isEmpty _
   | snatToNat (snat @n) == nat0 = True
   | otherwise = False
 
+-- TODO ifCxt for the (Ord a) with a fallback to Eq via compared nub to itself
+unique :: forall n idx a.
+          ( Ord a )
+       => Series n idx a
+       -> Bool
+unique = not . or . duplicated
+
 ncols :: forall n idx a. Series n idx a -> Int
 ncols _ = 1
 
@@ -599,6 +605,10 @@ nrows :: forall n idx a.
       => Series n idx a
       -> Int
 nrows _ = fromIntegral . toInteger $ snatToNat (snat @n)
+
+-- TODO: ifCxt to use ordNub when possible
+nub :: Eq a => Series n idx a -> [a]
+nub = List.nub . toList
 
 onVec :: forall n idx a b.
          (Vec n a -> b)
@@ -651,13 +661,6 @@ toTexts = toTextsVia show
 
 toVec :: Series n idx a -> Vec n a
 toVec = view dataVec
-
--- TODO ifCtx for the (Ord a) with a fallback to Eq via compared nub to itself
-unique :: forall n idx a.
-          ( Ord a )
-       => Series n idx a
-       -> Bool
-unique = not . or . duplicated
 
 -- ================================================================ --
 --   Helpers

@@ -6,6 +6,7 @@
 {-# LANGUAGE GADTs                #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE OverloadedLabels     #-}
+{-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE RecordWildCards      #-}
@@ -70,6 +71,7 @@ module Data.Frame.Typed
   , indexes
   -- , info
   , isEmpty
+  , lookup
   -- , melt
   -- , meltSimple
   -- , memSize
@@ -77,6 +79,7 @@ module Data.Frame.Typed
   , ndims
   , nrows
   , onColumn
+  , recSeries
   , record
   , reify
   , render
@@ -680,78 +683,65 @@ asSeries Frame {..} = Series.construct $ Series.Options
       . Rec.sequence
       $ dfData
 
-record :: forall n idx a. idx -> Lens' (Frame n idx a) (Maybe (Rec a))
-record _idx = panic "Typed.record"
+record :: forall n idx a.
+          ( Enum idx
+          , Eq idx
+          , Forall a Unconstrained1
+          , LE n n
+          , SNatI n
+          )
+       => idx
+       -> Lens' (Frame n idx a) (Maybe (Rec a))
+record idx = lens get' set'
+  where
+    get' :: Frame n idx a -> Maybe (Rec a)
+    get' = lookup idx
 
-at :: forall n idx a k.
+    set' :: Frame n idx a -> Maybe (Rec a) -> Frame n idx a
+    set' df = \case
+      Nothing -> df -- TODO this can't be right?
+      Just v -> df & recSeries . recSerSeq @n . Series.at idx .~ v
+
+recSerSeq :: forall n idx a.
+             ( Enum idx
+             , Forall a Unconstrained1
+             , SNatI n
+             )
+          => Iso' (Rec (Map (Series n idx) a))
+                  (Series n idx (Rec a))
+recSerSeq = iso there back
+  where
+    there :: Rec (Map (Series n idx) a)
+          -> Series n idx (Rec a)
+    there = Rec.sequence
+
+    back :: Series n idx (Rec a)
+         -> Rec (Map (Series n idx) a)
+    back = Rec.distribute
+
+at :: forall n idx a k v.
       ( Enum idx
       , Eq idx
       , Forall a Unconstrained1
       , KnownSymbol k
       , LE n n
       , SNatI n
+      , v ~ (a .! k)
       )
    => idx
    -> Label k
-   -> Lens' (Frame n idx a) (Maybe (a .! k))
+   -> Lens' (Frame n idx a) (Maybe v)
 at idx k = lens get' set'
   where
-    get' :: Frame n idx a
-         -> Maybe (a .! k)
-    get' df = case lookup idx df of
-      Nothing -> Nothing
-      Just x  -> Just (x .! k)
+    get' :: Frame n idx a -> Maybe v
+    get' = ((.! k) <$>) . lookup idx
 
     set' :: Frame n idx a
-         -> Maybe (a .! k)
+         -> Maybe v
          -> Frame n idx a
-    set' df vMay = df & series k . Series.at idx .~ undefined
-
-
---        s = DF.column
-        -- dfData' :: Rec (Map (Series n idx) a)
-        -- dfData' = Rec.distribute sr'
-
-        -- sr' :: Series n idx (Rec a)
-        -- sr' = doTheUpdate sr
-
-        -- sr :: Series n idx (Rec a)
-        -- sr = Rec.sequence (df ^. recSeries)
-
-        -- doTheUpdate :: Series n idx (a .! k)
-        --             -> Series n idx (a .! k)
-        -- doTheUpdate s = case vMay of
-        --   Nothing -> panic "this code is wrong"
-        --   Just v  -> s & Series.at idx .~ v
-
-
-    -- set' df rMay = df { dfData = dfData' }
-    --   where
-    --     _  = df :: Frame n idx a
-
-    --     dfData' :: Rec (Map (Series n idx) a)
-    --     dfData' = Rec.distribute sr'
-
-    --     sr' :: Series n idx (Rec a)
-    --     sr' = sr & Series.at idx .~ rMay
-
-    --     sr :: Series n idx (Rec a)
-    --     sr = Rec.sequence rs
-
-    --     rs :: Rec (Map (Series n idx) a)
-    --     rs = df ^. recSeries
-
--- at :: ( Forall a Unconstrained1
---       , KnownSymbol k
---       , LE n n
---       , SNatI n
---       , idx ~ Int
---       )
---    => idx
---    -> Label k
---    -> Frame n idx a
---    -> Maybe (a .! k)
--- at idx k df = (.! k) <$> lookup idx df
+    set' df = \case
+      Nothing -> df -- TODO is this right? surely it's not?
+      Just v  -> df & record idx . _Just %~ Rec.update k v
 
 -- TODO: Can't implement `iat` until we have some sense of column ordering
 

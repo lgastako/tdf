@@ -30,10 +30,14 @@ import Control.Lens          as X ( (%~)
                                   , (//~)
                                   , (?~)
                                   , (^.)
+                                  , (^?)
+                                  , Iso'
                                   , Lens'
+                                  , _Just
                                   , ala
                                   , each
                                   , from
+                                  , iso
                                   , lens
                                   , set
                                   , to

@@ -1,9 +1,6 @@
 {-# LANGUAGE StandaloneKindSignatures #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveGeneric         #-}
-{-# LANGUAGE DeriveTraversable     #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
@@ -13,7 +10,6 @@
 {-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE ViewPatterns          #-}
 
 module Data.Frame.Typed.Index

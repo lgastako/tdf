@@ -6,7 +6,6 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeOperators         #-}
 
 module Data.Frame.Typed.SubIndex
   ( SubIndex(..)
@@ -54,4 +53,4 @@ index :: forall n idx a sub.
       => sub n idx
       -> Vec n a
       -> Vec n (idx, a)
-index subIdx xs = Vec.zip (toVec subIdx) xs
+index = Vec.zip . toVec

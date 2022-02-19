@@ -4,6 +4,7 @@
 
 module Data.Frame.Typed.Types.Positive
   ( Positive( unPositive )
+  -- Constructors
   , fromNum
   , one
   , two
@@ -16,6 +17,10 @@ newtype Positive a = Positive { unPositive :: a }
   deriving (Bounded, Enum, Eq, Generic, Num, Ord, Show)
 
 instance NFData a => NFData (Positive a)
+
+-- ================================================================ --
+--   Constructors
+-- ================================================================ --
 
 fromNum :: (Num a, Ord a) => a -> Maybe (Positive a)
 fromNum n

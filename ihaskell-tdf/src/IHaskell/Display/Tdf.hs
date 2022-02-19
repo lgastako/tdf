@@ -5,17 +5,23 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-orphans      #-}
 
-module IHaskell.Display.Tdf where
+module IHaskell.Display.Tdf
+  ( chartExample
+  , template
+  ) where
 
 import Data.Frame.Prelude
 
+import Data.Frame.Typed               ( Frame )
+import Data.Frame.Typed.Series        ( Series )
+import Data.Frame.Typed.Types.ToField ( ToField )
 import Data.String                    ( fromString )
-import Graphics.BarChart              ( BarChart )
 import IHaskell.IPython.Types         ( MimeType( MimeHtml ) )
 import IHaskell.Display               ( Display( Display )
                                       , DisplayData( DisplayData )
                                       , IHaskellDisplay( display )
                                       )
+import IHaskell.Display.Tdf.Chart     ( chartExample )
 import Lucid                          ( Html )
 import Lucid.Html5                    ( table_
                                       , tbody_
@@ -24,12 +30,8 @@ import Lucid.Html5                    ( table_
                                       , thead_
                                       , tr_
                                       )
-import Data.Frame.Typed               ( Frame )
-import Data.Frame.Typed.Series        ( Series )
-import Data.Frame.Typed.Types.ToField ( ToField )
 
 import qualified Lucid
-import qualified Graphics.BarChartt      as Chart
 import qualified Data.Frame.Typed        as DF
 import qualified Data.Frame.Typed.Series as Series
 

@@ -472,3 +472,14 @@ dfPlus = DF.addSeries #xs s df1
   where
     s :: Series Nat2 Int Int
     s = Series.fromList [10, 20] `onCrash` "dfPlus.s"
+
+someThing :: IO ()
+someThing = do
+  nl >> DF.display df1
+  nl >> DF.display (df1 & DF.record 0 . _Just . #name %~ Text.toUpper)
+  nl >> DF.display (df1 & DF.record 1 . _Just . #name %~ Text.toUpper)
+  nl >> DF.display (df1 & DF.record 2 . _Just . #name %~ Text.toUpper)
+  nl >> DF.display (df1 & DF.record 0 . _Just . #age *~ 15)
+  nl >> DF.display (df1 & DF.record 1 . _Just . #age *~ 15)
+  nl >> DF.display (df1 & DF.record 2 . _Just . #age *~ 15)
+  nl

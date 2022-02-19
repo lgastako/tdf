@@ -6,6 +6,12 @@ python's pandas) in Haskell.
 Candidate names:
 - chassis
 
+I initially planned on trying to hew as close to the pandas API as possible to
+make it an easy transition for any Pandas users that might wanted to talk a
+walk on the Typed side... but after working with everything for a while now I
+think I am going to take a more Haskell flavored approach and then maybe go
+back and write a pandas compatibility layer later.
+
 ## Biggest Problems to Solve
 
 NB. `append` is deprecated in pandas and replaced by `concat.
@@ -56,6 +62,8 @@ We take vectors of rows as input and turn it into rows of vectors to operate on.
 - TODO List:
   - IN-PROGRESS lenses for bidirectional accessors like loc, at, iat, etc.
   - pd.describe
+  - factorize
+  - cut
   - merge
     https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.merge.html
     https://pandas-docs.github.io/pandas-docs-travis/user_guide/merging.html
