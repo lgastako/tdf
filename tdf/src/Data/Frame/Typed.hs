@@ -238,11 +238,11 @@ fromList :: forall n idx a.
 fromList = fromVec <=< Vec.fromList
 
 fromNativeVec :: forall n idx a t.
-                 ( Forall a Unconstrained1
+                 ( Enum idx
+                 , Forall a Unconstrained1
                  , Rec.FromNative t
                  , SNatI n
                  , a ~ Rec.NativeRow t
-                 , idx ~ Int
                  )
               => Vec n t
               -> Frame n idx a
@@ -272,22 +272,22 @@ fromNativeVec values = Frame
           `onCrash` "fromNativeVec.seriesOfNativeRec"
 
 fromScalar :: forall idx a.
-                  ( idx ~ Int )
-               => a
-               -> Maybe (Frame Nat1 idx ("value" .== a))
+              ( Enum idx )
+           => a
+           -> Maybe (Frame Nat1 idx ("value" .== a))
 fromScalar x = fromVec (#value .== x ::: VNil)
 
 fromScalarList :: forall n idx a.
-                  ( SNatI n
-                  , idx ~ Int
+                  ( Enum idx
+                  , SNatI n
                   )
                => [a]
                -> Maybe (Frame n idx ("value" .== a))
 fromScalarList = fromList . List.map (\x -> #value .== x)
 
 fromSeries :: forall n idx a.
-              ( SNatI n
-              , idx ~ Int
+              ( Enum idx
+              , SNatI n
               )
            => Series n idx a
            -> Maybe (Frame n idx ("value" .== a))
@@ -320,6 +320,7 @@ fromVec v = f <$> Index.defaultFor v
 
 addSeries :: forall n idx a b k v r.
              ( Disjoint r a
+             , Enum idx
              , Extend k v a ~ b
              , Forall a Unconstrained1
              , Forall b Unconstrained1
@@ -327,7 +328,6 @@ addSeries :: forall n idx a b k v r.
              , SNatI n
              , r ≈ k .== v
              , b ~ (a .+ r)
-             , idx ~ Int
              )
           => Label k
           -> Series n idx v
@@ -396,13 +396,13 @@ benford k df = case fmap bumpIndexes . fromList $ dfreqs of
 
 -- TODO Give this a better name
 column :: forall n k v idx a b rest.
-          ( Forall a Unconstrained1
+          ( Enum idx
+          , Forall a Unconstrained1
           , Forall b Unconstrained1
           , SNatI n
           , Disjoint b rest
           , a ~ (b .+ rest)
           , b ≈ k .== v
-          , idx ~ Int
           )
        => Label k
        -> Frame n idx a
@@ -410,9 +410,9 @@ column :: forall n k v idx a b rest.
 column _ = restrict
 
 cons :: forall n idx a.
-        ( Forall a Unconstrained1
+        ( Enum idx
+        , Forall a Unconstrained1
         , SNatI n
-        , idx ~ Int
         )
      => Rec a
      -> Frame n idx a
@@ -501,10 +501,10 @@ head Frame {..} = Frame
     seriesM = Series.take seriesN :: Series m idx (Rec a)
 
 map :: forall n idx a b.
-       ( Forall a Unconstrained1
+       ( Enum idx
+       , Forall a Unconstrained1
        , Forall b Unconstrained1
        , SNatI n
-       , idx ~ Int
        )
     => (Rec a -> Rec b)
     -> Frame n idx a
@@ -533,11 +533,11 @@ map f = overSeries (fmap f)
 -- meltSimple = panic "simpleMelt"
 
 overSeries :: forall m n idx a b.
-           ( Forall a Unconstrained1
+           ( Enum idx
+           , Forall a Unconstrained1
            , Forall b Unconstrained1
            , SNatI m
            , SNatI n
-           , idx ~ Int
            )
         => (Series n idx (Rec a) -> Series m idx (Rec b))
         -> Frame n idx a
@@ -552,12 +552,12 @@ overSeries f Frame {..} = Frame
 
 pop :: forall n idx r k v rest.
        ( Disjoint r rest
+       , Enum idx
        , Forall (r .+ rest) Unconstrained1
        , KnownSymbol k
        , SNatI n
        , Series n idx v ~ (Map (Series n idx) (r .+ rest) .! k)
        , r ≈ k .== v
-       , idx ~ Int
        )
     => Label k
     -> Frame n idx (r .+ rest)
@@ -583,20 +583,20 @@ rename :: ( Extend k' (sa .! k) (sa .- k) ~ Map (Series n idx) b
 rename k k' df = df { dfData = Rec.rename k k' (dfData df) }
 
 restrict :: forall b n idx a.
-            ( Forall a Unconstrained1
+            ( Enum idx
+            , Forall a Unconstrained1
             , Forall b Unconstrained1
             , Rec.Subset b a
             , SNatI n
-            , idx ~ Int
             )
          => Frame n idx a
          -> Frame n idx b
 restrict = map Rec.restrict
 
 snoc :: forall n idx a.
-        ( Forall a Unconstrained1
+        ( Enum idx
+        , Forall a Unconstrained1
         , SNatI n
-        , idx ~ Int
         )
      => Rec a
      -> Frame n idx a
@@ -604,11 +604,11 @@ snoc :: forall n idx a.
 snoc x = overSeries (Series.snoc x)
 
 tail :: forall m n idx a.
-        ( Forall a Unconstrained1
+        ( Enum idx
+        , Forall a Unconstrained1
         , LE m n
         , SNatI n
         , SNatI m
-        , idx ~ Int
         )
      => Frame n idx a
      -> Frame m idx a
@@ -673,17 +673,17 @@ a_ :: forall idx a b.
 a_ = reify
 
 asBool :: forall idx k.
-          ( KnownSymbol k
-          , idx ~ Int
+          ( Enum idx
+          , KnownSymbol k
           )
        => Frame Nat1 idx (k .== Bool)
        -> Bool
 asBool = asScalar
 
 asScalar :: forall idx k v.
-            ( KnownSymbol k
+            ( Enum idx
+            , KnownSymbol k
             , ToField v -- why??
-            , idx ~ Int
             )
          => Frame Nat1 idx (k .== v)
          -> v
@@ -700,13 +700,13 @@ bool :: forall idx a k.
 bool f t df = DP.bool f t (asBool df)
 
 asSeries :: forall n idx a k v.
-          ( KnownSymbol k
+          ( Enum idx
+          , KnownSymbol k
           , SNatI n
           , ToField v
           , a ≈ k .== v
           , (a .! k) ~ v
           , ((k .== Vec n v) .! k) ~ Vec n ((k .== v) .! k)
-          , idx ~ Int
           )
        => Frame n idx a
        -> Series n idx v
@@ -814,13 +814,14 @@ columnVec = (`onColumn` identity)
 
 display :: forall n idx a.
            ( AllUniqueLabels (Map (Vec n) a)
+           , Enum idx
            , Forall (Map (Vec n) a) Unconstrained1
            , Forall a ToField
            , Forall a Typeable
            , Forall a Unconstrained1
            , Forall (Map (Vec n) a) Unconstrained1
            , SNatI n
-           , idx ~ Int
+           , Show idx
            )
         => Frame n idx a
         -> IO ()
@@ -849,7 +850,6 @@ indexes :: forall n idx a.
            , LE n n
            , Num idx
            , SNatI n
-           , idx ~ Int
            )
         => Frame n idx a
         -> Vec n idx
@@ -926,11 +926,11 @@ reify :: forall idx a b.
 reify f (AFrame _n v) = f v
 
 render :: forall n idx a.
-          ( Forall a ToField
+          ( Enum idx
+          , Forall a ToField
           , Forall a Typeable
           , Forall a Unconstrained1
           , SNatI n
-          , idx ~ Int
           )
        => Frame n idx a
        -> Text
@@ -976,10 +976,10 @@ _onRC f = f <$> nrows <*> ncols
 
 toList :: forall n idx a.
           ( AllUniqueLabels (Map (Vec n) a)
+          , Enum idx
           , Forall (Map (Vec n) a) Unconstrained1
           , Forall a Unconstrained1
           , SNatI n
-          , idx ~ Int
           )
        => Frame n idx a
        -> [Rec a]
@@ -987,11 +987,11 @@ toList = Vec.toList . toVec
 
 toNativeVec :: forall n idx t ntv.
                ( AllUniqueLabels (Map (Vec n) ntv)
+               , Enum idx
                , Forall ntv Unconstrained1
                , Forall (Map (Vec n) ntv) Unconstrained1
                , ToNative t
                , SNatI n
-               , idx ~ Int
                , ntv ~ NativeRow t
                )
             => Frame n idx ntv

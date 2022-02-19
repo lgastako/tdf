@@ -18,10 +18,10 @@ import Test.Tasty.Hspec ( Spec
                         , shouldBe
                         )
 
-import qualified Data.Vec.Lazy                      as Vec
-import qualified Data.Frame.Typed                   as DF
-import qualified Data.Frame.Typed.Series            as Series
-import qualified Data.Frame.Typed.Examples.Examples as Examples
+import qualified Data.Vec.Lazy             as Vec
+import qualified Data.Frame.Typed          as DF
+import qualified Data.Frame.Typed.Series   as Series
+import qualified Data.Frame.Typed.Examples as Examples
 
 type Animal = "animal" .== Text
 

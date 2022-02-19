@@ -8,14 +8,14 @@ module CSVTest
 
 import Data.Frame.Prelude
 
-import Data.Frame.Typed                   ( Frame )
-import Data.Frame.Typed.Examples.Examples ( PersonFields )
-import Test.Tasty.Hspec                   ( Spec
-                                          , context
-                                          , it
-                                          , shouldBe
-                                          , runIO
-                                          )
+import Data.Frame.Typed          ( Frame )
+import Data.Frame.Typed.Examples ( PersonFields )
+import Test.Tasty.Hspec          ( Spec
+                                 , context
+                                 , it
+                                 , shouldBe
+                                 , runIO
+                                 )
 
 import qualified Data.Vec.Lazy        as Vec
 import qualified Data.Frame.Typed.CSV as CSV
