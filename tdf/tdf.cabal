@@ -31,6 +31,7 @@ library
       Data.Frame.Prelude
       Data.Frame.Typed
       Data.Frame.Typed.CSV
+      Data.Frame.Typed.Dyn
       Data.Frame.Typed.Examples
       Data.Frame.Typed.Examples.Prestige
       Data.Frame.Typed.FromField
@@ -50,7 +51,6 @@ library
       Data.Frame.Typed.ToField
       Data.Frame.Typed.ToVecN
       Data.Frame.Typed.Tutorial
-      Data.Frame.Typed.Utils.Dyn
       Data.Frame.Typed.Widths
       Data.Random.X
       Data.Row.Records.X

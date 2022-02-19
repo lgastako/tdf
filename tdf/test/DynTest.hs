@@ -16,8 +16,8 @@ import Test.Tasty.Hspec   ( Spec
                           , shouldBe
                           )
 
-import qualified Data.Frame.Typed.Utils.Dyn as Dyn
-import qualified Data.HashMap.Strict        as HashMap
+import qualified Data.Frame.Typed.Dyn as Dyn
+import qualified Data.HashMap.Strict  as HashMap
 
 spec_Dyn :: Spec
 spec_Dyn = do

@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Data.Frame.Typed.Utils.Dyn
+module Data.Frame.Typed.Dyn
   ( fromAnyDyn
   , getValue
   ) where

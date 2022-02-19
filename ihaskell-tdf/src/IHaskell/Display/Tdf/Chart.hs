@@ -19,6 +19,7 @@ values =
   , ("Oct", [20, 50])
   ]
 
+-- chartExample :: EC (Layout PlotIndex Double) CState
 chartExample :: StateT (Layout PlotIndex Double) (State CState) ()
 chartExample = do
   layout_title .= "Example Bars"

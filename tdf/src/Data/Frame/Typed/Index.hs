@@ -198,6 +198,18 @@ concat :: forall n m idx.
        -> Index (Plus n m) idx
 concat = IdxMulti ... MultiIndex
 
+-- TODO: More like this:
+-- concatUp :: forall n m idx idx'.
+--             ( Ord idx
+--             , SNatI n
+--             , SNatI m
+--             , SNatI (Plus n m)
+--             )
+--          => Index n idx
+--          -> Index m idx'
+--          -> Index (Plus n m) (idx, idx')
+-- concatUp = undefined
+
 -- ================================================================ --
 -- Eliminators
 -- ================================================================ --

@@ -39,10 +39,13 @@ import qualified Data.List.NonEmpty       as NE
 import qualified Data.Row.Records         as Rec
 import qualified Data.Text                as Text
 import qualified Data.Vec.Lazy            as Vec
-import qualified Faker.Address            as FakeA
-import qualified Faker.FunnyName          as FakeFN
-import qualified Faker.Name               as FakeN
-import qualified Faker.PhoneNumber        as FakeP
+import qualified Faker.Address            as FAddress
+import qualified Faker.Ancient            as FAncient
+import qualified Faker.Appliance          as FApp
+import qualified Faker.Cannabis           as FCannabis
+import qualified Faker.FunnyName          as FFunny
+import qualified Faker.Name               as FName
+import qualified Faker.PhoneNumber        as FPhone
 
 type PersonFields = NameFields .+ AgeFields
 
@@ -502,24 +505,44 @@ someThing = do
   nl
 
 nineAddresses :: IO (Series Nat9 Int Text)
-nineAddresses = Series.fake FakeA.fullAddress
+nineAddresses = Series.fake FAddress.fullAddress
 
-type X = "name"    .== Text
-      .+ "phone"   .== Text
-      .+ "address" .== Text
+type PersonX = "name"    .== Text
+            .+ "phone"   .== Text
+            .+ "address" .== Text
 
-type FakeX = Map Fake X
+type FakeX = Map Fake PersonX
 
-nineXs :: IO (Frame Nat9 Int X)
+nineXs :: IO (Frame Nat9 Int PersonX)
 nineXs = DF.fake
-  (  #name    .== FakeN.name
-  .+ #phone   .== FakeP.cellPhoneFormat
-  .+ #address .== FakeA.fullAddress
+  (  #name    .== FName.name
+  .+ #phone   .== FPhone.cellPhoneFormat
+  .+ #address .== FAddress.fullAddress
   )
 
-nineFunnyXs :: IO (Frame Nat9 Int X)
+nineFunnyXs :: IO (Frame Nat9 Int PersonX)
 nineFunnyXs = DF.fake
-  (  #name    .== FakeFN.name
-  .+ #phone   .== FakeP.cellPhoneFormat
-  .+ #address .== FakeA.fullAddress
+  (  #name    .== FFunny.name
+  .+ #phone   .== FPhone.cellPhoneFormat
+  .+ #address .== FAddress.fullAddress
+  )
+
+type ArtistFavs = "name"     .== Text
+               .+ "favGod"   .== Text
+               .+ "favBrand" .== Text
+               .+ "strain"   .== Text
+
+type FakeArtistFavs = Map Fake ArtistFavs
+
+fakeArtistFavs :: forall n idx.
+                  ( Enum idx
+                  , SNatI n
+                  , idx ~ Int  -- For now to make it easy to call
+                  )
+               => IO (Frame n idx ArtistFavs)
+fakeArtistFavs = DF.fake
+  (  #name     .== FFunny.name
+  .+ #favGod   .== FAncient.god
+  .+ #favBrand .== FApp.brand
+  .+ #strain   .== FCannabis.strains
   )
