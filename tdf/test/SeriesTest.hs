@@ -1,16 +1,23 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module SeriesTest where
+module SeriesTest
+  ( spec_Series
+  ) where
 
-import           Data.Frame.Prelude
+import Data.Frame.Prelude
 
-import           Data.Frame.Typed.Series               ( Series )
+import Data.Frame.Typed.Series ( Series )
+import Orphans                 ()
+import Test.Tasty.Hspec        ( Spec
+                               , context
+                               , it
+                               , shouldBe
+                               )
+
 import qualified Data.Frame.Typed.Series   as Series
 import qualified Data.Frame.Typed.SubIndex as SubIndex
 import qualified Data.Vec.Lazy             as Vec
-import           Orphans                               ()
-import           Test.Tasty.Hspec
 
 spec_Series :: Spec
 spec_Series =

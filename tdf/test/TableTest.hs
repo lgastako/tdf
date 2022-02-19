@@ -1,18 +1,25 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module TableTest where
+module TableTest
+  ( spec_Table
+  ) where
 
-import           Data.Frame.Prelude
+import Data.Frame.Prelude
+
+import Data.Frame.Typed.Types.Table ( Row( Row ) )
+import Test.Tasty.Hspec             ( Spec
+                                    , context
+                                    , it
+                                    , shouldBe
+                                    )
+import WidthsTest                   ( example1 )
 
 import qualified Data.Text                    as Text
-import           Data.Frame.Typed.Types.Table          ( Row( Row ) )
 import qualified Data.Frame.Typed.Types.Table as Table
-import           Test.Tasty.Hspec
-import           WidthsTest                            ( example1 )
 
-spec_Tables :: Spec
-spec_Tables = do
+spec_Table :: Spec
+spec_Table = do
   context "with example1" $ do
     let t = Table.fromTexts example1
 

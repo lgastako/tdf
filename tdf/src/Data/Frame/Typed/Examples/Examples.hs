@@ -89,6 +89,10 @@ person2 :: Person
 person2 = #age  .== 45
        .+ #name .== "Dave"
 
+person3 :: Person
+person3 = #age  .== 23
+       .+ #name .== "Fred"
+
 person2Times100 :: Person
 person2Times100 = Rec.update #age 4500 person2
 
@@ -100,6 +104,13 @@ greet = ("Hello " <>) . (.! #name)
 df1 :: Frame Nat2 Int PersonFields
 df1 = DF.fromList
   [ person
+  , person2
+  ]
+  & fromMaybe (panic "Examples.df1")
+
+df1Fred :: Frame Nat2 Int PersonFields
+df1Fred = DF.fromList
+  [ person3
   , person2
   ]
   & fromMaybe (panic "Examples.df1")

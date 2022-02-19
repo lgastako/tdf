@@ -3,16 +3,19 @@
 {-# LANGUAGE OverloadedStrings       #-}
 {-# LANGUAGE ScopedTypeVariables     #-}
 
-module Index.RangeTest where
+module Index.RangeTest
+  ( spec_Range
+  ) where
 
-import           Data.Frame.Prelude
+import Data.Frame.Prelude
+
+import Data.Frame.Typed.Index.Range ( RangeIndex )
+import Orphans                      ()
+import Test.Tasty.Hspec
 
 import qualified Data.Frame.Typed.Index.Range as RangeIndex
-import           Data.Frame.Typed.Index.Range               ( RangeIndex )
 import qualified Data.Frame.Typed.SubIndex    as SubIndex
 import qualified Data.Vec.Lazy.X              as Vec
-import           Test.Tasty.Hspec
-import           Orphans                                    ()
 
 spec_Range :: Spec
 spec_Range =

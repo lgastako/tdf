@@ -2,15 +2,24 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE OverloadedLabels  #-}
 
-module WidthsTest where
+module WidthsTest
+  ( spec_Widths
+  , example1
+  , expected1
+  ) where
 
-import           Data.Frame.Prelude
+import Data.Frame.Prelude
 
-import           Data.Frame.Typed.Types.Widths           ( unWidths
-                                                         , widths
-                                                         )
+import Data.Frame.Typed.Types.Widths ( unWidths
+                                     , widths
+                                     )
+import Test.Tasty.Hspec              ( Spec
+                                     , context
+                                     , it
+                                     , shouldBe
+                                     )
+
 import qualified Data.Frame.Typed.Types.Widths as Widths
-import           Test.Tasty.Hspec
 
 spec_Widths :: Spec
 spec_Widths = do

@@ -3,16 +3,23 @@
 {-# LANGUAGE OverloadedStrings       #-}
 {-# LANGUAGE ScopedTypeVariables     #-}
 
-module IndexTest where
+module IndexTest
+  ( spec_Index
+  ) where
 
-import           Data.Frame.Prelude
+import Data.Frame.Prelude
+
+import Data.Frame.Typed.Index ( Index )
+import Orphans                ()
+import Test.Tasty.Hspec       ( Spec
+                              , context
+                              , it
+                              , shouldBe
+                              )
 
 import qualified Data.Frame.Typed.Index    as Index
-import           Data.Frame.Typed.Index                ( Index )
 import qualified Data.Frame.Typed.SubIndex as SubIndex
 import qualified Data.Vec.Lazy.X           as Vec
-import           Test.Tasty.Hspec
-import           Orphans                               ()
 
 spec_Index :: Spec
 spec_Index =

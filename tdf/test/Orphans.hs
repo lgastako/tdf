@@ -7,14 +7,14 @@ module Orphans () where
 
 import Data.Frame.Prelude
 
-import Data.Text.Arbitrary ()
-import Test.QuickCheck
+import Data.Frame.Typed.Index      ( Index )
+import Data.Frame.Typed.Series     ( Series )
+import Data.Frame.Typed.Types.Name ( Name )
+import Data.Text.Arbitrary         ()
+import Test.QuickCheck             ( Arbitrary(..) )
 
-import           Data.Frame.Typed.Index                ( Index )
 import qualified Data.Frame.Typed.Index      as Index
-import           Data.Frame.Typed.Series               ( Series )
 import qualified Data.Frame.Typed.Series     as Series
-import           Data.Frame.Typed.Types.Name           ( Name )
 import qualified Data.Frame.Typed.Types.Name as Name
 
 instance ( Arbitrary a

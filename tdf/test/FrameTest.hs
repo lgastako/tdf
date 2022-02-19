@@ -5,17 +5,23 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module FrameTest where
+module FrameTest
+  ( spec_Frame
+  ) where
 
-import           Data.Frame.Prelude
+import Data.Frame.Prelude
 
-import           Test.Tasty.Hspec
+import Data.Frame.Typed ( Frame )
+import Test.Tasty.Hspec ( Spec
+                        , context
+                        , it
+                        , shouldBe
+                        )
 
-import qualified Data.Vec.Lazy             as Vec
-import           Data.Frame.Typed                       ( Frame )
-import qualified Data.Frame.Typed          as DF
-import qualified Data.Frame.Typed.Series   as Series
-import qualified Data.Frame.Typed.Examples as Examples
+import qualified Data.Vec.Lazy                      as Vec
+import qualified Data.Frame.Typed                   as DF
+import qualified Data.Frame.Typed.Series            as Series
+import qualified Data.Frame.Typed.Examples.Examples as Examples
 
 type Animal = "animal" .== Text
 
@@ -76,7 +82,7 @@ spec_Frame = do
 
       it "set (at 0 #name)" $
         (df & DF.at idx #name ?~ "Fred")
-          `shouldBe` df
+          `shouldBe` Examples.df1Fred
 
     context "at 1" $ do
       let idx = 1

@@ -1,14 +1,21 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module DynTest where
+module DynTest
+  ( spec_Dyn
+  ) where
 
-import           Data.Frame.Prelude
+import Data.Frame.Prelude
 
-import           Data.Dynamic                          ( fromDynamic
-                                                       , toDyn
-                                                       )
-import           Test.Tasty.Hspec
+import Data.Dynamic       ( fromDynamic
+                          , toDyn
+                          )
+import Test.Tasty.Hspec   ( Spec
+                          , context
+                          , it
+                          , shouldBe
+                          )
+
 import qualified Data.Frame.Typed.Utils.Dyn as Dyn
 import qualified Data.HashMap.Strict        as HashMap
 

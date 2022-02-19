@@ -1,10 +1,12 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module AVecTest where
+module AVecTest
+  ( spec_VecX
+  ) where
 
-import           Data.Frame.Prelude
+import Data.Frame.Prelude
 
-import           Test.Tasty.Hspec
+import Test.Tasty.Hspec
 
 import qualified Data.Vec.Lazy.AVec as AVec
 import qualified Data.Vec.Lazy.X    as Vec
