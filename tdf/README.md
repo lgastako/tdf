@@ -30,6 +30,7 @@ See the `data` directory and `data/README.md` in particular.
 ...if it ever gets to the point where it's worth actual using/promoting.
 
 Candidate names:
+- apparatus
 - chassis
 
 ## Biggest Problems to Solve

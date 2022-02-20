@@ -60,14 +60,15 @@ unsafeFromText s = case fromTextE s of
 combine :: forall f.
            ( Applicative f
            , Foldable f
-           , Functor f
-           , Semigroup (f Name)
+           , Monoid (f Name)
            )
         => f Name
         -> f Name
         -> f Name
-combine a b = pure (Name "[")
-           <> a
-           <> pure (Name " >> ")
-           <> b
-           <> pure (Name "]")
+combine a b = fold
+  [ pure (Name "[")
+  , a
+  , pure (Name " >> ")
+  , b
+  , pure (Name "]")
+  ]

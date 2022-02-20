@@ -7,7 +7,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators       #-}
 
-module Data.Frame.Typed.Tutorial where
+module Fixtures.Tutorial where
 
 import           Data.Frame.Prelude
 

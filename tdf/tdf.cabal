@@ -27,13 +27,10 @@ source-repository head
 
 library
   exposed-modules:
-      Data.Frame.DeleteMe
       Data.Frame.Prelude
       Data.Frame.Typed
       Data.Frame.Typed.CSV
       Data.Frame.Typed.Dyn
-      Data.Frame.Typed.Examples
-      Data.Frame.Typed.Examples.Prestige
       Data.Frame.Typed.FromField
       Data.Frame.Typed.Index
       Data.Frame.Typed.Index.Categorical
@@ -50,7 +47,6 @@ library
       Data.Frame.Typed.Table
       Data.Frame.Typed.ToField
       Data.Frame.Typed.ToVecN
-      Data.Frame.Typed.Tutorial
       Data.Frame.Typed.Widths
       Data.Random.X
       Data.Row.Records.X
@@ -86,9 +82,13 @@ test-suite tdf-test
       AVecTest
       CSVTest
       DynTest
+      Fixtures.Examples
+      Fixtures.Prestige
+      Fixtures.Tutorial
       FrameTest
       Index.RangeTest
       IndexTest
+      NameTest
       Orphans
       SeriesTest
       TableTest
