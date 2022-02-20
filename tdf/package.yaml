@@ -24,15 +24,20 @@ dependencies:
 - containers
 - deepseq
 - fakedata
-- fin
 - generic-lens
 - lens
 - mersenne-random
 - mtl
 - protolude
-- row-types
 - text
 - unordered-containers
+
+- primitive
+- vector
+- vector-sized
+
+- fin
+- row-types
 - vec
 - vec-lens
 
