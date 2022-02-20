@@ -3,8 +3,15 @@
 My latest attempt to implement effective (if not efficient) DataFrames (ala
 python's pandas) in Haskell.
 
-Candidate names:
-- chassis
+It's built on the following bedrock components:
+
+Package   | Description
+--------- | ------------------------------------------------------
+vec       | Efficient mutable and immutable fixed sized vectors
+row-types | Open Records
+lenses    | Optical access to nested data structures
+
+## Implementation Notes
 
 I initially planned on trying to hew as close to the pandas API as possible to
 make it an easy transition for any Pandas users that might wanted to talk a
@@ -12,21 +19,28 @@ walk on the Typed side... but after working with everything for a while now I
 think I am going to take a more Haskell flavored approach and then maybe go
 back and write a pandas compatibility layer later.
 
+## Need a Good Name
+
+...if it ever gets to the point where it's worth actual using/promoting.
+
+Candidate names:
+- chassis
+
 ## Biggest Problems to Solve
 
-NB. `append` is deprecated in pandas and replaced by `concat.
+NB. `append` is deprecated in pandas and replaced by `concat`.
 
+* Proper indexes
 * Column ordering (Series of Series?)
 * Handle non-Label friendly column names well
   (and then un-hack all the example csv files)
 * Dynamic rendering failures
   - Either fix the rendering falures; or, ideally...
   - Eliminate the need for the whole Dynamic dance
-* Proper indexes
 * Finish all the a_ implementations
   - Including moving the A* versions out of the current modules into
     their own sub-modules
-* Melt, append, concat, other dynamic shape changers.
+* Melt, concat, other dynamic shape changers.
   - Maybe existentials will save us here
 * Mutable implementation
   - Possibly using the same existential wrapper type of deal as
@@ -35,16 +49,7 @@ NB. `append` is deprecated in pandas and replaced by `concat.
 
 ## Example CSVs
 
-You can see some examples of manipulating CSV files with data frames on the
-following pages:
-
-https://pypancsv.github.io/pypancsv/quickexamples/#first-the-csv-files-within-the-examples
-https://www.geeksforgeeks.org/python-pandas-dataframe/
-https://www.analyticsvidhya.com/blog/2020/02/joins-in-pandas-master-the-different-types-of-joins-in-python/
-https://realpython.com/python-data-cleaning-numpy-pandas/
-
-You can find some of the CSV files from those sites in the `test/fixtures`
-directory.
+See `data/README.md`.
 
 ## Notes
 
