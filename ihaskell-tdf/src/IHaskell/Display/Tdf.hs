@@ -35,12 +35,11 @@ import qualified Lucid
 import qualified Data.Frame.Typed        as DF
 import qualified Data.Frame.Typed.Series as Series
 
-instance ( AllUniqueLabels (Map (Vec n) a)
-         , Forall a Typeable
+instance ( Forall a Typeable
          , Forall a Unconstrained1
          , Forall a ToField
-         , Forall (Map (Vec n) a) Unconstrained1
          , SNatI n
+         , WellBehaved (Map (Vec n) a)
          ) => IHaskellDisplay (Frame n Int a) where
   display df = do
     let (header:rows) =  DF.toTexts df

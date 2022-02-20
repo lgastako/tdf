@@ -36,9 +36,8 @@ data Error
   | FromCSVError String
   deriving (Eq, Generic, Ord, Show)
 
--- afromHeadedCSV :: ( AllUniqueLabels a
---                   , Forall a FromField
---                   , Forall a Unconstrained1
+-- afromHeadedCSV :: ( Forall a FromField
+--                   , WellBehaved a
 --                   )
 --               => FilePath
 --               -> IO (Either Error (AFrame Int a))
@@ -56,10 +55,9 @@ data Error
 --   --            (Right . DF.fromList)
 
 -- TODO: catch and return FileNotFound
-fromHeadedCSV :: ( AllUniqueLabels a
-                 , Forall a FromField
-                 , Forall a Unconstrained1
+fromHeadedCSV :: ( Forall a FromField
                  , SNatI n
+                 , WellBehaved a
                  )
               => FilePath
               -> IO (Either Error (Maybe (Frame n Int a)))
@@ -67,29 +65,33 @@ fromHeadedCSV path = (recFromCSV <$> readFile path)
   <&> either (Left . FromCSVError)
              (Right . DF.fromList)
 
-recToCSV :: forall ρ. Forall ρ ToField => [Rec ρ] -> Text
+recToCSV :: forall ρ.
+            ( Forall ρ ToField )
+         => [Rec ρ]
+         -> Text
 recToCSV rs = T.unlines $ map (T.intercalate ",")
   $ Rec.labels @ρ @ToField
   : map (Rec.erase @ToField toField) rs
 
-recFromCSV :: forall ρ.
-              ( AllUniqueLabels ρ
-              , Forall ρ FromField
+recFromCSV :: forall a.
+              ( AllUniqueLabels a
+              , Forall a FromField
               )
            => Text
-           -> Either String [Rec ρ]
+           -> Either String [Rec a]
 recFromCSV s = case map (T.splitOn ",") (T.lines s) of
   [] -> Left "No Input"
   header:vals -> traverse makeRecord vals
     where
-      makeRecord s' = Rec.fromLabelsA @FromField @(Either String) @ρ (makeField s')
+      makeRecord s' =
+        Rec.fromLabelsA @FromField @(Either String) @a (makeField s')
 
       makeField :: ( KnownSymbol k
-                   , FromField a
+                   , FromField b
                    )
                 => [Text]
                 -> Label k
-                -> Either String a
+                -> Either String b
       makeField val k = maybe
         (Left $ "Missing field " ++ (sid . show) k
                    ++ " header=" ++ show header)
@@ -100,11 +102,10 @@ recFromCSV s = case map (T.splitOn ",") (T.lines s) of
           sid = show
 
 toHeadedCSV :: forall n a.
-               ( AllUniqueLabels (Map (Vec n) a)
-               , Forall a ToField
-               , Forall (Map (Vec n) a) Unconstrained1
+               ( Forall a ToField
                , Forall a Unconstrained1
                , SNatI n
+               , WellBehaved (Map (Vec n) a)
                )
             => FilePath
             -> Frame n Int a
@@ -112,10 +113,9 @@ toHeadedCSV :: forall n a.
 toHeadedCSV path = writeFile path . recToCSV . DF.toList
 
 unsafeFromHeadedCSV :: forall n a.
-                       ( AllUniqueLabels a
-                       , Forall a FromField
-                       , Forall a Unconstrained1
+                       ( Forall a FromField
                        , SNatI n
+                       , WellBehaved a
                        )
                     => FilePath
                     -> IO (Frame n Int a)

@@ -650,12 +650,11 @@ rename :: ( Extend k' (sa .! k) (sa .- k) ~ Map (Series n idx) b
 rename k k' df = df { dfData = Rec.rename k k' (dfData df) }
 
 resetIndex :: forall n idx a.
-              ( AllUniqueLabels (Map (Vec n) a)
-              , Forall a Unconstrained1
-              , Forall (Map (Vec n) a) Unconstrained1
+              ( Forall a Unconstrained1
               , Enum idx
               , LE n n
               , SNatI n
+              , WellBehaved (Map (Vec n) a)
               )
            => Frame n idx a
            -> Frame n idx a
@@ -855,13 +854,12 @@ toSeries :: forall n idx a.
 toSeries = toLabeledSeries Name.series
 
 unique :: forall n idx a.
-          ( AllUniqueLabels (Map (Vec n) a)
-          , Enum idx
+          ( Enum idx
           , Forall a Eq
           , Forall a Unconstrained1
-          , Forall (Map (Vec n) a) Unconstrained1
           , SNatI n
           , Show idx
+          , WellBehaved (Map (Vec n) a)
           )
        => Frame n idx a
        -> Bool
@@ -908,15 +906,14 @@ columnVec :: forall n idx a k v r rest.
 columnVec = (`onColumn` identity)
 
 display :: forall n idx a.
-           ( AllUniqueLabels (Map (Vec n) a)
-           , Enum idx
+           ( Enum idx
            , Forall (Map (Vec n) a) Unconstrained1
            , Forall a ToField
            , Forall a Typeable
            , Forall a Unconstrained1
-           , Forall (Map (Vec n) a) Unconstrained1
            , SNatI n
            , Show idx
+           , WellBehaved (Map (Vec n) a)
            )
         => Frame n idx a
         -> IO ()
@@ -1084,23 +1081,21 @@ _onRC :: forall n idx a b.
 _onRC f = f <$> nrows <*> ncols
 
 toList :: forall n idx a.
-          ( AllUniqueLabels (Map (Vec n) a)
-          , Enum idx
-          , Forall (Map (Vec n) a) Unconstrained1
+          ( Enum idx
           , Forall a Unconstrained1
           , SNatI n
+          , WellBehaved (Map (Vec n) a)
           )
        => Frame n idx a
        -> [Rec a]
 toList = Vec.toList . toVec
 
 toNativeVec :: forall n idx t ntv.
-               ( AllUniqueLabels (Map (Vec n) ntv)
-               , Enum idx
+               ( Enum idx
                , Forall ntv Unconstrained1
-               , Forall (Map (Vec n) ntv) Unconstrained1
                , ToNative t
                , SNatI n
+               , WellBehaved (Map (Vec n) ntv)
                , ntv ~ NativeRow t
                )
             => Frame n idx ntv
@@ -1108,13 +1103,12 @@ toNativeVec :: forall n idx t ntv.
 toNativeVec = Vec.map Rec.toNative . toVec
 
 toTexts :: forall n idx a.
-           ( AllUniqueLabels (Map (Vec n) a)
-           , Enum idx
+           ( Enum idx
            , Forall (Map (Vec n) a) Unconstrained1
            , Forall a ToField
            , Forall a Typeable
            , Forall a Unconstrained1
-           , Forall (Map (Vec n) a) Unconstrained1
+           , WellBehaved (Map (Vec n) a)
            , SNatI n
            , Show idx
            )
@@ -1140,11 +1134,10 @@ toTexts df = addIndexes
     addIndexes = zipWith (:) (mempty:fmap show (SubIndex.toLst idx))
 
 toVec :: forall n idx a.
-         ( AllUniqueLabels (Map (Vec n) a)
-         , Enum idx
-         , Forall (Map (Vec n) a) Unconstrained1
+         ( Enum idx
          , Forall a Unconstrained1
          , SNatI n
+         , WellBehaved (Map (Vec n) a)
          )
       => Frame n idx a
       -> Vec n (Rec a)
