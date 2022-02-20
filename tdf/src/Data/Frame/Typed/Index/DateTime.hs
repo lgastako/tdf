@@ -11,7 +11,7 @@ module Data.Frame.Typed.Index.DateTime
   ( DateTimeIndex(..)
   ) where
 
-import Data.Frame.Prelude     hiding ( toList )
+import Data.Frame.Prelude hiding ( toList )
 
 import Data.Frame.Typed.SubIndex ( SubIndex(..) )
 import Data.Frame.Typed.ToVecN   ( ToVecN( toVecN ) )

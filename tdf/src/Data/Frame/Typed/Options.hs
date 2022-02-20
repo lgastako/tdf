@@ -33,10 +33,7 @@ fromVec :: forall n idx a.
            )
         => Vec n (Rec a)
         -> Options n idx a
-fromVec v = Options
-  { optIndex = Index.defaultFor v `onCrash` "Options.fromVec.1"
-  , optData  = v
-  }
+fromVec = Options <$> Index.defaultFor <*> identity
 
 empty :: Options 'Z Int Empty
 empty = fromVec Vec.empty

@@ -29,6 +29,8 @@ module Data.Frame.Typed.Series
   , empty
   , fake
   , fromList
+  , fromNameAndVec
+  , fromNamedVec
   , fromScalar
   , fromVec
   , mkSeries
@@ -228,11 +230,10 @@ fake :: forall n idx a.
      => Fake a
      -> IO (Series n idx a)
 fake gen = Faker.generateNonDeterministic (Fake.listOf n gen)
-  <&> orCrash error2 . fromVec . orCrash error . Vec.fromList @n
+  <&> fromVec . orCrash error . Vec.fromList @n
   where
-    error  = "The fake data that was generated was the wrong size."
-    error2 = error <> " (case 2)"
-    n      = fromIntegral $ snatToNat (snat @n)
+    error = "The fake data that was generated was the wrong size."
+    n     = fromIntegral $ snatToNat (snat @n)
 
 fromList :: forall n idx a.
             ( Enum idx
@@ -240,7 +241,7 @@ fromList :: forall n idx a.
             )
          => [a]
          -> Maybe (Series n idx a)
-fromList = fromVec <=< Vec.fromList
+fromList = (Just <$> fromVec) <=< Vec.fromList -- TODO
 
 -- filter :: forall n a. (a -> Bool) -> Vec n a -> AVec a
 -- filter _ VNil = AVec SZ VNil
@@ -280,20 +281,35 @@ fromScalar :: forall n idx a.
            -> Series n idx a
 fromScalar = repeat
 
+fromNameAndVec :: forall n idx a.
+                  ( Enum idx
+                  , SNatI n
+                  )
+               => Maybe Name
+               -> Vec n a
+               -> Series n idx a
+fromNameAndVec nameMay v = Series
+  { sIndex  = Index.defaultFromFor (toEnum 0) v
+  , sData   = v
+  , sName   = nameMay
+  }
+
+fromNamedVec :: forall n idx a.
+                ( Enum idx
+                , SNatI n
+                )
+             => Name
+             -> Vec n a
+             -> Series n idx a
+fromNamedVec = fromNameAndVec . Just
+
 fromVec :: forall n idx a.
            ( Enum idx
            , SNatI n
            )
         => Vec n a
-        -> Maybe (Series n idx a)
-fromVec v = f <$> Index.defaultFromFor (toEnum 0) v
-  where
-    f:: Index n idx -> Series n idx a
-    f idx = Series
-      { sIndex  = idx
-      , sData   = v
-      , sName   = Nothing
-      }
+        -> Series n idx a
+fromVec = fromNameAndVec Nothing
 
 repeat :: forall n idx a.
           ( Enum idx
@@ -301,7 +317,7 @@ repeat :: forall n idx a.
           )
        => a
        -> Series n idx a
-repeat x = fromVec (Vec.repeat x) `onCrash` "Series.repeat"
+repeat x = fromVec (Vec.repeat x)
 
 -- ================================================================ --
 --   Combinators
@@ -359,7 +375,7 @@ duplicated s = map ((>1) . (counts Map.!)) s
 
 empty :: forall idx a. Enum idx
       => Series Nat0 idx a
-empty = fromVec Vec.empty `onCrash` "Series.empty"
+empty = fromVec Vec.empty
 
 filter :: forall n idx a.
           ( Enum idx
@@ -440,8 +456,7 @@ mkSeries :: forall n idx a.
          -> Vec n a
          -> Series n idx a
 mkSeries n v = fromVec v
-  & orCrash "mkASeries.s"
-  & name .~ n
+  |> name .~ n
 
 normalize :: forall n idx a.
              ( Fractional a

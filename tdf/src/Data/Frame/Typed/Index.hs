@@ -169,7 +169,7 @@ defaultFor :: forall idx n a.
               , SNatI n
               )
            => Vec n a
-           -> Maybe (Index n idx)
+           -> Index n idx
 defaultFor = defaultFromFor (toEnum 0)
 
 defaultFromFor :: forall idx n a.
@@ -178,8 +178,8 @@ defaultFromFor :: forall idx n a.
                   )
                => idx
                -> Vec n a
-               -> Maybe (Index n idx)
-defaultFromFor idx v = Just . IdxRange $ RangeIndex.defaultFromFor idx v
+               -> Index n idx
+defaultFromFor idx v = IdxRange $ RangeIndex.defaultFromFor idx v
 
 fromLst :: forall n idx.
            SNatI n

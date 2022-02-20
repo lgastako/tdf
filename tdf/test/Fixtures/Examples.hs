@@ -158,6 +158,7 @@ df1Restricted = DF.restrict df1
 df1' :: Frame Nat2 Int PersonFields
 df1' = DF.reindex (Index.fromVec idx') df1
   where
+    idx' :: Vec Nat2 Int
     idx' = Vec.fromList [5, 6] `onCrash` "Examples.df1'"
 
 -- λ> DF.memSize df1'
@@ -318,15 +319,13 @@ filteredByIndexes = DF.filterIndexes f animals
      >>> fromMaybe (panic "wrong size!")
 
 s1 :: Series Nat3 Int Float
-s1 = fromMaybe (panic "s1.boom.2")
-  . Series.fromVec
+s1 = Series.fromVec
   . fromMaybe (panic "s1.boom.1")
   . Vec.fromList
   $ [ 1.1, 2.2, 3.3 ]
 
 s2 :: Series Nat3 Int Float
-s2 = fromMaybe (panic "s1.boom.2")
-  . Series.fromVec
+s2 = Series.fromVec
   . fromMaybe (panic "s1.boom.1")
   . Vec.fromList
   $ [ 2.1, 0.0, 8.3 ]

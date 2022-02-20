@@ -53,6 +53,7 @@ module Data.Frame.Typed
   , pop
   , reindex
   , rename
+  , resetIndex
   , restrict
   , snoc
   , take
@@ -208,7 +209,7 @@ toLabeledSeries :: forall n idx a.
                 -> Vec n a
                 -> Series n idx a
 toLabeledSeries label v = Series.construct $ Series.Options
-  { optIndex = Index.defaultFromFor (toEnum 0) v `onCrash` "Nahh"
+  { optIndex = Index.defaultFromFor (toEnum 0) v
   , optData  = v
   , optName  = Just label
   }
@@ -241,7 +242,7 @@ fromList :: forall n idx a.
             )
          => [Rec a]
          -> Maybe (Frame n idx a)
-fromList = fromVec <=< Vec.fromList
+fromList = fmap fromVec . Vec.fromList
 
 fromNativeVec :: forall n idx a t.
                  ( Enum idx
@@ -254,7 +255,7 @@ fromNativeVec :: forall n idx a t.
               -> Frame n idx a
 fromNativeVec values = Frame
   { dfData  = dfData'
-  , dfIndex = Index.defaultFor vecOfRecs `onCrash` "fromNativeVec.dfIndex"
+  , dfIndex = Index.defaultFor vecOfRecs
   }
   where
     vecOfRecs :: Vec n (Rec (Rec.NativeRow t))
@@ -275,12 +276,11 @@ fromNativeVec values = Frame
 
         seriesOfNativeRec :: Series n idx (Rec (Rec.NativeRow t))
         seriesOfNativeRec = Series.fromVec vecOfNativeRec
-          `onCrash` "fromNativeVec.seriesOfNativeRec"
 
 fromScalar :: forall idx a.
               ( Enum idx )
            => a
-           -> Maybe (Frame Nat1 idx ("value" .== a))
+           -> Frame Nat1 idx ("value" .== a)
 fromScalar x = fromVec (#value .== x ::: VNil)
 
 fromScalarList :: forall n idx a.
@@ -296,7 +296,7 @@ fromSeries :: forall n idx a.
               , SNatI n
               )
            => Series n idx a
-           -> Maybe (Frame n idx ("value" .== a))
+           -> Frame n idx ("value" .== a)
 fromSeries = fromVec . Vec.map (#value .==) . Series.toVec
 
 fromVec :: forall n idx a.
@@ -305,21 +305,17 @@ fromVec :: forall n idx a.
            , SNatI n
            )
         => Vec n (Rec a)
-        -> Maybe (Frame n idx a)
-fromVec v = f <$> Index.defaultFor v
+        -> Frame n idx a
+fromVec v = Frame
+  { dfIndex = Index.defaultFor v
+  , dfData  = dfData'
+  }
   where
-    f :: Index n idx -> Frame n idx a
-    f idx = Frame
-      { dfIndex = idx
-      , dfData  = dfData'
-      }
-      where
-        dfData' :: Rec (Map (Series n idx) a)
-        dfData' = Rec.distribute seriesOfRecs
+    dfData' :: Rec (Map (Series n idx) a)
+    dfData' = Rec.distribute seriesOfRecs
 
-        seriesOfRecs :: Series n idx (Rec a)
-        seriesOfRecs = Series.fromVec v
-          |> fromMaybe (explode "DF.fromVec")
+    seriesOfRecs :: Series n idx (Rec a)
+    seriesOfRecs = Series.fromVec v
 
 -- ================================================================ --
 --  Combinators
@@ -561,8 +557,7 @@ overRecs :: forall m n idx a b.
          => (Series n idx (Rec a) -> Series m idx (Rec b))
          -> Frame n idx a
          -> Frame m idx b
-overRecs f Frame {..} = (fromVec . Series.toVec . f . Rec.sequence) dfData
-  `onCrash` "overRecs.fromVec"
+overRecs f Frame {..} = fromVec . Series.toVec . f . Rec.sequence $ dfData
 
 overRecVec :: forall m n idx a b.
               ( Enum idx
@@ -576,7 +571,7 @@ overRecVec :: forall m n idx a b.
            -> Frame m idx b
 overRecVec f df = Frame
   { dfData  = dfData'
-  , dfIndex = Index.defaultFor d  `onCrash` "overRecVec.indexes"
+  , dfIndex = Index.defaultFor d
   }
   where
     _ = dfData df :: Rec (Map (Series n idx) a)
@@ -594,7 +589,7 @@ overRecVec f df = Frame
     d = f c
 
     e :: Series m idx (Rec b)
-    e = Series.fromVec d `onCrash` "overRecVec.e"
+    e = Series.fromVec d
 
     dfData' :: Rec (Map (Series m idx) b)
     dfData' = e ^. from recSequenced
@@ -613,11 +608,34 @@ pop :: forall n idx r k v rest.
     -> (Frame n idx rest, Series n idx v)
 pop k df = (restrict df, df ^. series k)
 
-reindex :: forall n idx a.
-           Index n idx
+-- TODO: In pandas, when you reindex with an index smaller than the data size
+--       then it shrinks the data to fit the index... so we should support a
+--       version of this function that does the same.
+-- reindex :: forall n idx a.
+--            Index n idx
+--         -> Frame n idx a
+--         -> Frame n idx a
+-- reindex idx = index .~ idx
+
+reindex :: forall o m n idx a.
+            ( Enum idx
+            , Forall a Unconstrained1
+            , LE o m
+            , LE o n
+            , SNatI m
+            , SNatI n
+            , SNatI o
+            )
+        => Index m idx
         -> Frame n idx a
-        -> Frame n idx a
-reindex idx = index .~ idx
+        -> Frame o idx a
+reindex idx df = Frame
+  { dfIndex = Index.take idx
+  , dfData  = Rec.distribute . f . Rec.sequence . dfData  $ df
+  }
+  where
+    f :: Series n idx (Rec a) -> Series o idx (Rec a)
+    f = Series.take
 
 rename :: ( Extend k' (sa .! k) (sa .- k) ~ Map (Series n idx) b
           , KnownSymbol k
@@ -630,6 +648,20 @@ rename :: ( Extend k' (sa .! k) (sa .- k) ~ Map (Series n idx) b
        -> Frame n idx a
        -> Frame n idx b
 rename k k' df = df { dfData = Rec.rename k k' (dfData df) }
+
+resetIndex :: forall n idx a.
+              ( AllUniqueLabels (Map (Vec n) a)
+              , Forall a Unconstrained1
+              , Forall (Map (Vec n) a) Unconstrained1
+              , Enum idx
+              , LE n n
+              , SNatI n
+              )
+           => Frame n idx a
+           -> Frame n idx a
+resetIndex df = reindex idx df
+  where
+    idx = Index.defaultFor (toVec df)
 
 restrict :: forall b n idx a.
             ( Enum idx

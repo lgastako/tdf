@@ -66,4 +66,8 @@ combine :: forall f.
         => f Name
         -> f Name
         -> f Name
-combine a b = a <> pure (Name " ") <> b
+combine a b = pure (Name "[")
+           <> a
+           <> pure (Name " >> ")
+           <> b
+           <> pure (Name "]")

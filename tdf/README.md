@@ -71,6 +71,8 @@ We take vectors of rows as input and turn it into rows of vectors to operate on.
 
 - TODO List:
   - IN-PROGRESS lenses for bidirectional accessors like loc, at, iat, etc.
+  - union/intersection/difference between series and frames
+    - by index and by value
   - pd.describe
   - factorize
   - cut
@@ -123,3 +125,13 @@ Possibly good thing to try for comparison:
 
   Notably provides a streaming interface (via pipes) which I should investigate.
 
+- https://hackage.haskell.org/package/tables-0.4.1.1/docs/Data-Table.html
+  Kmettiverse
+
+  Tables with multiple indices that support a simple API based on the lenses
+  and traversals from the lens package.
+
+  Every Table has a Primary key and may have Candidate, Supplemental or
+  Inverted keys, plus their variants.
+
+  Template Haskell for generating Tabular instances for custom data types.
