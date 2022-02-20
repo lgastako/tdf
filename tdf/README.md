@@ -19,6 +19,10 @@ walk on the Typed side... but after working with everything for a while now I
 think I am going to take a more Haskell flavored approach and then maybe go
 back and write a pandas compatibility layer later.
 
+## Example Data (CSVs)
+
+See the `data` directory and `data/README.md` in particular.
+
 ## Need a Good Name
 
 ...if it ever gets to the point where it's worth actual using/promoting.
@@ -46,10 +50,6 @@ NB. `append` is deprecated in pandas and replaced by `concat`.
   - Possibly using the same existential wrapper type of deal as
     the ASeries, AFrame, etc.
 * Lots more tests
-
-## Example CSVs
-
-See `data/README.md`.
 
 ## Notes
 
