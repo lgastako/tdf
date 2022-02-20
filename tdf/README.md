@@ -21,6 +21,18 @@ walk on the Typed side... but after working with everything for a while now I
 think I am going to take a more Haskell flavored approach and then maybe go
 back and write a pandas compatibility layer later.
 
+When I started this project I thought the `vec` library provided mutable
+versions as well, but it does not.  In theory I either need to switch to one of
+the libraries that does like `vector-sized` or `fixed-vector` but per the
+readme of `vector-sized` (https://github.com/expipiplus1/vector-sized#readme)
+there is a tradeoff with `fixed-vector` wherein it uses Church-encoded product
+types which saves memory but makes it fail to handle cases over "tens of
+elements" - which I think `vec` seems to suffer from too.  So I will either
+have to use `vector-sized`, a similar existing library, write my own, or do the
+wrapping of `Data.Vector` directly in the Series types... which might make
+sense if I'm doing a Series of series.. so I will have to play around with
+that.
+
 ## Example Data (CSVs)
 
 See the `data` directory and `data/README.md` in particular.
@@ -109,6 +121,7 @@ We take vectors of rows as input and turn it into rows of vectors to operate on.
 High perf vectors?
 - https://hackage.haskell.org/package/accelerate-1.3.0.0/docs/Data-Array-Accelerate.html
 - https://hackage.haskell.org/package/repa
+- https://hackage.haskell.org/package/massiv
 
 Possibly good thing to try for comparison:
 - https://www.architecture-performance.fr/ap_blog/loading-data-into-a-pandas-dataframe-a-performance-study/
