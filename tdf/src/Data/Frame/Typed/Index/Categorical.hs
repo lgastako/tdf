@@ -19,7 +19,7 @@ import Data.Frame.Typed.ToVecN   ( ToVecN( toVecN ) )
 
 import qualified Data.Frame.Typed.SubIndex as SubIndex
 
-data CategoricalIndex (n :: Nat) idx = CategoricalIndex
+newtype CategoricalIndex (n :: Nat) idx = CategoricalIndex
   { toVec :: Vec n idx }
   deriving (Eq, Generic, Ord, Show)
 
