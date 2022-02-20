@@ -3,6 +3,8 @@
 My latest attempt to implement effective (if not efficient) DataFrames (ala
 python's pandas) in Haskell.
 
+![Data Frames](./data/frame.png)
+
 It's built on the following bedrock components:
 
 Package   | Description
