@@ -59,12 +59,12 @@ seriesFromDF = withExamples $ \df -> do
   Series.display series
   nl
 
-headDemo :: IO ()
-headDemo = withExamples $ \df -> do
+takeDemo :: IO ()
+takeDemo = withExamples $ \df -> do
   nl
   DF.display df
   let top3 :: Frame Nat3 Int PersonFields
-      top3 = DF.head df
+      top3 = DF.take df
   nl
   DF.display top3
   nl

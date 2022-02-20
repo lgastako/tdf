@@ -38,17 +38,17 @@ spec_Frame = do
     it "at 1 #animal" $ df ^. DF.at 1 #animal `shouldBe` Just "bee"
     it "at 5 #animal" $ df ^. DF.at 5 #animal `shouldBe` Just "parrot"
 
-    it "head 3" $ do
+    it "take 3" $ do
       let actual :: Frame Nat3 Int Animal
-          actual = DF.head df
+          actual = DF.take df
       (map (.! #animal) . DF.toList $ actual)
         `shouldBe` ["alligator", "bee", "falcon"]
 
     -- it "head -3" -- No longer possible - but should it be?
 
-    it "tail 3" $ do
+    it "drop (to) 3" $ do
       let actual :: Frame Nat3 Int Animal
-          actual = DF.tail df
+          actual = DF.drop df
       (map (.! #animal) . DF.toList $ actual)
         `shouldBe` ["shark", "whale", "zebra"]
 

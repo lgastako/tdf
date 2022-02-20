@@ -40,12 +40,12 @@ module Data.Frame.Typed
   , addSeries
   , benford
   , column
+  , drop
   , dropColumn
   , extend
   , extendFrom
   , extendWith
   , filterIndexes
-  , head
   , map
   , overRecs
   , overRecVec
@@ -54,7 +54,7 @@ module Data.Frame.Typed
   , rename
   , restrict
   , snoc
-  , tail
+  , take
   -- Optics
   , at
   , recSequenced
@@ -99,10 +99,11 @@ module Data.Frame.Typed
   ) where
 
 import Data.Frame.Prelude hiding ( bool
+                                 , drop
                                  , empty
                                  , foldr
-                                 , head
                                  , map
+                                 , take
                                  , toList
                                  )
 
@@ -422,6 +423,23 @@ cons :: forall n idx a.
      -> Frame (Plus Nat1 n) idx a
 cons x = overRecs (Series.cons x)
 
+drop :: forall m n idx a.
+        ( Enum idx
+        , Forall a Unconstrained1
+        , LE m n
+        , SNatI n
+        , SNatI m
+        )
+     => Frame n idx a
+     -> Frame m idx a
+drop Frame {..} = Frame
+  { dfIndex = Index.drop dfIndex
+  , dfData  = Rec.distribute seriesM
+  }
+  where
+    seriesN = Rec.sequence dfData :: Series n idx (Rec a)
+    seriesM = Series.drop seriesN :: Series m idx (Rec a)
+
 dropColumn :: forall k n idx a b r v.
               ( Disjoint r b
               , Forall a Unconstrained1
@@ -485,23 +503,6 @@ extendWith k f Frame {..} = Frame
   where
     seriesOfRecs :: Series n idx (Rec b)
     seriesOfRecs = fmap (Rec.extend k =<< f) . Rec.sequence $ dfData
-
-head :: forall m n idx a.
-        ( Forall a Unconstrained1
-        , LE m n
-        , SNatI m
-        , SNatI n
-        , idx ~ Int
-        )
-     => Frame n idx a
-     -> Frame m idx a
-head Frame {..} = Frame
-  { dfIndex = Index.take dfIndex
-  , dfData  = Rec.distribute seriesM
-  }
-  where
-    seriesN = Rec.sequence dfData :: Series n idx (Rec a)
-    seriesM = Series.take seriesN :: Series m idx (Rec a)
 
 map :: forall n idx a b.
        ( Enum idx
@@ -636,22 +637,22 @@ snoc :: forall n idx a.
      -> Frame (Plus Nat1 n) idx a
 snoc x = overRecs (Series.snoc x)
 
-tail :: forall m n idx a.
-        ( Enum idx
-        , Forall a Unconstrained1
+take :: forall m n idx a.
+        ( Forall a Unconstrained1
         , LE m n
-        , SNatI n
         , SNatI m
+        , SNatI n
+        , idx ~ Int
         )
      => Frame n idx a
      -> Frame m idx a
-tail Frame {..} = Frame
-  { dfIndex = Index.drop dfIndex
+take Frame {..} = Frame
+  { dfIndex = Index.take dfIndex
   , dfData  = Rec.distribute seriesM
   }
   where
     seriesN = Rec.sequence dfData :: Series n idx (Rec a)
-    seriesM = Series.drop seriesN :: Series m idx (Rec a)
+    seriesM = Series.take seriesN :: Series m idx (Rec a)
 
 -- ================================================================ --
 --   Optics
