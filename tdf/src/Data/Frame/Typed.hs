@@ -318,7 +318,8 @@ fromVec v = f <$> Index.defaultFor v
         dfData' = Rec.distribute seriesOfRecs
 
         seriesOfRecs :: Series n idx (Rec a)
-        seriesOfRecs = Series.fromVec v & fromMaybe (explode "DF.fromVec")
+        seriesOfRecs = Series.fromVec v
+          |> fromMaybe (explode "DF.fromVec")
 
 -- ================================================================ --
 --  Combinators
@@ -616,7 +617,7 @@ reindex :: forall n idx a.
            Index n idx
         -> Frame n idx a
         -> Frame n idx a
-reindex idx df = df & index .~ idx
+reindex idx = index .~ idx
 
 rename :: ( Extend k' (sa .! k) (sa .- k) ~ Map (Series n idx) b
           , KnownSymbol k
@@ -706,7 +707,8 @@ at idx k = lens get' set'
          -> Frame n idx a
     set' df = \case
       Nothing -> df -- TODO is this right? surely it's not?
-      Just v  -> df & record idx . _Just %~ Rec.update k v
+      Just v  -> df
+        |> record idx . _Just %~ Rec.update k v
 
 series :: forall n idx r k v a rest.
           ( Disjoint r rest
@@ -800,7 +802,8 @@ record idx = lens get' set'
     set' :: Frame n idx a -> Maybe (Rec a) -> Frame n idx a
     set' df = \case
       Nothing -> df -- TODO this can't be right?
-      Just v -> df & recSeries . recSerToSerRec @n . Series.at idx .~ v
+      Just v -> df
+        |> recSeries . recSerToSerRec @n . Series.at idx .~ v
 
 recSerToSerRec :: forall n idx a.
                   ( Enum idx

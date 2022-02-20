@@ -5,6 +5,7 @@
 module Data.Frame.Prelude
   ( module X
   , (...)
+  , (|>)
   , Nat10
   , cs
   , explode
@@ -113,6 +114,10 @@ type Nat10 = Plus Nat9 Nat1
 
 (...) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
 (...) = (.).(.)
+
+infixl 1 |>
+(|>) :: a -> (a -> b) -> b
+(|>) = (&)
 
 cs :: StringConv a b => a -> b
 cs = strConv Lenient

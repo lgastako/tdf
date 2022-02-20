@@ -22,7 +22,6 @@ import Data.Frame.Prelude hiding ( filter
                                  , zipWith
                                  )
 
-
 data AVec a = forall n. SNatI n => AVec
   { size :: SNat n
   , vec  :: Vec n a

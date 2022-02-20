@@ -16,9 +16,9 @@ import qualified System.Random.Mersenne as G
 
 {-# NOINLINE theOneTrueGen #-}
 theOneTrueGen :: MTGen
-theOneTrueGen = unsafePerformIO $ newMTGen seed
+theOneTrueGen = unsafePerformIO $ newMTGen useTimeAsSeed
   where
-    seed = Nothing  -- Will use the time.
+    useTimeAsSeed = Nothing
 
 randoms :: (G.MTRandom a, Num a) => IO [a]
 randoms = G.randoms theOneTrueGen

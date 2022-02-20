@@ -5,7 +5,11 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 
-module Data.Frame.Typed.Examples.Prestige where
+module Fixtures.Prestige
+  ( Prestige
+  , PrestigeLen
+  , thePrestige
+  ) where
 
 import Data.Frame.Prelude
 

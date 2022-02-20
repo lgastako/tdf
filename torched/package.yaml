@@ -1,32 +1,30 @@
 name:                torched
 version:             0.1.0.0
-github:              "githubuser/torched"
+github:              "lgastako/torched"
 license:             BSD3
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2022 Author name here"
+author:              "John Evans"
+maintainer:          "lgastako@gmail.com"
+copyright:           "2022 John Evans"
 
 extra-source-files:
 - README.md
 - ChangeLog.md
 
-# Metadata used when publishing your package
-# synopsis:            Short description of your package
-# category:            Web
+synopsis:            Short description of your package
+category:            Machine Learning
 
-# To avoid duplicated efforts in documentation and dealing with the
-# complications of embedding Haddock markup inside cabal files, it is
-# common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/githubuser/torched#readme>
+description:         README at <https://github.com/lgastako/torched#readme>
 
 dependencies:
 - base >= 4.7 && < 5
+- hasktorch
+- tdf
 
 library:
   source-dirs: src
 
 executables:
-  torched-exe:
+  torched:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -35,6 +33,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - torched
+    - optparse-applicative
 
 tests:
   torched-test:

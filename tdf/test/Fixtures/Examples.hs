@@ -10,7 +10,7 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 
-module Data.Frame.Typed.Examples where
+module Fixtures.Examples where
 
 import Data.Frame.Prelude hiding ( Product
                                  , drop
@@ -115,21 +115,21 @@ df1 = DF.fromList
   [ person
   , person2
   ]
-  & fromMaybe (panic "Examples.df1")
+  |> orCrash "Examples.df1"
 
 df1Fred :: Frame Nat2 Int PersonFields
 df1Fred = DF.fromList
   [ person3
   , person2
   ]
-  & fromMaybe (panic "Examples.df1")
+  |> orCrash "Examples.df1"
 
 df1Times100 :: Frame Nat2 Int PersonFields
 df1Times100 = DF.fromList
   [ personTimes100
   , person2Times100
   ]
-  & fromMaybe (panic "Examples.df1Times100")
+  |> orCrash "Examples.df1Times100"
 
 df1Renamed :: Frame Nat2 Int FullPersonFields
 df1Renamed = DF.rename #name #fullName df1
@@ -185,7 +185,7 @@ nativeVector = Vec.fromList
   , Person' "dave" 55
   , Person' "john" 46
   ]
-  & fromMaybe (panic "nativeVector")
+  |> orCrash "nativeVector"
 
 something :: VecPerson Nat3
 something = Rec.distribute . DF.toVec $ df6
@@ -227,9 +227,9 @@ dateAcrossCols = DF.construct
 -- -- lib sooner or later.
 -- dateInCol :: Frame DateColsLen Int ("date" .== Day .+ "value" .== Int)
 -- dateInCol = dateAcrossCols
---   & DF.extendWithDay #date
---       ((,,) <$> (.! #year) <*> (.! #month) <*> (.! #day))
---   & DF.restrict
+--   |> DF.extendWithDay #date
+--        ((,,) <$> (.! #year) <*> (.! #month) <*> (.! #day))
+--   |> DF.restrict
 
 -- Example from
 --   https://pandas.pydata.org/pandas-docs/version/0.23.0/generated/pandas.Series.tail.html
@@ -237,8 +237,8 @@ animals :: Frame Nat9 Int ("animal" .== Text)
 animals = DF.construct $ Options.fromVec v
   where
     v :: Vec Nat9 (Rec ("animal" .== Text))
-    v = (Vec.fromList . map mkRec $ animalNames)
-          & fromMaybe (panic "Examples.animals.1")
+    v = (Vec.fromList . map mkRec) animalNames
+          |> orCrash "Examples.animals.1"
 
     mkRec a = #animal .== a
 

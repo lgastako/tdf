@@ -9,7 +9,7 @@ module CSVTest
 import Data.Frame.Prelude
 
 import Data.Frame.Typed          ( Frame )
-import Data.Frame.Typed.Examples ( PersonFields )
+import Fixtures.Examples         ( PersonFields )
 import Test.Tasty.Hspec          ( Spec
                                  , context
                                  , it
@@ -24,8 +24,9 @@ import qualified Data.Frame.Typed     as DF
 spec_CSV :: Spec
 spec_CSV =
   context "with example.csv" $ do
-    df <- fromMaybe (panic "spec_CSV.1")
-          <$> runIO (fromRight boom <$> CSV.fromHeadedCSV "data/example.csv")
+    df <- runIO (fromRight boom <$> CSV.fromHeadedCSV "data/example.csv")
+            <&> orCrash "spec_CSV.1"
+
     let _ = df :: Frame Nat6 Int PersonFields
 
     it "should have the right number of rows" $
