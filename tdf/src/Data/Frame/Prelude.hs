@@ -30,15 +30,18 @@ import Control.Lens          as X ( (%~)
                                   , (//~)
                                   , (?~)
                                   , (^.)
+                                  , (^..)
                                   , (^?)
                                   , Iso'
                                   , Lens'
+                                  , Prism'
                                   , _Just
                                   , ala
                                   , each
                                   , from
                                   , iso
                                   , lens
+                                  , prism
                                   , set
                                   , to
                                   , view
@@ -48,62 +51,63 @@ import Data.Generics.Labels  as X ()
 import Data.Generics.Product as X ( field
                                   , typed
                                   )
-import Data.Row             as X ( AllUniqueLabels
-                                 , Disjoint
-                                 , Empty
-                                 , Forall
-                                 , Label
-                                 , Rec
-                                 , Row
-                                 , type (.!)
-                                 , type (.+)
-                                 , type (.-)
-                                 , type (.==)
-                                 , type (≈)
-                                 , (.!)
-                                 , (.+)
-                                 , (.-)
-                                 , (.==)
-                                 )
-import Data.Row.Internal    as X ( Unconstrained1 )
-import Data.Row.Records     as X ( Extend
-                                 , Map
-                                 , NativeRow
-                                 , ToNative
-                                 )
-import Data.Type.Equality   as X ( testEquality )
-import Data.Type.Nat        as X ( FromGHC
-                                 , Nat( S
-                                      , Z
-                                      )
-                                 , Nat0
-                                 , Nat1
-                                 , Nat2
-                                 , Nat3
-                                 , Nat4
-                                 , Nat5
-                                 , Nat6
-                                 , Nat7
-                                 , Nat8
-                                 , Nat9
-                                 , Plus
-                                 , SNatI
-                                 , SNat( SS
-                                       , SZ
+import Data.Generics.Sum     as X ( _Ctor )
+import Data.Row              as X ( AllUniqueLabels
+                                  , Disjoint
+                                  , Empty
+                                  , Forall
+                                  , Label
+                                  , Rec
+                                  , Row
+                                  , type (.!)
+                                  , type (.+)
+                                  , type (.-)
+                                  , type (.==)
+                                  , type (≈)
+                                  , (.!)
+                                  , (.+)
+                                  , (.-)
+                                  , (.==)
+                                  )
+import Data.Row.Internal    as X  ( Unconstrained1 )
+import Data.Row.Records     as X  ( Extend
+                                  , Map
+                                  , NativeRow
+                                  , ToNative
+                                  )
+import Data.Type.Equality   as X  ( testEquality )
+import Data.Type.Nat        as X  ( FromGHC
+                                  , Nat( S
+                                       , Z
                                        )
-                                 , nat0
-                                 , snat
-                                 , snatToNat
-                                 )
-import Data.Type.Nat.LE     as X ( LE )
-import Data.Vec.Lazy.X      as X ( Vec( (:::)
-                                      , VNil
-                                      )
-                                 )
-import Protolude.Conv       as X ( StringConv )
-import Protolude.Conv            ( Leniency( Lenient )
-                                 , strConv
-                                 )
+                                  , Nat0
+                                  , Nat1
+                                  , Nat2
+                                  , Nat3
+                                  , Nat4
+                                  , Nat5
+                                  , Nat6
+                                  , Nat7
+                                  , Nat8
+                                  , Nat9
+                                  , Plus
+                                  , SNatI
+                                  , SNat( SS
+                                        , SZ
+                                        )
+                                  , nat0
+                                  , snat
+                                  , snatToNat
+                                  )
+import Data.Type.Nat.LE      as X ( LE )
+import Data.Vec.Lazy.X       as X ( Vec( (:::)
+                                       , VNil
+                                       )
+                                  )
+import Protolude.Conv        as X ( StringConv )
+import Protolude.Conv             ( Leniency( Lenient )
+                                  , strConv
+                                  )
 
 type Nat10 = Plus Nat9 Nat1
 

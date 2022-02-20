@@ -18,6 +18,7 @@ description:         "README at <https://github.com/lgastako/ihaskell-tdf#readme
 dependencies:
 - base               >= 4.7 && < 5
 - Chart
+- Chart-diagrams
 - ihaskell
 - ipython-kernel
 - lucid

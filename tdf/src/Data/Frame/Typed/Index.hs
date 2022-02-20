@@ -20,6 +20,14 @@ module Data.Frame.Typed.Index
   , defaultFromFor
   , fromLst
   , fromVec
+  -- Optics
+  , _CategoricalIndex
+  , _DateTimeIndex
+  , _IntervalIndex
+  , _MultiIndex
+  , _PeriodIndex
+  , _RangeIndex
+  , _TimeDeltaIndex
   -- Combinators
   , concat
   , drop
@@ -184,7 +192,42 @@ fromVec :: forall n idx. Vec n idx -> Index n idx
 fromVec = IdxCategorical . CategoricalIndex.fromVec
 
 -- ================================================================ --
--- Combinators
+--   Optics
+-- ================================================================ --
+
+_CategoricalIndex :: Prism' (Index n idx) (CategoricalIndex n idx)
+_CategoricalIndex = _Ctor @"IdxCategorical"
+
+_DateTimeIndex :: Prism' (Index n idx) (DateTimeIndex n idx)
+_DateTimeIndex = _Ctor @"IdxDateTime"
+
+_IntervalIndex :: Prism' (Index n idx) (IntervalIndex n idx)
+_IntervalIndex = _Ctor @"IdxInterval"
+
+_MultiIndex :: Prism' (Index n idx) (MultiIndex n idx)
+_MultiIndex = _Ctor @"IdxMulti"
+
+_PeriodIndex :: Prism' (Index n idx) (PeriodIndex n idx)
+_PeriodIndex = _Ctor @"IdxPeriod"
+
+_RangeIndex :: Prism' (Index n idx) (RangeIndex n idx)
+_RangeIndex = _Ctor @"IdxRange"
+
+_TimeDeltaIndex :: Prism' (Index n idx) (TimeDeltaIndex n idx)
+_TimeDeltaIndex = _Ctor @"IdxTimeDelta"
+
+-- data Index (n :: Nat) a
+--   = IdxCategorical (CategoricalIndex n a)
+--   | IdxDateTime    (DateTimeIndex n a)
+--   | IdxInterval    (IntervalIndex n a)
+--   | IdxMulti       (MultiIndex n a)
+--   | IdxPeriod      (PeriodIndex n a)
+--   | IdxRange       (RangeIndex n a)
+--   | IdxTimeDelta   (TimeDeltaIndex n a)
+--   deriving (Eq, Generic, Ord, Show)
+
+-- ================================================================ --
+--   Combinators
 -- ================================================================ --
 
 concat :: forall n m idx.

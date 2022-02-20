@@ -2,10 +2,29 @@ module IHaskell.Display.Tdf.Chart
   ( chartExample
   ) where
 
-import Graphics.Rendering.Chart.Easy
+import Graphics.Rendering.Chart.Easy  ( (.=)
+                                      , CState
+                                      , Layout
+                                      , PlotIndex
+                                      , addIndexes
+                                      , autoIndexAxis
+                                      , bars
+                                      , font_size
+                                      , laxis_generate
+                                      , layout_title
+                                      , layout_title_style
+                                      , layout_x_axis
+                                      , plot
+                                      , plotBars
+                                      )
 import Control.Monad.Trans.State.Lazy ( State
                                       , StateT
+                                      , execStateT
                                       )
+
+import Graphics.Rendering.Chart.Backend.Diagrams ()
+
+
 
 titles :: [String]
 titles = [ "Cash", "Equity" ]
@@ -32,3 +51,6 @@ chartExample = do
     . map snd
     $ values
 
+chartLayout :: Layout PlotIndex Double
+            -> State CState (Layout PlotIndex Double)
+chartLayout = execStateT chartExample

@@ -58,6 +58,9 @@ We take vectors of rows as input and turn it into rows of vectors to operate on.
   - asSeries (eg animalSeries in Examples.hs) ends up show'ing strings
     on the ToField/FromField round trip I'm guessing?  But it shouldn't
     even be doing a round trip there...
+  - I think there's a lot of unnecessary/incorrect/mutating re-indexing
+    going on (especially during optical operations).  More worrisome from
+    a correctness perspective than a performance perspective.
 
 - TODO List:
   - IN-PROGRESS lenses for bidirectional accessors like loc, at, iat, etc.

@@ -47,7 +47,8 @@ module Data.Frame.Typed
   , filterIndexes
   , head
   , map
-  , overSeries
+  , overRecs
+  , overRecVec
   , pop
   , reindex
   , rename
@@ -56,6 +57,8 @@ module Data.Frame.Typed
   , tail
   -- Optics
   , at
+  , recSequenced
+  , sequenced
   , series
   -- Eliminators
   , a_
@@ -333,7 +336,7 @@ addSeries :: forall n idx a b k v r.
           -> Series n idx v
           -> Frame n idx a
           -> Frame n idx b
-addSeries k v = overSeries (Series.zipWith (Rec.extend k) v)
+addSeries k v = overRecs (Series.zipWith (Rec.extend k) v)
 
 type ExpectedField = "expected" .== Double
 type ActualField   = "actual"   .== Double
@@ -417,7 +420,7 @@ cons :: forall n idx a.
      => Rec a
      -> Frame n idx a
      -> Frame (Plus Nat1 n) idx a
-cons x = overSeries (Series.cons x)
+cons x = overRecs (Series.cons x)
 
 dropColumn :: forall k n idx a b r v.
               ( Disjoint r b
@@ -509,7 +512,7 @@ map :: forall n idx a b.
     => (Rec a -> Rec b)
     -> Frame n idx a
     -> Frame n idx b
-map f = overSeries (fmap f)
+map f = overRecs (fmap f)
 
 -- melt :: forall m n idx a b.
 --         Frame n idx a
@@ -532,23 +535,53 @@ map f = overSeries (fmap f)
 --            -> Frame m idx b
 -- meltSimple = panic "simpleMelt"
 
-overSeries :: forall m n idx a b.
-           ( Enum idx
-           , Forall a Unconstrained1
-           , Forall b Unconstrained1
-           , SNatI m
-           , SNatI n
-           )
-        => (Series n idx (Rec a) -> Series m idx (Rec b))
-        -> Frame n idx a
-        -> Frame m idx b
-overSeries f Frame {..} = Frame
-  { dfIndex = Index.defaultFor v `onCrash` "overSeries.dfIndex"
-  , dfData  = Rec.distribute srb
+overRecs :: forall m n idx a b.
+            ( Enum idx
+            , Forall a Unconstrained1
+            , Forall b Unconstrained1
+            , SNatI m
+            , SNatI n
+            )
+         => (Series n idx (Rec a) -> Series m idx (Rec b))
+         -> Frame n idx a
+         -> Frame m idx b
+overRecs f Frame {..} = (fromVec . Series.toVec . f . Rec.sequence) dfData
+  `onCrash` "overRecs.fromVec"
+
+overRecVec :: forall m n idx a b.
+              ( Enum idx
+              , Forall a Unconstrained1
+              , Forall b Unconstrained1
+              , SNatI m
+              , SNatI n
+              )
+           => (Vec n (Rec a) -> Vec m (Rec b))
+           -> Frame n idx a
+           -> Frame m idx b
+overRecVec f df = Frame
+  { dfData  = dfData'
+  , dfIndex = Index.defaultFor d  `onCrash` "overRecVec.indexes"
   }
   where
-    v = Series.toVec srb
-    srb = (f . Rec.sequence) dfData :: Series m idx (Rec b)
+    _ = dfData df :: Rec (Map (Series n idx) a)
+
+    a :: Rec (Map (Series n idx) a)
+    a = df ^. recSeries
+
+    b :: Series n idx (Rec a)
+    b = a ^. recSequenced
+
+    c :: Vec n (Rec a)
+    c = Series.toVec b
+
+    d :: Vec m (Rec b)
+    d = f c
+
+    e :: Series m idx (Rec b)
+    e = Series.fromVec d `onCrash` "overRecVec.e"
+
+    dfData' :: Rec (Map (Series m idx) b)
+    dfData' = e ^. from recSequenced
 
 pop :: forall n idx r k v rest.
        ( Disjoint r rest
@@ -601,7 +634,7 @@ snoc :: forall n idx a.
      => Rec a
      -> Frame n idx a
      -> Frame (Plus Nat1 n) idx a
-snoc x = overSeries (Series.snoc x)
+snoc x = overRecs (Series.snoc x)
 
 tail :: forall m n idx a.
         ( Enum idx
@@ -836,11 +869,25 @@ index :: Lens' (Frame n idx a) (Index n idx)
 index = field @"dfIndex"
 
 -- field @"dfData" didn't seem to work, so we'll do it the old
--- fashoined way
+-- fashioned way
 recSeries :: Lens' (Frame n idx a) (Rec (Map (Series n idx) a))
-recSeries = lens dfData set'
-  where
-    set' df r = df { dfData = r }
+recSeries = lens dfData $ \df r -> df { dfData = r }
+
+sequenced :: ( Applicative f
+             , Applicative g
+             , Traversable f
+             , Traversable g
+             )
+          => Iso' (f (g a)) (g (f a))
+sequenced = iso sequenceA sequenceA
+
+recSequenced :: forall f r.
+                ( Applicative f
+                , Forall r Unconstrained1
+                )
+             => Iso' (Rec (Map f r))
+                     (f (Rec r))
+recSequenced = iso Rec.sequence Rec.distribute
 
 -- | The index (row labels) of the Frame.
 indexes :: forall n idx a.
