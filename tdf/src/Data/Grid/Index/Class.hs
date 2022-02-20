@@ -1,11 +1,14 @@
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
 
 module Data.Grid.Index.Class
-  ( Index(..)
+  ( AnyIndex(..)
   ) where
+
+import Data.Grid.Prelude
 
 import qualified Data.Vector.Sized as Sized
 
-class Index a ix where
+class AnyIndex a (n :: Nat) ix where
   toVector :: a -> Sized.Vector n ix

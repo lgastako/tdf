@@ -56,8 +56,8 @@ fromListWith :: forall n k mm s a.
              => Index n k
              -> [a]
              -> mm (Maybe (MSeries n k s a))
-fromListWith ix xs = V.thaw (V.fromList xs)
-  <&> (fmap (MSeries . (ix,)) . Sized.toSized @n)
+fromListWith idx xs = V.thaw (V.fromList xs)
+  <&> (fmap (MSeries . (idx,)) . Sized.toSized @n)
 
 fromVector :: forall n k mm s a.
               ( Applicative mm
@@ -75,7 +75,7 @@ fromVectorWith :: forall n k mm s a.
                => Index n k
                -> Sized.MVector (n :: Nat) s a
                -> mm (MSeries n k s a)
-fromVectorWith ix = pure . MSeries . (ix,)
+fromVectorWith idx = pure . MSeries . (idx,)
 
 single :: forall k mm a.
           ( Enum k
@@ -93,6 +93,6 @@ singleWith :: forall k mm a.
            => Index 1 k
            -> a
            -> mm (MSeries 1 k (PrimState mm) a)
-singleWith ix x = do
+singleWith idx x = do
   v <- Sized.single x
-  fromVectorWith ix v
+  fromVectorWith idx v

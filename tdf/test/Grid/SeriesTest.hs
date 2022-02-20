@@ -16,32 +16,56 @@ import Test.Tasty.Hspec ( Spec
                         , shouldBe
                         )
 
-import qualified Data.Grid.Series   as Series
+import qualified Data.Grid.Index  as I
+import qualified Data.Grid.Series as S
 
 _ = hspec
 
 spec_Series :: Spec
 spec_Series = do
-  context "with an empty series" $ do
+  context "with an empty unit series" $ do
     let series :: Series 0 Int ()
-        series = Series.empty
+        series = S.empty
 
     it "should have length of 0" $
       length series `shouldBe` 0
 
-  context "with a unit series" $ do
-    let series :: Series 1 Int ()
-        series = Series.single ()
+    it "should have an empty index" $
+      series ^. S.index
+        `shouldBe` I.empty
 
-    it "should have a lengtht of 1" $
+    context "appended to itself" $ do
+      let series2 :: Series 0 Int ()
+          series2 = S.append series series
+
+      it "should have length of 0" $
+        length series `shouldBe` 0
+
+      it "should have an empty index" $
+        series ^. S.index
+          `shouldBe` I.empty
+
+  context "with a 1-unit series" $ do
+    let series :: Series 1 Int ()
+        series = S.single ()
+
+    it "should have a length of 1" $
       length series `shouldBe` 1
 
-  context "with a multi series" $ do
-    let series :: Series 3 Int ()
-        Just series = Series.fromList $ replicate 3 ()
+    it "should have a default index" $
+      series ^. S.index
+        `shouldBe` I.default_
 
-    it "should have a lengtht of 1" $
+  context "with a 3-unit series" $ do
+    let series :: Series 3 Int ()
+        Just series = S.fromList $ replicate 3 ()
+
+    it "should have a length of 3" $
       length series `shouldBe` 3
+
+    it "should have a default index" $
+      series ^. S.index
+        `shouldBe` I.default_
 
   -- context "with simple series" $ do
   --   let s :: Series Nat3 Int Float

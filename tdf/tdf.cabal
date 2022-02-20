@@ -57,6 +57,7 @@ library
       Data.Grid.Prelude
       Data.Grid.Series
       Data.Grid.Series.Mutable
+      Data.Grid.VectorPair
       Data.Random.X
       Data.Row.Records.X
       Data.Vec.Lazy.AVec
@@ -99,6 +100,7 @@ test-suite tdf-test
       Fixtures.Prestige
       Fixtures.Tutorial
       FrameTest
+      Grid.IndexTest
       Grid.SeriesTest
       Index.RangeTest
       IndexTest
