@@ -47,4 +47,4 @@ thePrestige = do
     <- CSV.unsafeFromHeadedCSV "data/prestige.csv"
   print . DF.columnNames $ df
 --  print . DF.toTexts $ df
-  DF.display . DF.head @Nat5 $ df
+  DF.display . DF.take @Nat5 $ df

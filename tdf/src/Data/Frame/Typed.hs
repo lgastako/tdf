@@ -41,6 +41,7 @@ module Data.Frame.Typed
   , benford
   , column
   , drop
+  , drop5
   , dropColumn
   , extend
   , extendFrom
@@ -55,6 +56,7 @@ module Data.Frame.Typed
   , restrict
   , snoc
   , take
+  , take5
   -- Optics
   , at
   , recSequenced
@@ -440,6 +442,18 @@ drop Frame {..} = Frame
     seriesN = Rec.sequence dfData :: Series n idx (Rec a)
     seriesM = Series.drop seriesN :: Series m idx (Rec a)
 
+drop5 :: forall m n idx a.
+         ( Enum idx
+         , Forall a Unconstrained1
+         , LE m n
+         , SNatI n
+         , SNatI m
+         , m ~ Nat5
+         )
+      => Frame n idx a
+      -> Frame m idx a
+drop5 = drop
+
 dropColumn :: forall k n idx a b r v.
               ( Disjoint r b
               , Forall a Unconstrained1
@@ -638,11 +652,11 @@ snoc :: forall n idx a.
 snoc x = overRecs (Series.snoc x)
 
 take :: forall m n idx a.
-        ( Forall a Unconstrained1
+        ( Enum idx
+        , Forall a Unconstrained1
         , LE m n
         , SNatI m
         , SNatI n
-        , idx ~ Int
         )
      => Frame n idx a
      -> Frame m idx a
@@ -653,6 +667,18 @@ take Frame {..} = Frame
   where
     seriesN = Rec.sequence dfData :: Series n idx (Rec a)
     seriesM = Series.take seriesN :: Series m idx (Rec a)
+
+take5 :: forall m n idx a.
+        ( Enum idx
+        , Forall a Unconstrained1
+        , LE m n
+        , SNatI m
+        , SNatI n
+        , m ~ Nat5
+        )
+     => Frame n idx a
+     -> Frame m idx a
+take5 = take
 
 -- ================================================================ --
 --   Optics

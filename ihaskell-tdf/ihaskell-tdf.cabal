@@ -35,7 +35,6 @@ library
       src
   build-depends:
       Chart
-    , Chart-diagrams
     , base >=4.7 && <5
     , ihaskell
     , ipython-kernel
@@ -55,7 +54,6 @@ test-suite ihaskell-tdf-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       Chart
-    , Chart-diagrams
     , base >=4.7 && <5
     , ihaskell
     , ihaskell-tdf

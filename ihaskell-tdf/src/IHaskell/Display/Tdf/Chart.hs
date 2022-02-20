@@ -22,7 +22,7 @@ import Control.Monad.Trans.State.Lazy ( State
                                       , execStateT
                                       )
 
-import Graphics.Rendering.Chart.Backend.Diagrams ()
+-- import Graphics.Rendering.Chart.Backend.Diagrams ()
 
 
 
