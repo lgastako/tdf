@@ -7,6 +7,7 @@ module Data.Frame.Typed.Options
   ( Options( optData
            , optIndex
            )
+  -- Constructors
   , empty
   , fromVec
   ) where
@@ -36,11 +37,3 @@ fromVec = Options <$> Index.defaultFor <*> identity
 
 empty :: Options 'Z Int Empty
 empty = fromVec Vec.empty
-
--- ================================================================ --
---  Combinators
--- ================================================================ --
-
--- ================================================================ --
---   Eliminators
--- ================================================================ --
