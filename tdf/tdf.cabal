@@ -49,13 +49,16 @@ library
       Data.Frame.Typed.ToVecN
       Data.Frame.Typed.Widths
       Data.Grid
+      Data.Grid.CSV
       Data.Grid.Frame
       Data.Grid.Index
       Data.Grid.Index.Class
       Data.Grid.Index.Range
       Data.Grid.Index.Vector
+      Data.Grid.Name
       Data.Grid.Prelude
       Data.Grid.Series
+      Data.Grid.Series.A
       Data.Grid.Series.Mutable
       Data.Grid.VectorPair
       Data.Random.X
@@ -63,6 +66,7 @@ library
       Data.Vec.Lazy.AVec
       Data.Vec.Lazy.X
       Data.Vector.Mutable.Sized.X
+      Data.Vector.Sized.X
   other-modules:
       Paths_tdf
   hs-source-dirs:
@@ -74,6 +78,7 @@ library
     , deepseq
     , fakedata
     , fin
+    , finite-typelits
     , generic-lens
     , lens
     , mersenne-random
@@ -120,6 +125,7 @@ test-suite tdf-test
     , deepseq
     , fakedata
     , fin
+    , finite-typelits
     , generic-lens
     , lens
     , mersenne-random

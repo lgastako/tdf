@@ -5,6 +5,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TypeOperators         #-}
 
 module Data.Grid.Index.Vector
@@ -15,11 +16,13 @@ module Data.Grid.Index.Vector
   , (++)
   , inc
   , incBy
+  -- Eliminators
+  , toVector
   ) where
 
 import Data.Grid.Prelude hiding ( (++) )
 
-import Data.Grid.Index.Class ( AnyIndex( toVector ) )
+-- import Data.Grid.Index.Class ( AnyIndex(..) )
 
 import qualified Data.Vector.Sized as Sized
 
@@ -27,8 +30,11 @@ newtype VectorIndex (n :: Nat) k = VectorIndex
   { unVectorIndex :: Sized.Vector n k }
   deriving (Eq, Foldable, Functor, Ord, Show, Traversable)
 
-instance AnyIndex (VectorIndex n k) n k where
-  toVector = unVectorIndex
+-- instance AnyIndex (VectorIndex n k) n k where
+--   at       = panic "Index.Vector.at"
+--   iat      = panic "Index.Vector.iat"
+--   position = panic "Index.Vector.position"
+--   toVector = unVectorIndex
 
 -- ================================================================ --
 --   Constructors
@@ -73,3 +79,10 @@ incBy :: forall n k.
       -> VectorIndex n k
       -> VectorIndex n k
 incBy n = fmap (addToEnum n)
+
+-- ================================================================ --
+--   Eliminators
+-- ================================================================ --
+
+toVector :: VectorIndex n k -> Sized.Vector n k
+toVector = unVectorIndex

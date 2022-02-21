@@ -23,23 +23,27 @@ module Data.Grid.Index.Range
   , start
   , step
   , stop
+  , toVector
   ) where
 
 import Data.Grid.Prelude hiding ( (++)
                                 , empty
                                 )
 
-import Data.Grid.Index.Class    ( AnyIndex( toVector ) )
+-- import Data.Grid.Index.Class    ( AnyIndex(..) )
 
 import qualified Data.Vector.Sized as Sized
 
 newtype RangeIndex (n :: Nat) k = RangeIndex { unRangeIndex :: (Int, (k, k)) }
-  deriving (Data, Eq, Generic, Ord, Show)
+  deriving (Eq, Generic, Ord, Show)
 
-instance (Enum k, KnownNat n) => AnyIndex (RangeIndex n k) n k where
-  toVector idx = Sized.unfoldrN ((,) <*> f) (start idx)
-    where
-      f = next (step idx)
+-- instance (Enum k, KnownNat n) => AnyIndex (RangeIndex n k) n k where
+--   at       = panic "Grid.Range.at"
+--   iat      = panic "Grid.Range.iat"
+--   position = panic "Grid.Range.position"
+--   toVector idx = Sized.unfoldrN ((,) <*> f) (start idx)
+--     where
+--       f = next (step idx)
 
 -- ================================================================ --
 --   Constructors
@@ -113,6 +117,9 @@ incBy n = rep . _2 . each %~ addToEnum n
 --   Eliminators
 -- ================================================================ --
 
+next :: Enum k => Int -> k -> k
+next n = ala Endo foldMap (replicate n succ)
+
 start :: RangeIndex n k -> k
 start = view (rep . _2 . _1)
 
@@ -122,5 +129,12 @@ step = view (rep . _1)
 stop :: RangeIndex n k -> k
 stop = view (rep . _2 . _2)
 
-next :: Enum k => Int -> k -> k
-next n = ala Endo foldMap (replicate n succ)
+toVector :: forall n k.
+            ( Enum k
+            , KnownNat n
+            )
+         => RangeIndex n k
+         -> Sized.Vector n k
+toVector idx = Sized.unfoldrN ((,) <*> f) (start idx)
+  where
+    f = next (step idx)

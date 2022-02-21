@@ -20,8 +20,12 @@ import Control.Lens                 as X        ( (%~)
                                                 , (^.)
                                                 , (^..)
                                                 , (^?)
+                                                , Getter
+                                                , Iso
                                                 , Iso'
+                                                , Lens
                                                 , Lens'
+                                                , Prism
                                                 , Prism'
                                                 , _Just
                                                 , _1
@@ -41,8 +45,7 @@ import Control.Lens                 as X        ( (%~)
 import Control.Monad.Primitive      as X        ( PrimMonad
                                                 , PrimState
                                                 )
-import Data.Data                    as X        ( Data )
-import Data.Data.Lens               as X        ( biplate )
+import Data.Finite                  as X        ( Finite )
 import Data.Frame.Prelude           as X        ( (...)
                                                 , (|>)
                                                 , cs

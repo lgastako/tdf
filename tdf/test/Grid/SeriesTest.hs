@@ -36,13 +36,13 @@ spec_Series = do
 
     context "appended to itself" $ do
       let series2 :: Series 0 Int ()
-          series2 = S.append series series
+          series2 = series S.++ series
 
       it "should have length of 0" $
-        length series `shouldBe` 0
+        length series2 `shouldBe` 0
 
       it "should have an empty index" $
-        series ^. S.index
+        series2 ^. S.index
           `shouldBe` I.empty
 
   context "with a 1-unit series" $ do

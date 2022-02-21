@@ -36,6 +36,8 @@ dependencies:
 - vector
 - vector-sized
 
+- finite-typelits
+
 - fin
 - row-types
 - vec
