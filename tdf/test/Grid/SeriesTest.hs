@@ -8,13 +8,13 @@ module Grid.SeriesTest
 
 import Data.Grid.Prelude
 
-import Data.Grid.Series ( Series )
-import Test.Tasty.Hspec ( Spec
-                        , context
-                        , hspec
-                        , it
-                        , shouldBe
-                        )
+import Data.Grid.Series     ( Series )
+import Test.Tasty.Hspec     ( Spec
+                            , context
+                            , hspec
+                            , it
+                            , shouldBe
+                            )
 
 import qualified Data.Grid.Index  as I
 import qualified Data.Grid.Series as S
@@ -33,6 +33,10 @@ spec_Series = do
     it "should have an empty index" $
       series ^. S.index
         `shouldBe` I.empty
+
+    it "should render properly" $
+      S.toTexts series
+        `shouldBe` ("series", [])
 
     context "appended to itself" $ do
       let series2 :: Series 0 Int ()

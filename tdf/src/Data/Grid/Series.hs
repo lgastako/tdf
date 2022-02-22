@@ -1,11 +1,12 @@
-{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DeriveTraversable   #-}
 {-# LANGUAGE GADTs               #-}
+{-# LANGUAGE InstanceSigs        #-}
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -27,11 +28,14 @@ module Data.Grid.Series
   , at
   , iat
   , index
+  , name
   , vector
   -- Combinators
   , (++)
   -- Eliminators
+  , display
   , thaw
+  , toTexts
   ) where
 
 import Data.Grid.Prelude hiding ( (++)
@@ -40,10 +44,15 @@ import Data.Grid.Prelude hiding ( (++)
 
 import Data.Grid.Index          ( Index )
 import Data.Grid.Name           ( Name )
+import Data.Grid.Renderable     ( Renderable
+                                , render
+                                )
 
+import qualified Data.Frame.Typed.Table   as Table
 import qualified Data.Grid.Index          as I
 import qualified Data.Grid.Name           as Name
 import qualified Data.Grid.Series.Mutable as M
+import qualified Data.List                as L
 import qualified Data.Vector.Sized.X      as Sized
 
 data Series (n :: Nat) k a = Series
@@ -192,6 +201,11 @@ index :: forall n k a.
                (Index n k)
 index = field @"_index"
 
+name :: forall  n k a.
+        Lens' (Series n k a)
+              Name
+name = field @"_name"
+
 vector :: forall n k a.
           Lens' (Series n k a)
                 (Sized.Vector n a)
@@ -223,6 +237,16 @@ a ++ b = Series
 --   Eliminators
 -- ================================================================ --
 
+display :: forall n k a. (Show k, Renderable a) => Series n k a -> IO ()
+display = putStr
+  . Table.render
+  . (`onCrash` "Series.display")
+  . Table.fromHeadedRows
+  . L.map Table.Row
+  . map pure
+  . uncurry (:)
+  . toTexts
+
 thaw :: forall n k mm s a.
         ( Applicative mm
         , KnownNat n
@@ -232,6 +256,11 @@ thaw :: forall n k mm s a.
      => Series n k a
      -> mm (M.MSeries n k s a)
 thaw s = M.fromVectorWith (s ^. index) =<< Sized.thaw (s ^. vector)
+
+toTexts :: Renderable a
+        => Series n k a
+        -> (Text, [Text])
+toTexts = (,) <$> view (name . to Name.unName) <*>  map render . toList
 
 -- ================================================================ --
 --   Helpers & Misc Junks

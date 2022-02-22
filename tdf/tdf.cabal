@@ -50,6 +50,7 @@ library
       Data.Frame.Typed.Widths
       Data.Grid
       Data.Grid.CSV
+      Data.Grid.Examples
       Data.Grid.Frame
       Data.Grid.Index
       Data.Grid.Index.Class
@@ -57,6 +58,7 @@ library
       Data.Grid.Index.Vector
       Data.Grid.Name
       Data.Grid.Prelude
+      Data.Grid.Renderable
       Data.Grid.Series
       Data.Grid.Series.A
       Data.Grid.Series.Mutable

@@ -50,9 +50,11 @@ import Data.Frame.Prelude           as X        ( (...)
                                                 , (|>)
                                                 , cs
                                                 , onCrash
+                                                , orCrash
                                                 )
 import Data.Generics.Product.Fields as X        ( field )
-import Data.Vector.Sized            as X        ( Vector )
+-- I think maybe itt's better if we "force" it to be imported qualifed
+--import Data.Vector.Sized            as X        ( Vector )
 import GHC.TypeNats                 as X        ( type (+)
                                                 , natVal'
                                                 )
