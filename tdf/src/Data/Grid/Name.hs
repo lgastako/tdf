@@ -20,10 +20,16 @@ module Data.Grid.Name
 
 import Data.Grid.Prelude
 
-import qualified Data.Text as T
+import qualified Data.List.NonEmpty      as NE
+import qualified Data.Semigroup.Foldable as SF
+import qualified Data.Text               as T
 
 newtype Name = Name Text
   deriving (Eq, Generic, Ord, Show)
+
+instance Semigroup Name where
+  Name a <> Name b = Name (a <> b)
+
 
 data Error
   = NameTooLong
@@ -50,20 +56,15 @@ unsafeFromText (normalize -> s) = Name s
 --   Combinators
 -- ================================================================ --
 
-combine :: forall f.
-           ( Applicative f
-           , Foldable f
-           , Monoid (f Name)
-           )
-        => f Name
-        -> f Name
-        -> f Name
-combine a b = fold
-  [ pure (Name "[")
+combine :: Name
+        -> Name
+        -> Name
+combine a b = SF.fold1 . NE.fromList $
+  [ Name "["
   , a
-  , pure (Name " >> ")
+  , Name " >> "
   , b
-  , pure (Name "]")
+  , Name "]"
   ]
 
 -- ================================================================ --
@@ -74,7 +75,7 @@ unName :: Name -> Text
 unName (Name n) = n
 
 -- ================================================================ --
---   Helpers/Other
+--   Helpers
 -- ================================================================ --
 
 maxNameLen :: Int

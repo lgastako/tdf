@@ -20,28 +20,29 @@ ghc-options:
 - -freduction-depth=0
 
 dependencies:
+
+
+
 - base                    >= 4.7 && < 5
 - containers
 - deepseq
 - fakedata
+- fin
+- finite-typelits
 - generic-lens
 - lens
 - mersenne-random
 - mtl
+- primitive
 - protolude
+- row-types
+- semigroupoids
 - text
 - unordered-containers
-
-- primitive
-- vector
-- vector-sized
-
-- finite-typelits
-
-- fin
-- row-types
 - vec
 - vec-lens
+- vector
+- vector-sized
 
 library:
   source-dirs: src

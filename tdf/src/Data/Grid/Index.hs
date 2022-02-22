@@ -1,6 +1,4 @@
 {-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -34,12 +32,9 @@ import Data.Grid.Prelude   hiding ( (++)
                                   , zipWith
                                   )
 
---  import Data.Grid.Index.Class      ( AnyIndex(..) )
 import Data.Grid.Index.Range      ( RangeIndex )
 import Data.Grid.Index.Vector     ( VectorIndex )
 
-
--- import qualified Data.Grid.Index.Class  as I
 import qualified Data.Grid.Index.Range  as RI
 import qualified Data.Grid.Index.Vector as VI
 import qualified Data.Vector.Sized      as SV
@@ -52,12 +47,6 @@ deriving instance Ord  k => Ord  (Index n k)
 deriving instance Show k => Show (Index n k)
 
 instance Universal k => Universal (Index n k)
-
--- instance (Enum k, KnownNat n) => AnyIndex (Index n k) n k where
---   at       = panic "Grid.Index.at"
---   iat      = panic "Grid.Index.iat"
---   position = panic "Grid.Index.position"
-
 
 -- ================================================================ --
 --   Constructors

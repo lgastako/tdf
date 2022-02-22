@@ -87,6 +87,7 @@ library
     , primitive
     , protolude
     , row-types
+    , semigroupoids
     , text
     , unordered-containers
     , vec
@@ -135,6 +136,7 @@ test-suite tdf-test
     , protolude
     , quickcheck-text
     , row-types
+    , semigroupoids
     , tasty
     , tasty-discover
     , tasty-hedgehog
