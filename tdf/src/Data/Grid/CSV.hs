@@ -65,7 +65,10 @@ fromCSV path = liftIO $
 
           frame :: Frame c r ci ri a
           frame = F.fromSeries colSeries
-      pure $ Right frame
+
+          frame' :: Frame c r ci ri a
+          frame' = frame  -- TODO reset the indexes on the rows
+      pure $ Right frame'
 
 textToTexts :: Text -> [[Text]]
 textToTexts = map (T.splitOn ",") . T.lines

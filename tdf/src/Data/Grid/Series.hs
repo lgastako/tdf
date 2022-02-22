@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DeriveTraversable   #-}
@@ -32,6 +34,7 @@ module Data.Grid.Series
   -- Combinators
   , (++)
   , op
+  , transpose2
   -- Eliminators
   , display
   , thaw
@@ -242,6 +245,26 @@ op :: forall n k x a b c.
    -> Series n k b
    -> Series n k c
 op f x = vector %~ Sized.zipWith f (toVectorN x)
+
+transpose2 :: forall c r ci ri a.
+              ( Enum ci
+              , Enum ri
+              , KnownNat c
+              , KnownNat r
+              )
+           => Series c ci (Series r ri a)
+           -> Series r ri (Series c ci a)
+transpose2 = fromVector
+  . map fromVector
+  . orCrash "error2"
+  . Sized.fromList
+  . orCrash "error1"
+  . traverse Sized.fromList
+  . L.transpose
+  . map Sized.toList
+  . Sized.toList
+  . map (view vector)
+  . view vector
 
 -- ================================================================ --
 --   Eliminators

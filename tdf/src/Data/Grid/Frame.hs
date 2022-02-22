@@ -1,7 +1,9 @@
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveTraversable   #-}
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Data.Grid.Frame
@@ -11,7 +13,9 @@ module Data.Grid.Frame
   -- Combinators
   , transpose
   -- Optics
+  , col
   , colSeries
+  , row
   -- Eliminators
   , display
   , toTexts
@@ -30,7 +34,7 @@ import qualified Data.Vector.Sized      as Sized
 
 newtype Frame (c :: Nat) (r :: Nat) ci ri a
   = Frame (Series c ci (Series r ri a))
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Foldable, Functor, Ord, Show, Traversable)
 
 instance ( Universal a
          , Universal ri
@@ -58,9 +62,47 @@ fromSeries = Frame
 --   Optics
 -- ================================================================ --
 
+col :: forall c r ci ri a.
+       Finite c
+    -> Lens' (Frame c r ci ri a)
+             (Series r ri a)
+col c = colSeries . S.vector . Sized.ix c
+
 colSeries :: Iso' (Frame c r ci ri a)
                   (Series c ci (Series r ri a))
 colSeries = coerced
+
+row :: forall c r ci ri a.
+       ( Enum ci
+       , Enum ri
+       , KnownNat c
+       , KnownNat r
+       )
+    => Finite r
+    -> Lens' (Frame c r ci ri a)
+             (Series c ci a)
+row r = rowSeries . S.vector . Sized.ix r
+
+rowSeries :: ( Enum ci
+             , Enum ri
+             , KnownNat c
+             , KnownNat r
+             )
+          => Lens' (Frame c r ci ri a)
+                   (Series r ri (Series c ci a))
+rowSeries = colSeries . transposed
+
+transposed :: ( Enum ci
+              , Enum ri
+              , KnownNat c
+              , KnownNat r
+              )
+           => Iso' (Series c ci (Series r ri a))
+                   (Series r ri (Series c ci a))
+transposed = iso get' set'
+  where
+    get' = transposeSeries
+    set' = transposeSeries
 
 -- ================================================================ --
 --   Combinators
