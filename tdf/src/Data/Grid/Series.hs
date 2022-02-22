@@ -77,7 +77,7 @@ instance (Enum k, KnownNat n) => Applicative (Series n k) where
         -> Series n k a
         -> Series n k b
   f <*> x = Series
-    { _name   = panic "Grid.Series.(<*>)._name"
+    { _name   = Name.combine      (f ^. name)   (x ^. name)
     , _index  = I.apForSeries     (f ^. index)  (x ^. index)  -- TODO uhhh....
     , _vector = Sized.zipWith ($) (f ^. vector) (x ^. vector)
     }

@@ -1,6 +1,8 @@
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ViewPatterns        #-}
 
 module Data.Grid.Name
   ( Name
@@ -8,6 +10,8 @@ module Data.Grid.Name
   , fromText
   , fromTextE
   , unsafeFromText
+  -- Combinators
+  , combine
   -- Eliminators
   , unName
   -- Helpers
@@ -41,6 +45,26 @@ fromTextE (normalize -> s)
 
 unsafeFromText :: Text -> Name
 unsafeFromText (normalize -> s) = Name s
+
+-- ================================================================ --
+--   Combinators
+-- ================================================================ --
+
+combine :: forall f.
+           ( Applicative f
+           , Foldable f
+           , Monoid (f Name)
+           )
+        => f Name
+        -> f Name
+        -> f Name
+combine a b = fold
+  [ pure (Name "[")
+  , a
+  , pure (Name " >> ")
+  , b
+  , pure (Name "]")
+  ]
 
 -- ================================================================ --
 --   Eliminators
