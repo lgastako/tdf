@@ -1,7 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 
@@ -19,6 +18,9 @@ import Data.Grid.Frame      ( Frame )
 -- import qualified Data.Grid.Index  as I
 import qualified Data.Grid.Series as S
 
+-- TODO: This only loads 8 rows.. it's not properly accounting for the headers
+--       or something... but that doesn't make sense since there the type has 9
+--       rows...
 example1 :: IO ()
 example1 = fromCSV "data/nba9.csv" >>= putText . either show toResult
   where

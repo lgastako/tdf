@@ -135,7 +135,7 @@ zip :: forall n k k'.
     => Index n k
     -> Index n k'
     -> Index n (k, k')
-zip a b = zipWith (,) a b
+zip = zipWith (,)
 
 toVector :: forall n k.
             ( Enum k

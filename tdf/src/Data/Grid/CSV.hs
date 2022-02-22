@@ -1,10 +1,10 @@
-{-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE ViewPatterns        #-}
 
 module Data.Grid.CSV
   ( Error(..)
@@ -19,7 +19,6 @@ import Data.Grid.Series ( Series )
 import qualified Data.Grid.Frame   as F
 import qualified Data.Grid.Series  as S
 import qualified Data.Text         as T
--- import qualified Data.Vector.Sized as Sized
 
 data Error
   = FileNotFound FilePath
@@ -38,8 +37,8 @@ fromCSV :: forall c r ci ri m a.
            )
         => FilePath
         -> m (Either Error (Frame c r ci ri a))
-fromCSV path = liftIO $ do
-  (((Right <$> readFile path) `catch` (pure . Left))) >>= \case
+fromCSV path = liftIO $
+  ((Right <$> readFile path) `catch` (pure . Left)) >>= \case
     Left error -> pure $ Left error
     Right (textToTexts -> rows) -> do
       let columns :: [[Text]]
@@ -70,75 +69,3 @@ fromCSV path = liftIO $ do
 
 textToTexts :: Text -> [[Text]]
 textToTexts = map (T.splitOn ",") . T.lines
-
-
-
-
---   let _ = contents :: Either Error Text
-
---       parseResult :: Either Error (Series n k Text)
---       parseResult = join . fmap parseLines $ contents
-
---       textAsSeries :: Either Error (Series n k (Series n' k Text))
---       textAsSeries = f <<$>> parseResult
-
---       f :: Text -> Series n' k Text
---       f = undefined -- g . S.fromList . T.splitOn ","
-
---       g = undefined
-
---       ss :: Series n k (Series n' k Text) -> Either Error (Frame c r ci ri a)
---       ss = F.fromSeries <$> textAsSeries
-
---   undefined
---   -- case parseLines contents of
---   --   Left error -> Left error
---   --   Right seriesOfLines -> undefined
---   where
---     handle1 :: Error -> IO (Either Error Text)
---     handle1 = pure . Left
--- -- (\() -> pure (Left (FileNotFound path))) -- const $ pure (Left FileNotFound))
-
--- parseLines :: Text -> Either Error (Series n k Text)
--- parseLines = undefined
-
--- --   let parsed :: Either Error (Sized.Vector n (Series n' k a))
--- --       parsed = parse path contents
--- --       result :: Either Error (Frame c r ci ri a)
--- --       result = pack <$> parsed
--- --   pure result
-
--- -- parse :: Text -> Series n k Text
--- -- parse = undefined
-
--- -- pack :: forall c r ci ri a.
--- --         ( Enum ci
--- --         , Enum ri
--- --         , KnownNat c
--- --         )
--- --      => Sized.Vector c (Series r ri a)
--- --      -> Frame c r ci ri a
--- -- pack vs = F.fromSeries ss
--- --   where
--- --     ss :: Series c ci (Series r ri a)
--- --     ss = S.fromVector vs
-
--- -- parse :: forall n m k a.
--- --          ( Enum k
--- --          , KnownNat m
--- --          )
--- --       => FilePath
--- --       -> Text
--- --       -> Either Error (Sized.Vector n (Series m k a))
--- -- parse path s = case map (T.splitOn ",") . T.lines $ s of
--- --   [] -> Left (EmptyFile path)
--- --   header:vals -> undefined
--- --     where
--- --       _ = header :: [Text]
--- --       _ = vals   :: [[Text]]
-
--- -- --      makeSeries :: [Text] -> Sized.Vector  (Series n k a)
--- --       makeSeries = undefined
-
--- -- --      foo :: Series m k [Series n k a]
--- --       foo = traverse makeSeries vals

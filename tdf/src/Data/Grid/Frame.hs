@@ -13,18 +13,20 @@ module Data.Grid.Frame
   -- Optics
   , colSeries
   -- Eliminators
+  , display
   , toTexts
   ) where
 
 import Data.Grid.Prelude hiding ( transpose )
 
-import Data.Grid                ( Series )
-import Data.Grid.Renderable     ( Renderable( render ) )
+import Data.Frame.Typed.Table ( Table )
+import Data.Grid              ( Series )
+import Data.Grid.Renderable   ( Renderable( render ) )
 
-import qualified Data.Grid.Series  as S
-import qualified Data.List         as L
-import qualified Data.Vector.Sized as Sized
--- import qualified Data.Text        as T
+import qualified Data.Frame.Typed.Table as Table
+import qualified Data.Grid.Series       as S
+import qualified Data.List              as L
+import qualified Data.Vector.Sized      as Sized
 
 newtype Frame (c :: Nat) (r :: Nat) ci ri a
   = Frame (Series c ci (Series r ri a))
@@ -41,7 +43,7 @@ instance ( Enum ci
          , KnownNat r
          , Renderable a
          ) => Renderable (Frame c r ci ri a) where
-  render = show . toTexts  -- For now
+  render = Table.render . toTable
 
 -- ================================================================ --
 --   Constructors
@@ -87,8 +89,7 @@ transposeSeries = S.fromVector
   . orCrash "error2"
   . Sized.fromList
   . orCrash "error1"
-  . sequenceA
-  . map Sized.fromList
+  . traverse Sized.fromList
   . L.transpose
   . map Sized.toList
   . Sized.toList
@@ -98,6 +99,31 @@ transposeSeries = S.fromVector
 -- ================================================================ --
 --   Eliminators
 -- ================================================================ --
+
+display :: forall c r ci ri a.
+           ( Enum ci
+           , Enum ri
+           , KnownNat c
+           , KnownNat r
+           , Renderable a
+           )
+        => Frame c r ci ri a
+        -> IO ()
+display = putStr . Table.render . toTable
+
+toTable :: forall c r ci ri a.
+           ( Enum ci
+           , Enum ri
+           , KnownNat c
+           , KnownNat r
+           , Renderable a
+           )
+        => Frame c r ci ri a
+        -> Table
+toTable = orCrash "display explode"
+  . Table.fromHeadedRows
+  . L.map Table.Row
+  . toTexts
 
 toTexts :: forall c r ci ri a.
            ( Enum ci

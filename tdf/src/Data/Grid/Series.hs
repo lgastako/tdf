@@ -10,7 +10,6 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 
@@ -242,8 +241,7 @@ display = putStr
   . Table.render
   . (`onCrash` "Series.display")
   . Table.fromHeadedRows
-  . L.map Table.Row
-  . map pure
+  . L.map (Table.Row . pure)
   . uncurry (:)
   . toTexts
 
@@ -272,12 +270,12 @@ join' :: forall n idx a.
       => Series n idx (Series n idx a)
       -> Series n idx a
 join' _s = panic "Grid.Series.join'" -- s & vector %~ f
-  where
---     f :: Vector n a -> Vector n a
-    -- f = undefined -- panic "join'" -- updateVec (Sized.join . fmap toVec)
+  -- where
+  --   f :: Vector n a -> Vector n a
+  --   f = undefined -- panic "join'" -- updateVec (Sized.join . fmap toVec)
 
-    -- unpack :: ()
-    -- unpack = undefined
+  --   unpack :: ()
+  --   unpack = undefined
 
 seriesName :: Name
 seriesName = Name.unsafeFromText "series"

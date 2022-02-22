@@ -37,4 +37,4 @@ instance ( Arbitrary idx
   arbitrary = Index.fromVec <$> arbitrary
 
 instance Arbitrary Name where
-  arbitrary = maybe arbitrary pure =<< Name.fromText <$> arbitrary
+  arbitrary = maybe arbitrary pure . Name.fromText =<< arbitrary

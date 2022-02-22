@@ -19,10 +19,10 @@ spec_Name :: Spec
 spec_Name = do
   it "should combine two Nothings properly" $
     Name.combine Nothing Nothing
-      `shouldBe` (Just $ un "[ >> ]")
+      `shouldBe` Just (un "[ >> ]")
 
   it "should combine Something/Nothing properly" $
-    Name.combine (Just $ un "a") Nothing
+    Name.combine (Just (un "a")) Nothing
       `shouldBe` Just (un "[a >> ]")
 
   it "should combine Nothing/Something properly" $
@@ -30,7 +30,7 @@ spec_Name = do
       `shouldBe` Just (un "[ >> b]")
 
   it "should combine two Somethings properly" $
-    Name.combine (Just (un "a")) (Just $ un "b")
+    Name.combine (Just $ un "a") (Just $ un "b")
       `shouldBe` Just (un "[a >> b]")
 
 un :: Text -> Name

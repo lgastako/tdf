@@ -37,7 +37,7 @@ empty ::forall k mm s a.
         , s ~  PrimState mm
         )
       => mm (MSeries 0 k s a)
-empty = (MSeries . (Index.empty,)) <$> Sized.new
+empty = MSeries . (Index.empty,) <$> Sized.new
 
 fromList :: forall n k mm a.
                 ( Enum k
@@ -84,7 +84,7 @@ single :: forall k mm a.
           )
        => a
        -> mm (MSeries 1 k (PrimState mm) a)
-single x = singleWith Index.default_ x
+single = singleWith Index.default_
 
 singleWith :: forall k mm a.
               ( Monad mm

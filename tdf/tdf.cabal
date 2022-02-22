@@ -62,7 +62,6 @@ library
       Data.Grid.Series
       Data.Grid.Series.A
       Data.Grid.Series.Mutable
-      Data.Grid.VectorPair
       Data.Random.X
       Data.Row.Records.X
       Data.Vec.Lazy.AVec

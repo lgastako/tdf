@@ -1,13 +1,9 @@
-{-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE GADTs               #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
 
 module Data.Grid.Series.A
   ( ASeries(..)

@@ -1,8 +1,6 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveDataTypeable  #-}
 {-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -94,7 +92,7 @@ RangeIndex (stepA, (startA, stopA)) ++ RangeIndex (_stepB, (startB, stopB)) =
     stopC :: k
     stopC | startB > stopA = stopB
           | otherwise = toEnum $
-            fromEnum stopB + (min 0 (fromEnum startB - fromEnum stopA))
+            fromEnum stopB + min 0 (fromEnum startB - fromEnum stopA)
 
 inc :: forall n k.
          ( Enum k

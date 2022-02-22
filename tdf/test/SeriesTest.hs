@@ -32,11 +32,11 @@ spec_Series =
 
     it "should take5 properly" $
       Series.take5 (Series.concat s s)
-        `shouldBe` (Series.take $ Series.concat s s)
+        `shouldBe` Series.take (Series.concat s s)
 
     it "should drop5  properly" $
       Series.drop5 (Series.concat s s)
-        `shouldBe` (Series.drop $ Series.concat s s)
+        `shouldBe` Series.drop (Series.concat s s)
 
     it "should self concat" $
       length ss `shouldBe` 6
