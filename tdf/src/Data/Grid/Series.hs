@@ -71,7 +71,7 @@ instance ( Universal a
 instance (Enum k, KnownNat n) => Applicative (Series n k) where
   pure x = Series
     { _name   = seriesName
-    , _index  = I.default_
+    , _index  = I.fill
     , _vector = Sized.replicate x
     }
 
@@ -109,7 +109,7 @@ fromList :: forall n k a.
                 )
              => [a]
              -> Maybe (Series n k a)
-fromList = fromListWith I.default_
+fromList = fromListWith I.fill
 
 fromListWith :: forall n k a.
                 ( KnownNat n )
@@ -130,7 +130,7 @@ fromVector :: forall n k a.
               )
            => Sized.Vector n a
            -> Series n k a
-fromVector = fromVectorWith I.default_
+fromVector = fromVectorWith I.fill
 
 fromVectorWith :: forall n k a.
                   ( KnownNat n )
@@ -147,7 +147,7 @@ single :: forall a k.
           ( Enum k )
        => a
        -> Series 1 k a
-single = singleWith I.default_
+single = singleWith I.fill
 
 singleWith :: forall k a.
               Index 1 k

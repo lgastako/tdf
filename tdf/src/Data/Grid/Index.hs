@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -14,8 +15,8 @@ module Data.Grid.Index
   -- , MultiIndex
   , RangeIndex
   -- Constructors
-  , default_
   , empty
+  , fill
   , single
   -- Combinators
   , (++)
@@ -24,6 +25,8 @@ module Data.Grid.Index
   , position
   , zipWith
   , zip
+  -- Eliminators
+  , toVector
   ) where
 
 import Data.Grid.Prelude   hiding ( (++)
@@ -48,16 +51,21 @@ deriving instance Show k => Show (Index n k)
 
 instance Universal k => Universal (Index n k)
 
+instance (Enum k, KnownNat n) => ToVectorN (Index n k) n k where
+  toVectorN = \case
+    IdxRange  idx -> RI.toVector idx
+    IdxVector idx -> VI.toVector idx
+
 -- ================================================================ --
 --   Constructors
 -- ================================================================ --
 
-default_ :: forall n k.
+fill :: forall n k.
             ( Enum k
             , KnownNat n
             )
          => Index n k
-default_ = IdxRange $ RI.fromTo (toEnum 0) (toEnum n)
+fill = IdxRange $ RI.fromTo (toEnum 0) (toEnum n)
   where
     n = fromIntegral (natVal @n Proxy)
 
@@ -93,15 +101,18 @@ single = IdxVector . VI.fromVector . SV.singleton
       (IdxVector via , IdxRange rib) ->
         IdxVector $ via VI.++ (VI.fromVector . RI.toVector $ rib)
 
+apForSeries :: forall n k.
+               ( Enum k
+               , KnownNat n
+               )
+            => Index n k
+            -> Index n k
+            -> Index n k
+apForSeries = zipWith const
+
 -- TODO do we really need uniqueness checking?
 append :: forall m n k. Index m k -> Index n k -> Index (m + n) k
 append = panic "Grid.Index.append"
-
-position :: forall n k.
-            k
-         -> Index n k
-         -> Maybe (Finite n)
-position = panic "Grid.Index.position"
 
 zipWith :: forall n a b c.
            ( Enum a
@@ -126,6 +137,16 @@ zip :: forall n k k'.
     -> Index n (k, k')
 zip = zipWith (,)
 
+-- ================================================================  --
+--   Eliminators
+-- ================================================================  --
+
+position :: forall n k.
+            k
+         -> Index n k
+         -> Maybe (Finite n)
+position = panic "Grid.Index.position"
+
 toVector :: forall n k.
             ( Enum k
             , KnownNat n
@@ -135,12 +156,3 @@ toVector :: forall n k.
 toVector = \case
   IdxRange  idx -> RI.toVector idx
   IdxVector idx -> VI.toVector idx
-
-apForSeries :: forall n k.
-               ( Enum k
-               , KnownNat n
-               )
-            => Index n k
-            -> Index n k
-            -> Index n k
-apForSeries = zipWith const

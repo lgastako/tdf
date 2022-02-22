@@ -53,7 +53,6 @@ library
       Data.Grid.Examples
       Data.Grid.Frame
       Data.Grid.Index
-      Data.Grid.Index.Class
       Data.Grid.Index.Range
       Data.Grid.Index.Vector
       Data.Grid.Name
@@ -89,6 +88,7 @@ library
     , row-types
     , semigroupoids
     , text
+    , type-natural
     , unordered-containers
     , vec
     , vec-lens
@@ -144,6 +144,7 @@ test-suite tdf-test
     , tasty-quickcheck
     , tdf
     , text
+    , type-natural
     , unordered-containers
     , vec
     , vec-lens

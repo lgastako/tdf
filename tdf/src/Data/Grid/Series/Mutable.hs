@@ -46,7 +46,7 @@ fromList :: forall n k mm a.
                 )
              => [a]
              -> mm (Maybe (MSeries n k (PrimState mm) a))
-fromList = fromListWith Index.default_
+fromList = fromListWith Index.fill
 
 fromListWith :: forall n k mm s a.
                 ( KnownNat n
@@ -66,7 +66,7 @@ fromVector :: forall n k mm s a.
               )
            => Sized.MVector (n :: Nat) s a
            -> mm (MSeries n k s a)
-fromVector = pure . MSeries . (Index.default_,)
+fromVector = pure . MSeries . (Index.fill,)
 
 fromVectorWith :: forall n k mm s a.
                   ( Applicative mm
@@ -84,7 +84,7 @@ single :: forall k mm a.
           )
        => a
        -> mm (MSeries 1 k (PrimState mm) a)
-single = singleWith Index.default_
+single = singleWith Index.fill
 
 singleWith :: forall k mm a.
               ( Monad mm

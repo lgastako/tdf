@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedLabels    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
@@ -12,8 +13,8 @@ import Data.Grid.Renderable ( Renderable( render ) )
 import Data.Grid.CSV        ( fromCSV )
 import Data.Grid.Frame      ( Frame )
 
--- import qualified Data.Grid.Frame  as F
--- import qualified Data.Grid.Index  as I
+import qualified Data.Grid.Frame  as F
+import qualified Data.Grid.Index  as I
 import qualified Data.Grid.Series as S
 
 readNBA :: IO (Frame 9 9 Int Int Text)
@@ -37,8 +38,29 @@ example2 = case S.fromList @5 @Int [1..5 :: Int]  of
 example3 :: IO ()
 example3 = do
   df <- readNBA
+
+  print df
+  nl >> F.display df
+  nl >> print (df ^. F.colSeries . S.index)
   -- TODO: reset indexes of rows to [1..]
+
+  -- TODO: probably don't really need to do this part... just need to
+  --       push the indices into the names.
+  let df' :: Frame 9 9 Int Int Text
+      df' = df & F.colSeries . S.index .~ I.fill
+  print df'
+  nl >> F.display df'
+  nl >> print (df' ^. F.colSeries . S.index)
+
+  -- TODO Still not working... WTF?
+  let df'' :: Frame 9 9 Int Int Text
+      df'' = F.resetColumNamesFromIndexes df'
+  print df''
+  nl >> F.display df''
+  nl >> print (df'' ^. F.colSeries . S.index)
+
   -- TODO: reset indexes of cols to first row headers
   -- TODO: drop to (age, weight, number columns)
+  -- TODO: #_index
   -- TODO: map readMaybe, then sequenceA to get Maybe (Series (Read a))
-  undefined
+  nl

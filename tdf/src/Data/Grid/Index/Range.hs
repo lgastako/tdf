@@ -1,10 +1,12 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE GADTs               #-}
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 
 module Data.Grid.Index.Range
@@ -13,6 +15,9 @@ module Data.Grid.Index.Range
   , empty
   , fromTo
   , fromToBy
+  , fromVector
+  -- Optics
+  , vector
   -- Combinators
   , (++)
   , inc
@@ -28,20 +33,10 @@ import Data.Grid.Prelude hiding ( (++)
                                 , empty
                                 )
 
--- import Data.Grid.Index.Class    ( AnyIndex(..) )
-
 import qualified Data.Vector.Sized as Sized
 
 newtype RangeIndex (n :: Nat) k = RangeIndex { unRangeIndex :: (Int, (k, k)) }
   deriving (Eq, Generic, Ord, Show)
-
--- instance (Enum k, KnownNat n) => AnyIndex (RangeIndex n k) n k where
---   at       = panic "Grid.Range.at"
---   iat      = panic "Grid.Range.iat"
---   position = panic "Grid.Range.position"
---   toVector idx = Sized.unfoldrN ((,) <*> f) (start idx)
---     where
---       f = next (step idx)
 
 -- ================================================================ --
 --   Constructors
@@ -64,6 +59,25 @@ fromToBy :: forall n k.
          -> k
          -> RangeIndex n k
 fromToBy n a b = RangeIndex (n, (a,  b))
+
+fromVector :: forall n m k.
+              ( Enum k
+              , KnownNat m
+              , (((n + 1) + 1) + 1) ~ m
+              )
+           => Sized.Vector m k
+           -> RangeIndex n k
+fromVector v = RangeIndex
+  ( step'
+  , ( start'
+    , stop'
+    )
+  )
+  where
+    step'  = toEnum $ fromEnum next' - fromEnum start'
+    start' = v ^. Sized.ix 0
+    next'  = v ^. Sized.ix 1
+    stop'  = Sized.last v
 
 -- ================================================================ --
 --   Optics
@@ -110,6 +124,24 @@ incBy :: forall n k.
       -> RangeIndex n k
       -> RangeIndex n k
 incBy n = rep . _2 . each %~ addToEnum n
+
+vector :: forall n k. KnownNat n
+       => Iso' (RangeIndex n k)
+               (Sized.Vector n k)
+-- vector = iso toVector fromVector
+vector = panic "Range.vector"
+
+-- fromVector :: forall n m k.
+--               ( (((n + 1) + 1) + 1) ~ m )
+--            => Sized.Vector (S (S (S n))) k
+--            -> RangeIndex n k
+
+-- toVector :: forall n k.
+--             ( Enum k
+--             , KnownNat n
+--             )
+--          => RangeIndex n k
+--          -> Sized.Vector n k
 
 -- ================================================================ --
 --   Eliminators

@@ -60,7 +60,7 @@ spec_Series = do
       length series `shouldBe` 1
 
     it "should have a default index" $
-      series ^. S.index `shouldBe` I.default_
+      series ^. S.index `shouldBe` I.fill
 
   context "with a 3-unit series" $ do
     let series :: Series 3 Int ()
@@ -70,4 +70,4 @@ spec_Series = do
       length series `shouldBe` 3
 
     it "should have a default index" $
-      series ^. S.index `shouldBe` I.default_
+      series ^. S.index `shouldBe` I.fill

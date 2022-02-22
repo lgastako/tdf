@@ -11,6 +11,7 @@ module Data.Grid.Frame
   -- Constructors
   , fromSeries
   -- Combinators
+  , resetColumNamesFromIndexes
   , transpose
   -- Optics
   , col
@@ -24,10 +25,14 @@ module Data.Grid.Frame
 import Data.Grid.Prelude hiding ( transpose )
 
 import Data.Frame.Typed.Table ( Table )
-import Data.Grid              ( Series )
+import Data.Grid.Index        ( Index )
+import Data.Grid.Name         ( Name )
+import Data.Grid.Series       ( Series )
 import Data.Grid.Renderable   ( Renderable( render ) )
 
 import qualified Data.Frame.Typed.Table as Table
+-- import qualified Data.Grid.Index        as I
+import qualified Data.Grid.Name         as Name
 import qualified Data.Grid.Series       as S
 import qualified Data.List              as L
 import qualified Data.Vector.Sized      as Sized
@@ -107,6 +112,33 @@ transposed = iso get' set'
 -- ================================================================ --
 --   Combinators
 -- ================================================================ --
+
+resetColumNamesFromIndexes  :: forall c r ci ri a.
+                               ( Enum ci
+                               , KnownNat c
+                               , Renderable ci
+                               )
+                            => Frame c r ci ri a
+                            -> Frame c r ci ri a
+resetColumNamesFromIndexes = colSeries %~ f
+  where
+    f :: Series c ci (Series r ri a)
+      -> Series c ci (Series r ri a)
+    f sc = S.op g idx sc
+      where
+        _ = S.op :: (Index c ci -> (Series r ri a) -> (Series r ri a))
+                 -> Index c ci
+                 -> Series c ci (Series r ri a)
+                 -> Series c ci (Series r ri a)
+
+        idx :: Index c ci
+        idx = sc ^. S.index
+
+    g :: ci -> Series r ri a -> Series r ri a
+    g ci s = s & S.name .~ ciToName ci
+      where
+        ciToName :: ci -> Name
+        ciToName = Name.unsafeFromText . render
 
 transpose :: forall c r ci ri a.
              ( Enum ci

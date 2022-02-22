@@ -49,6 +49,7 @@ import Data.Finite                  as X        ( Finite )
 import Data.Frame.Prelude           as X        ( (...)
                                                 , (|>)
                                                 , cs
+                                                , nl
                                                 , onCrash
                                                 , orCrash
                                                 )

@@ -38,6 +38,7 @@ dependencies:
 - row-types
 - semigroupoids
 - text
+- type-natural
 - unordered-containers
 - vec
 - vec-lens
