@@ -31,12 +31,16 @@ spec_Series = do
       length series `shouldBe` 0
 
     it "should have an empty index" $
-      series ^. S.index
-        `shouldBe` I.empty
+      series ^. S.index `shouldBe` I.empty
+
+    it "should still be empty after operations" $
+      S.op const () series `shouldBe` series
+
+    it "(the last thing) should be tested better than 'const ()'" $ do
+      S.op (+) (5 :: Int) S.empty `shouldBe` (S.empty :: Series 0 Int Int)
 
     it "should render properly" $
-      S.toTexts series
-        `shouldBe` ("series", [])
+      S.toTexts series `shouldBe` ("series", [])
 
     context "appended to itself" $ do
       let series2 :: Series 0 Int ()
@@ -46,8 +50,7 @@ spec_Series = do
         length series2 `shouldBe` 0
 
       it "should have an empty index" $
-        series2 ^. S.index
-          `shouldBe` I.empty
+        series2 ^. S.index `shouldBe` I.empty
 
   context "with a 1-unit series" $ do
     let series :: Series 1 Int ()
@@ -57,8 +60,7 @@ spec_Series = do
       length series `shouldBe` 1
 
     it "should have a default index" $
-      series ^. S.index
-        `shouldBe` I.default_
+      series ^. S.index `shouldBe` I.default_
 
   context "with a 3-unit series" $ do
     let series :: Series 3 Int ()
@@ -68,46 +70,4 @@ spec_Series = do
       length series `shouldBe` 3
 
     it "should have a default index" $
-      series ^. S.index
-        `shouldBe` I.default_
-
-  -- context "with simple series" $ do
-  --   let s :: Series Nat3 Int Float
-  --       s = case Series.fromList [1.1, 2.2, 3.3] of
-  --             Nothing -> panic "aaaaaah"
-  --             Just  x -> x
-
-  --       ss :: Series Nat6 Int Float
-  --       ss = Series.concat s s
-
-  --   it "should take5 properly" $
-  --     Series.take5 (Series.concat s s)
-  --       `shouldBe` (Series.take $ Series.concat s s)
-
-  --   it "should drop5  properly" $
-  --     Series.drop5 (Series.concat s s)
-  --       `shouldBe` (Series.drop $ Series.concat s s)
-
-  --   it "should self concat" $
-  --     length ss `shouldBe` 6
-
-  --   it "should filter" $
-  --     Series.filterWithIndexThen ((<2.0) . snd) s toList
-  --       `shouldBe` [1.1]
-
-  --   it "should produce these exact indexes" $ do
-  --     let ab :: Series Nat3 Int Bool
-  --         ab = Series.concat a b
-
-  --         a :: Series Nat1 Int Bool
-  --         a = pure True
-
-  --         b :: Series Nat2 Int Bool
-  --         b = pure False
-
-  --     (Vec.toList . SubIndex.toVec . view Series.index) ab
-  --       `shouldBe` [0, 1, 2]
-
-  --   it "should function applicatively" $
-  --     (+) <$> s <*> pure (5 :: Float)
-  --       `shouldBe` (s & each +~ 5)
+      series ^. S.index `shouldBe` I.default_

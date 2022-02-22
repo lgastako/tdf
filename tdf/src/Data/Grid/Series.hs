@@ -31,6 +31,7 @@ module Data.Grid.Series
   , vector
   -- Combinators
   , (++)
+  , op
   -- Eliminators
   , display
   , thaw
@@ -205,9 +206,11 @@ name :: forall  n k a.
               Name
 name = field @"_name"
 
-vector :: forall n k a.
-          Lens' (Series n k a)
+vector :: forall n k a b.
+          Lens  (Series n k a)
+                (Series n k b)
                 (Sized.Vector n a)
+                (Sized.Vector n b)
 vector = field @"_vector"
 
 -- ================================================================ --
@@ -231,6 +234,14 @@ a ++ b = Series
   where
     ix' = (a ^. index)  I.++     (b ^. index)
     v'  = (a ^. vector) Sized.++ (b ^. vector)
+
+op :: forall n k x a b c.
+      ( Sized.ToVectorN x n a )
+   => (a -> b -> c)
+   -> x
+   -> Series n k b
+   -> Series n k c
+op f x = vector %~ Sized.zipWith f (toVectorN x)
 
 -- ================================================================ --
 --   Eliminators
