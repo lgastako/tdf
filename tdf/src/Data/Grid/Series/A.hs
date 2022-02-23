@@ -14,12 +14,16 @@ module Data.Grid.Series.A
   -- Optics
   , at
 --  , series
+  -- Eliminators
+  , una
   -- Helpers
   , reify
   ) where
 
 import Data.Grid.Prelude hiding ( empty )
 import Data.Grid.Series         ( Series )
+
+import GHC.TypeNats (sameNat)
 
 import qualified Data.Grid.Series  as S
 
@@ -117,6 +121,16 @@ reify :: forall k a r.
       -> ASeries k a
       -> r
 reify f (ASeries _n s) = f s
+
+una :: forall n k a.
+       KnownNat n
+    => ASeries k a
+    -> Series n k a
+una (ASeries m _s) = case someNatVal (fromIntegral m) of
+  Nothing -> panic "una exploded on someNatVal"
+  Just (SomeNat (_mm :: Proxy z)) -> case sameNat (Proxy @n) (Proxy @z) of
+    Nothing   -> panic "una exploded on sameNat"
+    Just Refl -> panic "A.una" -- let _ = s :: Series n k a in s
 
 -- ================================================================ --
 --   Helpers
