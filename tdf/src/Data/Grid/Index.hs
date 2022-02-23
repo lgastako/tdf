@@ -2,6 +2,7 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE GADTs            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -18,6 +19,8 @@ module Data.Grid.Index
   , empty
   , fill
   , single
+  -- Optics
+  , vector
   -- Combinators
   , (++)
   , apForSeries
@@ -40,7 +43,7 @@ import Data.Grid.Index.Vector     ( VectorIndex )
 
 import qualified Data.Grid.Index.Range  as RI
 import qualified Data.Grid.Index.Vector as VI
-import qualified Data.Vector.Sized      as SV
+import qualified Data.Vector.Sized.X    as Sized
 
 data Index (n :: Nat) k
   = IdxRange    (RangeIndex    n k)
@@ -73,7 +76,49 @@ empty :: Enum k => Index 0 k
 empty = IdxRange RI.empty
 
 single ::  k -> Index 1 k
-single = IdxVector . VI.fromVector . SV.singleton
+single = IdxVector . VI.fromVector . Sized.singleton
+
+-- ================================================================ --
+--   Optics
+-- ================================================================ --
+
+_RangeIndex :: forall n k.
+               Prism' (Index n k)
+                      (RangeIndex n k)
+_RangeIndex = prism a b
+  where
+    a :: RangeIndex n k
+      -> Index n k
+    a = panic "_RangeIndex.a"
+
+    b :: Index n k
+      -> Either (Index n k)
+                (RangeIndex n k)
+    b = panic "_RangeIndex.b"
+
+_VectorIndex :: Prism' (Index n k) (VectorIndex n k)
+_VectorIndex = panic "Index.VectorIndex"
+
+vector :: forall n k s t a b.
+          ( Enum k
+          , KnownNat n
+          , s ~ Index n k
+          , t ~ Index n k
+          , a ~ Sized.Vector n k
+          , b ~ Sized.Vector n k
+          )
+       => Lens s t a b
+vector = iso get' set'
+  where
+    get' :: s -> a
+    get' = \case
+      IdxRange  r -> RI.toVector r
+      IdxVector v -> VI.toVector v
+
+    set' :: a -> s
+    set' v = case v ^? Sized.rangeParts of
+      Nothing    -> IdxVector (VI.fromVector v)
+      Just parts -> IdxRange $ parts ^. from RI.rep
 
 -- ================================================================ --
 --   Combinators
@@ -125,7 +170,7 @@ zipWith :: forall n a b c.
         -> Index n c
 zipWith f ia ib = IdxVector $ VI.fromVector v'
   where
-    v' = SV.zipWith f (toVector ia) (toVector ib)
+    v' = Sized.zipWith f (toVector ia) (toVector ib)
 
 zip :: forall n k k'.
        ( Enum k
@@ -152,7 +197,7 @@ toVector :: forall n k.
             , KnownNat n
             )
          => Index n k
-         -> SV.Vector n k
+         -> Sized.Vector n k
 toVector = \case
   IdxRange  idx -> RI.toVector idx
   IdxVector idx -> VI.toVector idx

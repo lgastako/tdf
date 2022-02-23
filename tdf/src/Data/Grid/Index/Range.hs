@@ -17,6 +17,7 @@ module Data.Grid.Index.Range
   , fromToBy
   , fromVector
   -- Optics
+  , rep
   , vector
   -- Combinators
   , (++)

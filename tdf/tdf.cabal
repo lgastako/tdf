@@ -107,6 +107,7 @@ test-suite tdf-test
       Fixtures.Prestige
       Fixtures.Tutorial
       FrameTest
+      Grid.Index.RangeTest
       Grid.IndexTest
       Grid.SeriesTest
       Index.RangeTest

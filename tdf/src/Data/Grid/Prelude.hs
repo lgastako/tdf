@@ -37,7 +37,9 @@ import Control.Lens                 as X        ( (%~)
                                                 , iso
                                                 , ix
                                                 , lens
+                                                , preview
                                                 , prism
+                                                , review
                                                 , set
                                                 , to
                                                 , view

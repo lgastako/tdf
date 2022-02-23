@@ -15,8 +15,10 @@ module Data.Grid.Frame
   , transpose
   -- Optics
   , col
+  , colLabels
   , colSeries
   , row
+  , rowLabels
   -- Eliminators
   , display
   , toTexts
@@ -31,7 +33,7 @@ import Data.Grid.Series       ( Series )
 import Data.Grid.Renderable   ( Renderable( render ) )
 
 import qualified Data.Frame.Typed.Table as Table
--- import qualified Data.Grid.Index        as I
+import qualified Data.Grid.Index        as I
 import qualified Data.Grid.Name         as Name
 import qualified Data.Grid.Series       as S
 import qualified Data.List              as L
@@ -72,6 +74,16 @@ col :: forall c r ci ri a.
     -> Lens' (Frame c r ci ri a)
              (Series r ri a)
 col c = colSeries . S.vector . Sized.ix c
+
+colLabels :: forall c r ci ri a.
+             Lens' (Frame c r ci ri a)
+                   (Sized.Vector c ci)
+colLabels = colSeries . S.index . I.vector
+
+rowLabels :: forall c r ci ri a.
+             Lens' (Frame c r ci ri a)
+                   (Sized.Vector r ri)
+rowLabels = panic "rowLabels"
 
 colSeries :: Iso' (Frame c r ci ri a)
                   (Series c ci (Series r ri a))
