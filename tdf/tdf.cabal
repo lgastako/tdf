@@ -63,6 +63,7 @@ library
       Data.Grid.Series.Mutable
       Data.Random.X
       Data.Row.Records.X
+      Data.Tensor
       Data.Vec.Lazy.AVec
       Data.Vec.Lazy.X
       Data.Vector.Mutable.Sized.X
@@ -116,6 +117,7 @@ test-suite tdf-test
       Orphans
       SeriesTest
       TableTest
+      TensorTest
       WidthsTest
       Paths_tdf
   hs-source-dirs:
