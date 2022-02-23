@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 
 module Data.Grid.Series.A
   ( ASeries(..)
@@ -23,14 +24,16 @@ import Data.Grid.Series         ( Series )
 import qualified Data.Grid.Series  as S
 
 data ASeries k a = forall n. KnownNat n
-  => ASeries { unASeries :: Series n k a }
+  => ASeries { size :: Int
+             , unASeries :: Series n k a
+             }
 
 -- ================================================================ --
 --   Constructors
 -- ================================================================ --
 
 a :: forall n k a. KnownNat n => Series n k a -> ASeries k a
-a = ASeries
+a s = ASeries (fromIntegral . natVal $ Proxy @n) s
 
 -- ================================================================ --
 --   Optics
@@ -113,7 +116,7 @@ reify :: forall k a r.
          (forall n. KnownNat n => Series n k a -> r)
       -> ASeries k a
       -> r
-reify f (ASeries s) = f s
+reify f (ASeries _n s) = f s
 
 -- ================================================================ --
 --   Helpers

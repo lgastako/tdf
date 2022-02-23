@@ -76,7 +76,10 @@ col :: forall c r ci ri a.
 col c = colSeries . S.vector . Sized.ix c
 
 colLabels :: forall c r ci ri a.
-             Lens' (Frame c r ci ri a)
+             ( Enum ci
+             , KnownNat c
+             )
+          => Lens' (Frame c r ci ri a)
                    (Sized.Vector c ci)
 colLabels = colSeries . S.index . I.vector
 
