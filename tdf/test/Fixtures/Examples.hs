@@ -45,6 +45,7 @@ import qualified Faker.Appliance          as FApp
 import qualified Faker.Cannabis           as FCannabis
 import qualified Faker.FunnyName          as FFunny
 import qualified Faker.Name               as FName
+import qualified Faker.Marketing          as FBuzz
 import qualified Faker.PhoneNumber        as FPhone
 
 type PersonFields = NameFields .+ AgeFields
@@ -545,3 +546,6 @@ fakeArtistFavs = DF.fake
   .+ #favBrand .== FApp.brand
   .+ #strain   .== FCannabis.strains
   )
+
+buzzwords :: IO (Series Nat9 Int Text)
+buzzwords = Series.fake FBuzz.buzzwords
