@@ -37,7 +37,7 @@ data ASeries k a = forall n. KnownNat n
 -- ================================================================ --
 
 a :: forall n k a. KnownNat n => Series n k a -> ASeries k a
-a s = ASeries (fromIntegral . natVal $ Proxy @n) s
+a = ASeries (fromIntegral . natVal $ Proxy @n)
 
 -- ================================================================ --
 --   Optics

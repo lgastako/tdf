@@ -1,13 +1,10 @@
-{-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE TypeSynonymInstances  #-}
 
 module Data.Vector.Sized.X
   ( module X
@@ -64,7 +61,7 @@ rangeParts = prism g s
   where
     g (step, (start, stop)) = fromMaybe boom . SV.fromList $
       [ start
-      , toEnum ((fromEnum start) + step)
+      , toEnum (fromEnum start + step)
         .. stop
       ]
 

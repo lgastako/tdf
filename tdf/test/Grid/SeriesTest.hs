@@ -36,7 +36,7 @@ spec_Series = do
     it "should still be empty after operations" $
       S.op const () series `shouldBe` series
 
-    it "(the last thing) should be tested better than 'const ()'" $ do
+    it "(the last thing) should be tested better than 'const ()'" $
       S.op (+) (5 :: Int) S.empty `shouldBe` (S.empty :: Series 0 Int Int)
 
     it "should render properly" $

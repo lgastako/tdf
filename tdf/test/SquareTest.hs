@@ -1,7 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -12,13 +9,12 @@ module SquareTest
 
 import Protolude
 
-import Data.Square      ( Square )
-import GHC.TypeLits     ( type (+) )
 import Orphans          ()
 import Test.Tasty.Hspec
 
 import Data.Square      ( (<+>)
                         , (<=>)
+                        , Square
                         )
 
 import qualified Data.Square as F
@@ -59,7 +55,7 @@ spec_Square =  do
     it "should have length 0" $
       length sq `shouldBe` 0
 
-    it "should have toTexts = [ [], [], [] ]" $ do
+    it "should have toTexts = [ [], [], [] ]" $
       F.toTexts sq `shouldBe` [ [], [], [] ]
 
     it "should have toList []" $
@@ -84,7 +80,7 @@ spec_Square =  do
     it "should have length 0" $
       length sq `shouldBe` 0
 
-    it "should toTexts []" $ do
+    it "should toTexts []" $
       F.toTexts sq `shouldBe` []
 
     it "should toList []" $
@@ -109,7 +105,7 @@ spec_Square =  do
     it "should have length 0" $
       length sq `shouldBe` 4
 
-    it "should toTexts []" $ do
+    it "should toTexts []" $
       F.toTexts sq `shouldBe` show <<$>> [[True, True], [True, True]]
 
     it "should toList []" $
@@ -129,7 +125,7 @@ spec_Square =  do
     it "should have length 0" $
       length sq `shouldBe` 4
 
-    it "should toTexts []" $ do
+    it "should toTexts []" $
       F.toTexts sq `shouldBe` show <<$>> xs
 
     it "should toList []" $

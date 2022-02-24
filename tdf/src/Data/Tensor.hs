@@ -65,7 +65,7 @@ import Protolude hiding ( empty )
 
 import qualified Data.Map.Strict as Map
 
-data Tensor ixs a = Tensor (Map ixs a)
+newtype Tensor ixs a = Tensor (Map ixs a)
   deriving (Eq, Foldable, Functor, Generic, Ord, Show, Traversable)
 
 instance Applicative (Tensor Int) where

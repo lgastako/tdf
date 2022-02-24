@@ -58,7 +58,7 @@ spec_Tensor = do
           , ((1, 1), T)
           ]
 
-    it "should have length 2" $ do
+    it "should have length 2" $
       length frame `shouldBe` 4
 
     -- TODO  Hmmmm... is this what we want? Probably yes, so that we

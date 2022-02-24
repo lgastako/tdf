@@ -141,7 +141,7 @@ resetColumNamesFromIndexes = colSeries %~ f
       -> Series c ci (Series r ri a)
     f sc = S.op g idx sc
       where
-        _ = S.op :: (Index c ci -> (Series r ri a) -> (Series r ri a))
+        _ = S.op :: (Index c ci -> Series r ri a -> Series r ri a)
                  -> Index c ci
                  -> Series c ci (Series r ri a)
                  -> Series c ci (Series r ri a)
