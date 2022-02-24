@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveGeneric       #-}
@@ -12,8 +13,13 @@ module SquareTest
 import Protolude
 
 import Data.Square      ( Square )
+import GHC.TypeLits     ( type (+) )
 import Orphans          ()
 import Test.Tasty.Hspec
+
+import Data.Square      ( (<+>)
+                        , (<=>)
+                        )
 
 import qualified Data.Square as F
 
@@ -25,8 +31,8 @@ spec_Square =  do
     it "should have length 0" $
       length sq `shouldBe` 0
 
-    it "should have toShows = []" $
-      F.toShows sq `shouldBe` []
+    it "should have toTexts = []" $
+      F.toTexts sq `shouldBe` []
 
     it "should have toList = []" $
       F.toList sq `shouldBe` []
@@ -37,20 +43,36 @@ spec_Square =  do
     it "should be it's own transpose" $
       F.transpose sq `shouldBe` sq
 
+    it "should still be itself after being juxtaposed with itself" $
+      sq <+> sq `shouldBe` sq
+
+    it "should still be itself after being stacked on top of itself" $
+      sq <=> sq `shouldBe` sq
+
+    context "transpose" $
+      it "should tranpose to itself " $
+        F.transpose sq `shouldBe` sq
+
   context "given a (Square 0 N)" $ do
     let sq = truth :: F.Square 0 3 Bool
 
     it "should have length 0" $
       length sq `shouldBe` 0
 
-    it "should have toShows = [ [], [], [] ]" $ do
-      F.toShows sq `shouldBe` [ [], [], [] ]
+    it "should have toTexts = [ [], [], [] ]" $ do
+      F.toTexts sq `shouldBe` [ [], [], [] ]
 
     it "should have toList []" $
       toList sq `shouldBe` []
 
     it "should remain same Square under Applicative" $
       ((&&) <$> sq <*> sq) `shouldBe` sq
+
+    it "should still be itself after being stacked on top of itself" $
+      sq <=> sq `shouldBe` (truth :: Square 0 6 Bool)
+
+    it "should still be itself after being juxtaposed with itself" $
+      sq <+> sq `shouldBe` sq
 
     context "transpose" $
       it "should transpose dimensions " $
@@ -62,14 +84,20 @@ spec_Square =  do
     it "should have length 0" $
       length sq `shouldBe` 0
 
-    it "should toShows []" $ do
-      F.toShows sq `shouldBe` []
+    it "should toTexts []" $ do
+      F.toTexts sq `shouldBe` []
 
     it "should toList []" $
       F.toList sq `shouldBe` []
 
     it "should remain same Square under Applicative" $
       ((&&) <$> sq <*> sq) `shouldBe` sq
+
+    it "should still be itself after being juxtaposed with itself" $
+      sq <+> sq `shouldBe` (truth :: F.Square 6 0 Bool)
+
+    it "should still be itself after being stacked on top of itself" $
+      sq <=> sq `shouldBe` sq
 
     context "transpose" $
       it "should transpose dimensions " $
@@ -81,8 +109,8 @@ spec_Square =  do
     it "should have length 0" $
       length sq `shouldBe` 4
 
-    it "should toShows []" $ do
-      F.toShows sq `shouldBe` show <<$>> [[True, True], [True, True]]
+    it "should toTexts []" $ do
+      F.toTexts sq `shouldBe` show <<$>> [[True, True], [True, True]]
 
     it "should toList []" $
       F.toList sq `shouldBe` [True, True, True, True]
@@ -101,8 +129,8 @@ spec_Square =  do
     it "should have length 0" $
       length sq `shouldBe` 4
 
-    it "should toShows []" $ do
-      F.toShows sq `shouldBe` show <<$>> xs
+    it "should toTexts []" $ do
+      F.toTexts sq `shouldBe` show <<$>> xs
 
     it "should toList []" $
       F.toList sq `shouldBe` concat xs

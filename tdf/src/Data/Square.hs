@@ -7,6 +7,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module Data.Square
   ( module Control.Applicative
@@ -16,14 +17,18 @@ module Data.Square
   , Square
   -- Constructors
   , empty
+  , emptyCols
+  , emptyRows
   , fromList
   , fromSizedVectors
   -- Combinators
+  , (<+>)
+  , (<=>)
   , transpose
   , zipWith
   , zip
   -- Eliminators
-  , toShows
+  , toTexts
   , unSquare
   ) where
 
@@ -32,6 +37,8 @@ import Data.Grid.Prelude hiding ( empty
                                 , zip
                                 , zipWith
                                 )
+
+import Data.Renderable          ( Renderable( render ) )
 
 import qualified Control.Applicative
 import qualified Data.Foldable
@@ -55,6 +62,12 @@ instance (KnownNat r, KnownNat c) => Applicative (Square r c) where
 
 empty :: Square 0 0 a
 empty = Square SV.empty
+
+emptyCols :: KnownNat n => Square 0 n a
+emptyCols = Square (pure SV.empty)
+
+emptyRows :: Square n 0 a
+emptyRows = Square SV.empty
 
 fromList :: forall r c a.
             ( KnownNat r
@@ -87,6 +100,25 @@ fromSizedVectors = Square
 --   Combinators
 -- ================================================================ --
 
+(<=>) :: forall r ca cb a cc.
+         ( KnownNat r
+         , KnownNat ca
+         , KnownNat cb
+         , KnownNat cc
+         , cc ~ (ca + cb)
+         )
+      => Square r ca a
+      -> Square r cb a
+      -> Square r cc a
+a <=> b = transpose (transpose a <+> transpose b)
+
+(<+>) :: forall ra rb rc c a.
+         ( rc ~ (ra + rb) )
+      => Square ra c a
+      -> Square rb c a
+      -> Square rc c a
+Square a <+> Square b = Square $ SV.zipWith (SV.++) a b
+
 transpose :: forall r c a.
              ( KnownNat r
              , KnownNat c
@@ -118,14 +150,14 @@ zip = zipWith (,)
 --   Eliminators
 -- ================================================================ --
 
-toShows :: forall r c a.
-           Show a
+toTexts :: forall r c a.
+           Renderable a
         => Square r c a
         -> [[Text]]
-toShows = unSquare
+toTexts = unSquare
   >>> map SV.toList
   >>> SV.toList
-  >>> map (map show)
+  >>> map (map render)
 
 unSquare :: Square r c a -> SV.Vector c (SV.Vector r a)
 unSquare (Square crv) = crv

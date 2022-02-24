@@ -25,6 +25,13 @@ packages:
       sha256: c575e93caf206d5824a1c9e6233ad1e34efd4dc58c92fd4a8872b75ebdf156c9
   original:
     hackage: vec-lens-0.4@sha256:a32ae456c2b6f8f04f7610a959a349f83688708bf1995ddd098da1b18254089c,1725
+- completed:
+    hackage: holmes-0.3.2.0@sha256:3d4aeb74177bafedc55a9c21be682ad45929490d1d809dec7fe248a503df0290,4597
+    pantry-tree:
+      size: 3258
+      sha256: 414f3416b14c2cd66141e755fa4d343c9ac154dc7713cf56bee09578019170cd
+  original:
+    hackage: holmes-0.3.2.0@sha256:3d4aeb74177bafedc55a9c21be682ad45929490d1d809dec7fe248a503df0290,4597
 snapshots:
 - completed:
     size: 586103

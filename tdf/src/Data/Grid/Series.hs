@@ -47,7 +47,7 @@ import Data.Grid.Prelude hiding ( (++)
 
 import Data.Grid.Index          ( Index )
 import Data.Grid.Name           ( Name )
-import Data.Grid.Renderable     ( Renderable
+import Data.Renderable          ( Renderable
                                 , render
                                 )
 

@@ -30,6 +30,7 @@ dependencies:
 - fin
 - finite-typelits
 - generic-lens
+- holmes
 - lens
 - mersenne-random
 - mtl

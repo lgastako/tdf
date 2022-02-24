@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Data.Tensor
   ( Tensor
@@ -69,13 +70,13 @@ data Tensor ixs a = Tensor (Map ixs a)
 
 instance Applicative (Tensor Int) where
   pure  x = Tensor (Map.singleton 0 x)
-  f <*> x = result
+  _f <*> _x = result
     where
       -- _ = f :: Tensor Int (a -> b)
       -- _ = x :: Tensor Int a
 
       result :: Tensor Int b
-      result = undefined
+      result = panic "Tensor.result"
 
 -- ================================================================ --
 --   Constructors

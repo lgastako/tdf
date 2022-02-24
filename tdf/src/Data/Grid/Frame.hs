@@ -30,7 +30,7 @@ import Data.Frame.Typed.Table ( Table )
 import Data.Grid.Index        ( Index )
 import Data.Grid.Name         ( Name )
 import Data.Grid.Series       ( Series )
-import Data.Grid.Renderable   ( Renderable( render ) )
+import Data.Renderable        ( Renderable( render ) )
 
 import qualified Data.Frame.Typed.Table as Table
 import qualified Data.Grid.Index        as I

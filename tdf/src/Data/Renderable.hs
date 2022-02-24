@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Data.Grid.Renderable
+module Data.Renderable
   ( Renderable(..)
   ) where
 

@@ -9,9 +9,9 @@ module Data.Grid.Examples where
 
 import Data.Grid.Prelude
 
-import Data.Grid.Renderable ( Renderable( render ) )
-import Data.Grid.CSV        ( fromCSV )
-import Data.Grid.Frame      ( Frame )
+import Data.Grid.CSV   ( fromCSV )
+import Data.Grid.Frame ( Frame )
+import Data.Renderable ( Renderable( render ) )
 
 import qualified Data.Grid.Frame    as F
 import qualified Data.Grid.Index    as I

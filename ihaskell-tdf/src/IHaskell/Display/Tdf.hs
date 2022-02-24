@@ -12,9 +12,11 @@ module IHaskell.Display.Tdf
 
 import Data.Frame.Prelude
 
+import Data.Square                ( Square )
 import Data.Frame.Typed           ( Frame )
 import Data.Frame.Typed.Series    ( Series )
 import Data.Frame.Typed.ToField   ( ToField )
+import Data.Renderable            ( Renderable )
 import Data.String                ( fromString )
 import IHaskell.IPython.Types     ( MimeType( MimeHtml ) )
 import IHaskell.Display           ( Display( Display )
@@ -34,6 +36,32 @@ import Lucid.Html5                ( table_
 import qualified Lucid
 import qualified Data.Frame.Typed        as DF
 import qualified Data.Frame.Typed.Series as Series
+import qualified Data.Grid               as G
+import qualified Data.Square             as SQ
+
+instance Show a => IHaskellDisplay (G.Series n ix a) where
+  display df = do
+    let (header:rows) = G.seriesToTexts df
+    pure $ Display
+      [ DisplayData MimeHtml . cs . Lucid.renderText
+        $ template header rows
+      ]
+
+instance Show a => IHaskellDisplay (G.Frame r ri c ci a) where
+  display df = do
+    let (header:rows) = G.frameToTexts df
+    pure $ Display
+      [ DisplayData MimeHtml . cs . Lucid.renderText
+        $ template header rows
+      ]
+
+instance Renderable a => IHaskellDisplay (Square r c a) where
+  display sq = do
+    let (header:rows) = SQ.toTexts sq
+    pure $ Display
+      [ DisplayData MimeHtml . cs . Lucid.renderText
+        $ template header rows
+      ]
 
 instance ( Forall a Typeable
          , Forall a Unconstrained1
