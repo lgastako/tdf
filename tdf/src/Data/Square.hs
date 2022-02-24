@@ -23,7 +23,7 @@ module Data.Square
   , fromSizedVectors
   -- Combinators
   , (<+>)
-  , (<=>)
+  , (<//>)
   , transpose
   , zipWith
   , zip
@@ -100,7 +100,7 @@ fromSizedVectors = Square
 --   Combinators
 -- ================================================================ --
 
-(<=>) :: forall r ca cb a cc.
+(<//>) :: forall r ca cb a cc.
          ( KnownNat r
          , KnownNat ca
          , KnownNat cb
@@ -110,7 +110,7 @@ fromSizedVectors = Square
       => Square r ca a
       -> Square r cb a
       -> Square r cc a
-a <=> b = transpose (transpose a <+> transpose b)
+a <//> b = transpose (transpose a <+> transpose b)
 
 (<+>) :: forall ra rb rc c a.
          ( rc ~ (ra + rb) )

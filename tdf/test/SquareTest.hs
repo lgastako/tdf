@@ -13,7 +13,7 @@ import Orphans          ()
 import Test.Tasty.Hspec
 
 import Data.Square      ( (<+>)
-                        , (<=>)
+                        , (<//>)
                         , Square
                         )
 
@@ -43,7 +43,7 @@ spec_Square =  do
       sq <+> sq `shouldBe` sq
 
     it "should still be itself after being stacked on top of itself" $
-      sq <=> sq `shouldBe` sq
+      sq <//> sq `shouldBe` sq
 
     context "transpose" $
       it "should tranpose to itself " $
@@ -65,7 +65,7 @@ spec_Square =  do
       ((&&) <$> sq <*> sq) `shouldBe` sq
 
     it "should still be itself after being stacked on top of itself" $
-      sq <=> sq `shouldBe` (truth :: Square 0 6 Bool)
+      sq <//> sq `shouldBe` (truth :: Square 0 6 Bool)
 
     it "should still be itself after being juxtaposed with itself" $
       sq <+> sq `shouldBe` sq
@@ -93,7 +93,7 @@ spec_Square =  do
       sq <+> sq `shouldBe` (truth :: F.Square 6 0 Bool)
 
     it "should still be itself after being stacked on top of itself" $
-      sq <=> sq `shouldBe` sq
+      sq <//> sq `shouldBe` sq
 
     context "transpose" $
       it "should transpose dimensions " $
