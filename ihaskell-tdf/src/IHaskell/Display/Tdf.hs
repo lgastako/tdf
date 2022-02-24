@@ -47,7 +47,7 @@ instance Show a => IHaskellDisplay (G.Series n ix a) where
         $ template header rows
       ]
 
-instance Show a => IHaskellDisplay (G.Frame r ri c ci a) where
+instance Renderable a => IHaskellDisplay (G.Frame r ri c ci a) where
   display df = do
     let (header:rows) = G.frameToTexts df
     pure $ Display

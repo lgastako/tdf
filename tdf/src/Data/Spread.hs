@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
+-- {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Data.Spread
@@ -12,7 +13,7 @@ module Data.Spread
 
 import Data.Grid.Prelude hiding ( empty )
 
-import Data.Holmes
+-- import Data.Holmes
 import Data.Square ( Square )
 
 import qualified Data.Square as F
@@ -30,7 +31,7 @@ emptyCols = Spread F.emptyCols
 emptyRows :: forall n a. Spread n 0 a
 emptyRows = Spread F.emptyRows
 
-constraints :: MonadCell m
-            => [Prop m (Defined Bool)]
-            -> Prop m (Defined Bool)
-constraints = undefined
+-- constraints :: MonadCell m
+--             => [Prop m (Defined Bool)]
+--             -> Prop m (Defined Bool)
+-- constraints = panic "constraints"
