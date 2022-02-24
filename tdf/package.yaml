@@ -65,3 +65,4 @@ tests:
     - tasty-hedgehog
     - tasty-hspec
     - quickcheck-text
+    - quickcheck-classes

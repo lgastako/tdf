@@ -1,16 +1,20 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE TypeSynonymInstances  #-}
 
 module Data.Vector.Sized.X
   ( module X
   , ToVectorN(..)
   , rangeParts
+  , transpose
+  , unsafeFromList
   ) where
 
 import Prelude     hiding ( (!!)
@@ -19,33 +23,35 @@ import Prelude     hiding ( (!!)
                           , zipWith
                           )
 
-import Data.Vector.Sized as X
-
+import Control.Arrow      ( (>>>) )
 import Control.Lens       ( (^.)
                           , Prism'
                           , prism
                           )
 import Data.Frame.Prelude ( KnownNat
+                          , Proxy( Proxy )
                           , orCrash
                           )
 import Data.List.NonEmpty ( NonEmpty )
 import Data.Maybe         ( fromMaybe )
 
+import Data.Vector.Sized            as X
+
 import qualified Data.List          as L
 import qualified Data.List.NonEmpty as NE
-import qualified Data.Vector.Sized  as Sized
+import qualified Data.Vector.Sized  as SV
 
 class ToVectorN x n a where
-  toVectorN :: x -> Sized.Vector n a
+  toVectorN :: x -> SV.Vector n a
 
-instance ToVectorN (Sized.Vector n a) n a where
+instance ToVectorN (SV.Vector n a) n a where
   toVectorN = id
 
 instance KnownNat n => ToVectorN a n a where
-  toVectorN = Sized.replicate
+  toVectorN = SV.replicate
 
 instance KnownNat n => ToVectorN (NonEmpty a) n a where
-  toVectorN = orCrash "toVecn" . Sized.fromList . NE.toList
+  toVectorN = orCrash "toVecn" . SV.fromList . NE.toList
 
 rangeParts :: forall n k a b.
               ( Enum k
@@ -56,7 +62,7 @@ rangeParts :: forall n k a b.
            => Prism' a b
 rangeParts = prism g s
   where
-    g (step, (start, stop)) = fromMaybe boom . Sized.fromList $
+    g (step, (start, stop)) = fromMaybe boom . SV.fromList $
       [ start
       , toEnum ((fromEnum start) + step)
         .. stop
@@ -98,3 +104,29 @@ rangePartsFrom v
 
     nDistinctSteps :: Int
     nDistinctSteps = Prelude.length . L.nub . L.sort $ steps
+
+transpose :: forall n m a.
+             ( KnownNat n
+             , KnownNat m
+             )
+          => Vector n (Vector m a)
+          -> Vector m (Vector n a)
+transpose = SV.toList
+  >>> fmap SV.toList
+  >>> L.transpose
+  >>> fmap unsafeFromList
+  >>> unsafeFromList
+
+unsafeFromList :: forall n a.
+                  KnownNat n
+               => [a]
+               -> Vector n a
+unsafeFromList xs = fromMaybe boom . SV.fromList $ xs
+  where
+    p :: Proxy n
+    p = Proxy
+
+    boom = error $ "Vector.Sized.X.unsafeFromList: expected "
+        <> show p -- TODO
+        <> ", got="
+        <> show (Prelude.length xs)

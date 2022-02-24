@@ -63,6 +63,7 @@ library
       Data.Grid.Series.Mutable
       Data.Random.X
       Data.Row.Records.X
+      Data.Square
       Data.Tensor
       Data.Vec.Lazy.AVec
       Data.Vec.Lazy.X
@@ -116,6 +117,7 @@ test-suite tdf-test
       NameTest
       Orphans
       SeriesTest
+      SquareTest
       TableTest
       TensorTest
       WidthsTest
@@ -137,6 +139,7 @@ test-suite tdf-test
     , mtl
     , primitive
     , protolude
+    , quickcheck-classes
     , quickcheck-text
     , row-types
     , semigroupoids

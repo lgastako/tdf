@@ -10,6 +10,7 @@ module Data.Grid.Prelude
 import Protolude                    as X hiding ( from
                                                 , to
                                                 )
+import Control.Arrow                as X        ( (>>>) )
 import Control.Lens                 as X        ( (%~)
                                                 , (*~)
                                                 , (+~)
@@ -62,7 +63,6 @@ import GHC.TypeNats                 as X        ( type (+)
                                                 , natVal'
                                                 )
 import Data.Generics.Product.Typed  as X        ( typed )
-
 
 class (Eq a, Ord a, Show a) => Universal a
 
