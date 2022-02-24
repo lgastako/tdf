@@ -56,12 +56,14 @@ instance Renderable a => IHaskellDisplay (G.Frame r ri c ci a) where
       ]
 
 instance Renderable a => IHaskellDisplay (Square r c a) where
-  display sq = do
-    let (header:rows) = SQ.toTexts sq
-    pure $ Display
+  display sq = pure $ Display
       [ DisplayData MimeHtml . cs . Lucid.renderText
         $ template header rows
       ]
+    where
+      (header:rows) = case SQ.toTexts sq of
+        [] -> [["empty"]]
+        x  -> x
 
 instance ( Forall a Typeable
          , Forall a Unconstrained1
