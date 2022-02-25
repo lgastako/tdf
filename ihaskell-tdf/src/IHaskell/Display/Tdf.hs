@@ -1,7 +1,9 @@
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE InstanceSigs         #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-orphans      #-}
 
@@ -55,15 +57,31 @@ instance Renderable a => IHaskellDisplay (G.Frame r ri c ci a) where
         $ template header rows
       ]
 
-instance Renderable a => IHaskellDisplay (Square r c a) where
-  display sq = pure $ Display
-      [ DisplayData MimeHtml . cs . Lucid.renderText
-        $ template header rows
-      ]
-    where
-      (header:rows) = case SQ.toTexts sq of
-        [] -> [["empty"]]
-        x  -> x
+instance forall r c a. IHaskellDisplay a => IHaskellDisplay (Square r c a) where
+--  display :: forall r c a. Square r c a -> IO Display
+  display sq = do
+    let (header:rows) = case SQ.toLists sq of
+                          [] -> [[emptyLabel]]
+                          x  -> x
+        emptyLabel :: a
+        emptyLabel = panic "emptyLabel"
+
+        _ = header :: [a]
+
+    renderedHeader <- displayList header
+    let _ = renderedHeader :: [Display]
+
+    renderedRows <- mapM displayList rows
+    let _ = renderedRows :: [[Display]]
+
+    -- pure $ Display
+    --   [ DisplayData MimeHtml . cs . Lucid.renderText
+    --     $ template renderedHeader renderedRows
+    --   ]
+    panic "Square.display"
+
+displayList :: forall a. IHaskellDisplay a => [a] -> IO [Display]
+displayList = mapM display
 
 instance ( Forall a Typeable
          , Forall a Unconstrained1

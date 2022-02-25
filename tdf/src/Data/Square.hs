@@ -30,6 +30,7 @@ module Data.Square
   , zipWith
   , zip
   -- Eliminators
+  , toLists
   , toTexts
   , unSquare
   ) where
@@ -171,14 +172,19 @@ zip = zipWith (,)
 --   Eliminators
 -- ================================================================ --
 
+toLists :: forall r c a.
+           Square r c a
+        -> [[a]]
+toLists = unSquare
+      >>> map SV.toList
+      >>> SV.toList
+
 toTexts :: forall r c a.
            Renderable a
         => Square r c a
         -> [[Text]]
-toTexts = unSquare
-  >>> map SV.toList
-  >>> SV.toList
-  >>> map (map render)
+toTexts = toLists
+      >>> map (map render)
 
 unSquare :: Square r c a -> SV.Vector c (SV.Vector r a)
 unSquare (Square crv) = crv

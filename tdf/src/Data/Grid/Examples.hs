@@ -16,7 +16,7 @@ import Data.Renderable ( Renderable( render ) )
 import qualified Data.Grid.Frame    as F
 import qualified Data.Grid.Index    as I
 import qualified Data.Grid.Series   as S
-import qualified Data.Grid.Series.A as SA
+-- import qualified Data.Grid.Series.A as SA
 
 readNBA :: IO (Frame 9 9 Int Int Text)
 readNBA = fromCSV "data/nba9.csv" <&> either (panic . show) identity
