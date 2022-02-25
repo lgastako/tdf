@@ -8,6 +8,7 @@
 
 module Data.Vector.Sized.X
   ( module X
+  , (!!)
   , ToVectorN(..)
   , rangeParts
   , transpose
@@ -25,6 +26,7 @@ import Control.Lens       ( (^.)
                           , Prism'
                           , prism
                           )
+import Data.Finite        ( Finite )
 import Data.Frame.Prelude ( KnownNat
                           , Proxy( Proxy )
                           , orCrash
@@ -49,6 +51,11 @@ instance KnownNat n => ToVectorN a n a where
 
 instance KnownNat n => ToVectorN (NonEmpty a) n a where
   toVectorN = orCrash "toVecn" . SV.fromList . NE.toList
+
+(!!) :: SV.Vector n a
+     -> Finite n
+     -> a
+(!!) = SV.index
 
 rangeParts :: forall n k a b.
               ( Enum k

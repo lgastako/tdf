@@ -21,6 +21,8 @@ module Data.Square
   , emptyRows
   , fromList
   , fromSizedVectors
+  -- Optics
+  , at
   -- Combinators
   , (<+>)
   , (<//>)
@@ -39,6 +41,9 @@ import Data.Grid.Prelude hiding ( empty
                                 )
 
 import Data.Renderable          ( Renderable( render ) )
+import Data.Vector.Sized.X      ( (!!)
+                                , (//)
+                                )
 
 import qualified Control.Applicative
 import qualified Data.Foldable
@@ -95,6 +100,22 @@ unsafeFromList = map SV.unsafeFromList
 
 fromSizedVectors :: SV.Vector c (SV.Vector r a) -> Square r c a
 fromSizedVectors = Square
+
+-- ================================================================ --
+--   Optics
+-- ================================================================ --
+
+at :: forall r c a.
+      ( KnownNat r
+      , KnownNat c
+      )
+   => ( Finite r
+      , Finite c
+      )
+   -> Lens' (Square r c a) a
+at (r, c) = lens
+  (\(Square v) -> (v !! c) !! r)
+  (\(Square v) x -> Square $ v // [(c, v !! c // [(r, x)])])
 
 -- ================================================================ --
 --   Combinators

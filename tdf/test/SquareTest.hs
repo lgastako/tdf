@@ -7,17 +7,23 @@ module SquareTest
   ( spec_Square
   ) where
 
-import Protolude
+import Data.Grid.Prelude
 
-import Orphans          ()
-import Test.Tasty.Hspec
-
-import Data.Square      ( (<+>)
-                        , (<//>)
-                        , Square
-                        )
+import Orphans           ()
+import Test.Tasty.Hspec  ( Spec
+                         , context
+                         , hspec
+                         , it
+                         , shouldBe
+                         )
+import Data.Square       ( (<+>)
+                         , (<//>)
+                         , Square
+                         )
 
 import qualified Data.Square as F
+
+_ = hspec
 
 spec_Square :: Spec
 spec_Square =  do
@@ -117,6 +123,9 @@ spec_Square =  do
     it "should be it's own transpose" $
       F.transpose sq `shouldBe` sq
 
+    it "should index values properly" $
+      sq ^. F.at (0, 1) `shouldBe` True
+
   context "given a (Square N M) of heterogenous values" $ do
     let xs = [[True, False], [False, True]]
         sq = (F.fromList xs
@@ -133,6 +142,13 @@ spec_Square =  do
 
     it "should remain the same Square under Applicative" $
       ((&&) <$> sq <*> F.transpose sq) `shouldBe` sq
+
+    it "should index values properly" $
+      ( sq ^. F.at (0, 1)
+      , sq ^. F.at (1, 0)
+      , sq ^. F.at (0, 0)
+      , sq ^. F.at (1, 1)
+      ) `shouldBe` (False, False, True, True)
 
 truth :: Applicative f => f Bool
 truth = pure True
