@@ -5,6 +5,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeOperators         #-}
+{-# OPTIONS_GHC -Wno-orphans       #-}
 
 module Data.Vector.Sized.X
   ( module X
@@ -23,6 +24,7 @@ import Prelude     hiding ( (!!)
 
 import Control.Arrow      ( (>>>) )
 import Control.Lens       ( (^.)
+                          , Each
                           , Prism'
                           , prism
                           )
@@ -39,6 +41,8 @@ import Data.Vector.Sized            as X
 import qualified Data.List          as L
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Vector.Sized  as SV
+
+instance Each (Vector n a) (Vector n b) a b
 
 class ToVectorN x n a where
   toVectorN :: x -> SV.Vector n a

@@ -57,28 +57,32 @@ instance Renderable a => IHaskellDisplay (G.Frame r ri c ci a) where
         $ template header rows
       ]
 
-instance forall r c a. IHaskellDisplay a => IHaskellDisplay (Rect r c a) where
+instance forall r c a. Renderable a => IHaskellDisplay (Rect r c a) where
 --  display :: forall r c a. Rect r c a -> IO Display
   display sq = do
-    let (header:rows) = case SQ.toLists sq of
-                          [] -> [[emptyLabel]]
+    let (header:rows) = case SQ.toTexts sq of
+                          [] -> [["empty"]]
                           x  -> x
-        emptyLabel :: a
-        emptyLabel = panic "emptyLabel"
+    --     emptyLabel :: a
+    --     emptyLabel = panic "emptyLabel"
 
-        _ = header :: [a]
+    --     _ = header :: [a]
 
-    renderedHeader <- displayList header
-    let _ = renderedHeader :: [Display]
+    -- renderedHeader <- displayList header
+    -- let _ = renderedHeader :: [Display]
 
-    renderedRows <- mapM displayList rows
-    let _ = renderedRows :: [[Display]]
+    -- renderedRows <- mapM displayList rows
+    -- let _ = renderedRows :: [[Display]]
 
     -- pure $ Display
     --   [ DisplayData MimeHtml . cs . Lucid.renderText
     --     $ template renderedHeader renderedRows
     --   ]
-    panic "Rect.display"
+    -- panic "Rect.display"
+    pure $ Display
+      [ DisplayData MimeHtml . cs . Lucid.renderText
+        $ template header rows
+      ]
 
 displayList :: forall a. IHaskellDisplay a => [a] -> IO [Display]
 displayList = mapM display

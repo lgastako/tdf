@@ -21,6 +21,7 @@ import Control.Lens                 as X        ( (%~)
                                                 , (^.)
                                                 , (^..)
                                                 , (^?)
+                                                , Each
                                                 , Getter
                                                 , Iso
                                                 , Iso'

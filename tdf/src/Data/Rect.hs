@@ -1,14 +1,17 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE DeriveTraversable   #-}
-{-# LANGUAGE GADTs               #-}
-{-# LANGUAGE KindSignatures      #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RankNTypes          #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DeriveTraversable     #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE KindSignatures        #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
 
 module Data.Rect
   ( module Control.Applicative
@@ -30,6 +33,7 @@ module Data.Rect
   , slice
   , sliceC
   , sliceR
+  , transposed
   -- Combinators
   , (<+>)
   , (<//>)
@@ -76,6 +80,8 @@ newtype Rect (r :: Nat)  (c :: Nat) a = Rect
 instance (KnownNat r, KnownNat c) => Applicative (Rect r c) where
   pure = Rect . pure . pure
   Rect f <*> Rect x = Rect $ SV.zipWith (SV.zipWith ($)) f x
+
+instance Each (Square n a) (Square n b) a b
 
 -- ================================================================ --
 --   Constructors
