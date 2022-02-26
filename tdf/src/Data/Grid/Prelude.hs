@@ -59,6 +59,7 @@ import Data.Frame.Prelude           as X        ( (...)
 import Data.Generics.Product.Fields as X        ( field )
 -- I think maybe itt's better if we "force" it to be imported qualifed
 import Data.Vector.Sized.X          as X        ( ToVectorN( toVectorN ) )
+import GHC.Natural                  as X        ( Natural )
 import GHC.TypeNats                 as X        ( type (+)
                                                 , natVal'
                                                 )

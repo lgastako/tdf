@@ -61,10 +61,10 @@ library
       Data.Grid.Series.A
       Data.Grid.Series.Mutable
       Data.Random.X
+      Data.Rect
       Data.Renderable
       Data.Row.Records.X
       Data.Spread
-      Data.Square
       Data.Tensor
       Data.Vec.Lazy.AVec
       Data.Vec.Lazy.X
@@ -118,8 +118,8 @@ test-suite tdf-test
       IndexTest
       NameTest
       Orphans
+      RectTest
       SeriesTest
-      SquareTest
       TableTest
       TensorTest
       WidthsTest

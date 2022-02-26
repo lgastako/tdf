@@ -14,12 +14,12 @@ module Data.Spread
 import Data.Grid.Prelude hiding ( empty )
 
 -- import Data.Holmes
-import Data.Square ( Square )
+import Data.Rect ( Rect )
 
-import qualified Data.Square as F
+import qualified Data.Rect as F
 
 newtype Spread (r :: Nat) (c :: Nat) a = Spread
-  { unSpread :: Square r c a }
+  { unSpread :: Rect r c a }
   deriving (Eq, Ord, Show)
 
 empty :: forall a. Spread 0 0 a

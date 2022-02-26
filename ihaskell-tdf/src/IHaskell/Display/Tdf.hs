@@ -14,7 +14,7 @@ module IHaskell.Display.Tdf
 
 import Data.Frame.Prelude
 
-import Data.Square                ( Square )
+import Data.Rect                ( Rect )
 import Data.Frame.Typed           ( Frame )
 import Data.Frame.Typed.Series    ( Series )
 import Data.Frame.Typed.ToField   ( ToField )
@@ -39,7 +39,7 @@ import qualified Lucid
 import qualified Data.Frame.Typed        as DF
 import qualified Data.Frame.Typed.Series as Series
 import qualified Data.Grid               as G
-import qualified Data.Square             as SQ
+import qualified Data.Rect             as SQ
 
 instance Show a => IHaskellDisplay (G.Series n ix a) where
   display df = do
@@ -57,8 +57,8 @@ instance Renderable a => IHaskellDisplay (G.Frame r ri c ci a) where
         $ template header rows
       ]
 
-instance forall r c a. IHaskellDisplay a => IHaskellDisplay (Square r c a) where
---  display :: forall r c a. Square r c a -> IO Display
+instance forall r c a. IHaskellDisplay a => IHaskellDisplay (Rect r c a) where
+--  display :: forall r c a. Rect r c a -> IO Display
   display sq = do
     let (header:rows) = case SQ.toLists sq of
                           [] -> [[emptyLabel]]
@@ -78,7 +78,7 @@ instance forall r c a. IHaskellDisplay a => IHaskellDisplay (Square r c a) where
     --   [ DisplayData MimeHtml . cs . Lucid.renderText
     --     $ template renderedHeader renderedRows
     --   ]
-    panic "Square.display"
+    panic "Rect.display"
 
 displayList :: forall a. IHaskellDisplay a => [a] -> IO [Display]
 displayList = mapM display
