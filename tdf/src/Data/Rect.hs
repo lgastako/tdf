@@ -25,6 +25,8 @@ module Data.Rect
   , fromSizedVectors
   -- Optics
   , at
+  , col
+  , row
   , slice
   , sliceC
   , sliceR
@@ -131,6 +133,35 @@ at (r, c) = lens
   (\(Rect v) -> (v !! c) !! r)
   (\(Rect v) x -> Rect $ v // [(c, v !! c // [(r, x)])])
 
+col :: forall r c a.
+       Finite c
+    -> Lens' (Rect r c a)
+             (SV.Vector r a)
+col c = lens get' set'
+  where
+    get' :: Rect r c a
+         -> SV.Vector r a
+    get' (Rect v) = v SV.!! c
+
+    set' :: Rect r c a
+         -> SV.Vector r a
+         -> Rect r c a
+    set' (Rect v) v' = Rect $ SV.update v updates
+      where
+        updates = SV.singleton
+          ( fromIntegral . getFinite $ c
+          , v'
+          )
+
+row :: forall r c a.
+       ( KnownNat r
+       , KnownNat c
+       )
+    => Finite r
+    -> Lens' (Rect r c a)
+             (SV.Vector c a)
+row r = transposed . col r
+
 sliceC :: forall c' r c x m a p.
           ( KnownNat c'
           , KnownNat x
@@ -151,9 +182,10 @@ sliceR :: forall r' r c y m a p.
        -> Rect r' c a
 sliceR py (Rect v) = Rect (SV.map (SV.slice py) v)
 
-slice :: forall (x :: Nat) (y :: Nat) r' c' r c m n a.
+slice :: forall x y r' c' r c m n a.
          ( KnownNat r'
          , KnownNat c'
+         , KnownNat c
          , KnownNat x
          , KnownNat y
          , r ~ ((x + r') + m)
@@ -164,79 +196,63 @@ slice :: forall (x :: Nat) (y :: Nat) r' c' r c m n a.
                (Rect r' c' a)
 slice (rp, cp) = lens get' set'
   where
-    get' :: Rect r c a -> Rect r' c' a
+    get' :: Rect r c a
+         -> Rect r' c' a
     get' = sliceC cp . sliceR rp
 
-    set' = panic "subRect.set'"
+    set' :: Rect r c a
+         -> Rect r' c' a
+         -> Rect r c a
+    set' (Rect v) (Rect v') = Rect v''
+      where
+        _ = v  :: SV.Vector c  (SV.Vector r  a)
+        _ = v' :: SV.Vector c' (SV.Vector r' a)
 
--- subRect :: forall r c r' c' y x y' x' a.
---            ( KnownNat r
---            , KnownNat c
---            -- , KnownNat x
---            -- , KnownNat y
---            -- , KnownNat x'
---            -- , KnownNat y'
---            , y ~ Finite r
---            , x ~ Finite c
---            -- , y' ~ Finite
---            -- , x' ~ Finite c
---            -- , y <= y'
---            -- , x <= x'
---            )
---         => ( ( y
---              , x
---              )
---            , ( y'
---              , x'
---              )
---            )
---         -> Lens' (Rect r  c  a)
---                  (Rect r' c' a)
--- subRect ((_y, x), (_y', _x')) = lens get' set'
---   where
---     get' :: Rect r c a -> Rect r' c' a
---     get' (Rect vv) = Rect vv''
---       where
---         _ = vv :: SV.Vector c (SV.Vector r a)
+        v'' :: SV.Vector c (SV.Vector r a)
+        v'' = SV.update v updates
+          where
+            updates :: SV.Vector c' (Int, SV.Vector r a)
+            updates = SV.zipWith f indexes v'
+              where
+                f :: Int
+                  -> SV.Vector r' a
+                  -> (Int, SV.Vector r a)
+                f ci vr = (ci, vv')
+                  where
 
---         vv'' :: SV.Vector c' (SV.Vector r' a)
---         vv'' = SV.map crunch vv'
+                    vv :: SV.Vector r a
+                    vv = SV.index v ci'
 
---         crunch :: SV.Vector r  a
---                -> SV.Vector r' a
---         crunch = undefined -- takeFront . dropFront
+                    vv' :: SV.Vector r a
+                    vv' = SV.update vv updates'
+                      where
+                        updates' :: SV.Vector r' (Int, a)
+                        updates' = SV.zipWith (,) indexes' vr
 
---         vv' :: SV.Vector c' (SV.Vector r a)
---         vv'= takeFront . dropFront $ vv
---           where
---             snxm :: Maybe SomeNat
---             snxm = someNatVal snxSource
+                        indexes' :: SV.Vector r' Int
+                        indexes' = SV.unsafeFromList [ start .. stop ]
+                          where
+                            start = fromIntegral . natVal $ Proxy @x
+                            stop  = fromIntegral . natVal $ Proxy @r'
 
---             snxSource :: Integer
---             snxSource = fromIntegral x
+                    ci' = case packFinite @c (fromIntegral ci) of
+                            Just x -> x
+                            Nothing -> panic "Failed when packing finite"
 
---             snx :: SomeNat
---             snx = case snxm of
---               Nothing -> panic "subRect.snx"
---               Just  v -> v
+                indexes :: SV.Vector c' Int
+                indexes = SV.unsafeFromList [ start .. stop ]
+                  where
+                    start = fromIntegral . natVal $ Proxy @y
+                    stop  = fromIntegral . natVal $ Proxy @c'
 
---             dproxy :: Proxy d
---             dproxy = case snx of
---               SomeNat p -> Proxy
 
---             tproxy :: Proxy t
---             tproxy = undefined
-
---             dropFront :: SV.Vector  c      q
---                       -> SV.Vector (c - d) q
---             dropFront = undefined -- SV.drop
-
---             takeFront :: SV.Vector t z
---                       -> SV.Vector c' z
---             takeFront = SV.take
-
---     set' :: Rect r c a -> Rect r' c' a -> Rect r c a
---     set' = panic "subRect.set'"
+transposed :: forall r c a.
+              ( KnownNat r
+              , KnownNat c
+              )
+           => Iso' (Rect r c a)
+                   (Rect c r a)
+transposed = iso transpose transpose
 
 -- ================================================================ --
 --   Combinators

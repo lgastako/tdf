@@ -174,27 +174,37 @@ spec_Rect =  do
         sqz = R.unsafeFromList zs :: R.Rect 2 4 Char
         sqq = R.unsafeFromList qs :: R.Rect 2 2 Char
 
-    context "sliceC" $ do
+    context "sliceC" $
       it "should something or other..." $ do
         let sub :: Rect 4 2 Char
             sub = R.sliceC (Proxy @2) sqx
         sub `shouldBe` sqy
 
-    context "sliceR" $ do
+    context "sliceR" $
       it "should something or other..." $ do
         let sub :: Rect 2 4 Char
             sub = R.sliceR (Proxy @1) sqx
         sub `shouldBe` sqz
 
+    context "col" $
+      context "viewing" $
+        it "should work" $
+          toList (sqx ^. R.col 1) `shouldBe` "BFJN"
+
+    context "row" $
+      context "viewing" $
+        it "should work" $
+          toList (sqx ^. R.row 1) `shouldBe` "EFGH"
+
     context "slice" $ do
 
-      context "viewing" $ do
+      context "viewing" $
         it "should work as expected" $ do
           let sub :: Rect 2 2 Char
               sub = sqx ^. R.slice (Proxy @1, Proxy @1)
           sub `shouldBe` sqq
 
-      context "setting" $ do
+      context "setting" $
         it "should work as expected"$ do
           let result :: Rect 4 4 Char
               result = R.unsafeFromList

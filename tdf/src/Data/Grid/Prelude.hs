@@ -48,7 +48,10 @@ import Control.Lens                 as X        ( (%~)
 import Control.Monad.Primitive      as X        ( PrimMonad
                                                 , PrimState
                                                 )
-import Data.Finite                  as X        ( Finite )
+import Data.Finite                  as X        ( Finite
+                                                , getFinite
+                                                , packFinite
+                                                )
 import Data.Frame.Prelude           as X        ( (...)
                                                 , (|>)
                                                 , cs
