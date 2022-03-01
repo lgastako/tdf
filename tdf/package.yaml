@@ -20,9 +20,6 @@ ghc-options:
 - -freduction-depth=0
 
 dependencies:
-
-
-
 - base                    >= 4.7 && < 5
 - containers
 - deepseq
@@ -34,6 +31,7 @@ dependencies:
 - lens
 - mersenne-random
 - mtl
+- one-liner
 - primitive
 - protolude
 - row-types

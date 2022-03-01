@@ -11,13 +11,14 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE TypeSynonymInstances  #-}
 
 module Data.Rect
   ( module Control.Applicative
   , module Data.Foldable
   , module Data.Functor
   , module Data.Traversable
+  , Line
+  , Point
   , Rect
   , Square
   -- Constructors
@@ -57,11 +58,6 @@ import Data.Renderable          ( Renderable( render ) )
 import Data.Vector.Sized.X      ( (!!)
                                 , (//)
                                 )
--- import GHC.TypeLits             ( -- type (<=)
---                                 -- ,
---                                   type (-)
--- --                                , type (<=)
---                                 )
 
 import qualified Control.Applicative
 import qualified Data.Foldable
@@ -72,6 +68,10 @@ import qualified Data.List           as L
 import qualified Data.Vector.Sized.X as SV
 
 type Square (n :: Nat) = Rect n n
+
+type Point = Rect 1 1
+
+type Line (n :: Nat) = Rect n 1
 
 newtype Rect (r :: Nat)  (c :: Nat) a = Rect
   (SV.Vector c (SV.Vector r a))

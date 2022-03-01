@@ -30,7 +30,6 @@ newtype Name = Name Text
 instance Semigroup Name where
   Name a <> Name b = Name (a <> b)
 
-
 data Error
   = NameTooLong
   | NormalizedTextWasBlank

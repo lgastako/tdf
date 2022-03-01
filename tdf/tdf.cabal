@@ -27,6 +27,10 @@ source-repository head
 
 library
   exposed-modules:
+      Data.DeleteMe
+      Data.Frame.HKD
+      Data.Frame.HKD.Prelude
+      Data.Frame.HKD.Series
       Data.Frame.Prelude
       Data.Frame.Typed
       Data.Frame.Typed.CSV
@@ -87,6 +91,7 @@ library
     , lens
     , mersenne-random
     , mtl
+    , one-liner
     , primitive
     , protolude
     , row-types
@@ -140,6 +145,7 @@ test-suite tdf-test
     , lens
     , mersenne-random
     , mtl
+    , one-liner
     , primitive
     , protolude
     , quickcheck-classes

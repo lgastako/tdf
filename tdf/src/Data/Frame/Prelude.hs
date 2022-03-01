@@ -79,6 +79,7 @@ import Data.Row.Records     as X  ( Extend
                                   )
 import Data.Type.Equality   as X  ( testEquality )
 import Data.Type.Nat        as X  ( FromGHC
+                                  , Mult
                                   , Nat( S
                                        , Z
                                        )
