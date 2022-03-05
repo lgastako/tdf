@@ -21,12 +21,9 @@ twoDigitCubes = map f [10..99]
 
 series :: Series (Mult Nat9 Nat10) Int Int
 series = twoDigitCubes
-  |> (   map snd
-     >>> Series.fromList
-     >>> fromMaybe error
-     )
-  where
-    error = panic "boom sha laka laka"
+      |> map snd
+      |> Series.fromList
+      |> fromMaybe (panic "DeleteMe.series")
 
 df :: Frame (Mult Nat9 Nat10) Int ("value" .== Int)
 df = DF.fromSeries series

@@ -135,6 +135,6 @@ unsafeFromList xs = fromMaybe boom . SV.fromList $ xs
     p = Proxy
 
     boom = error $ "Vector.Sized.X.unsafeFromList: expected "
-        <> show p -- TODO
+        <> show n -- TODO
         <> ", got="
         <> show (Prelude.length xs)
