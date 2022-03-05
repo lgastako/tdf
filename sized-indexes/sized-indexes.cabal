@@ -1,0 +1,69 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
+
+name:           sized-indexes
+version:        0.1.0.0
+synopsis:       Pandas like indexes
+description:    README at <https://github.com/lgastako/sized-indexes#readme>
+category:       Data
+homepage:       https://github.com/lgastako/sized-indexes#readme
+bug-reports:    https://github.com/lgastako/sized-indexes/issues
+author:         John Evans
+maintainer:     lgastako@gmail.com
+copyright:      2022 John Evans
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/lgastako/sized-indexes
+
+library
+  exposed-modules:
+      Relativ.Categorical
+      Relativ.DateTime
+      Relativ.Flag
+      Relativ.Interval
+      Relativ.Multi
+      Relativ.Name
+      Relativ.Numeric
+      Relativ.Period
+      Relativ.Prelude
+      Relativ.Range
+      Relativ.TimeDelta
+  other-modules:
+      Paths_sized_indexes
+  hs-source-dirs:
+      src
+  ghc-options: -Wall
+  build-depends:
+      base >=4.7 && <5
+    , protolude
+    , text
+    , vector-sized
+  default-language: Haskell2010
+
+test-suite sized-indexes-test
+  type: exitcode-stdio-1.0
+  main-is: Driver.hs
+  other-modules:
+      Paths_sized_indexes
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , protolude
+    , sized-indexes
+    , tasty
+    , tasty-discover
+    , text
+    , vector-sized
+  default-language: Haskell2010

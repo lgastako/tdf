@@ -1,0 +1,41 @@
+name:                "sized-indexes"
+version:             "0.1.0.0"
+github:              "lgastako/sized-indexes"
+license:             "BSD3"
+author:              "John Evans"
+maintainer:          "lgastako@gmail.com"
+copyright:           "2022 John Evans"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+synopsis:            "Pandas like indexes"
+category:            "Data"
+
+description:         "README at <https://github.com/lgastako/sized-indexes#readme>"
+
+ghc-options:
+- -Wall
+
+dependencies:
+- base >= 4.7 && < 5
+- protolude
+- text
+- vector-sized
+
+library:
+  source-dirs: src
+
+tests:
+  sized-indexes-test:
+    main:                Driver.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - sized-indexes
+    - tasty
+    - tasty-discover
