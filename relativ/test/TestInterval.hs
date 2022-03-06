@@ -42,38 +42,38 @@ spec_Interval = do
     context "Closed" $ do
       let iv = Interval.build bounds :: Interval 'Closed Int
 
-      it "should be empty" $ do
+      it "should be empty" $
         Interval.empty iv `shouldBe` Just True
 
       it "should not contain anything" $
-        all not (map (`member` iv) [-1..7]) `shouldBe` True
+        not (any (`member` iv) [-1..7]) `shouldBe` True
 
     context "Open" $ do
       let iv = Interval.build bounds :: Interval 'Open Int
 
-      it "should be empty" $ do
+      it "should be empty" $
         Interval.empty iv `shouldBe` Just True
 
       it "should not contain anything" $
-        all not (map (`member` iv) [-1..7]) `shouldBe` True
+        not (any (`member` iv) [-1..7]) `shouldBe` True
 
     context "ClosedLeft" $ do
       let iv = Interval.build bounds :: Interval 'ClosedLeft Int
 
-      it "should be empty" $ do
+      it "should be empty" $
         Interval.empty iv `shouldBe` Just True
 
       it "should not contain anything" $
-        all not (map (`member` iv) [-1..7]) `shouldBe` True
+        not (any (`member` iv) [-1..7]) `shouldBe` True
 
     context "ClosedRight" $ do
       let iv = Interval.build bounds :: Interval 'ClosedRight Int
 
-      it "should be empty" $ do
+      it "should be empty" $
         Interval.empty iv `shouldBe` Just True
 
       it "should not contain anything" $
-        all not (map (`member` iv) [-1..7]) `shouldBe` True
+        not (any (`member` iv) [-1..7]) `shouldBe` True
 
   context "given bounds (1, 5)" $ do
     let bounds = (1, 5) :: (Int, Int)
