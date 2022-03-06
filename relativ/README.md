@@ -9,5 +9,5 @@ same sense as `vector-sized`.
 These are intended to be used as the indexes in the typed data frame library
 I'm working on.
 
-
-
+The name is a reference to this:
+https://en.wikipedia.org/wiki/Dewey_Decimal_Classification#Relative_Index
