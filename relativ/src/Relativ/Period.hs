@@ -1,5 +1,7 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Relativ.Period
   ( PeriodIndex
@@ -8,10 +10,11 @@ module Relativ.Period
 
 import Relativ.Prelude
 
--- | Index of `Period` data.
-data PeriodIndex = PeriodIndex
+import Relativ.Types.Period ( Period )
 
-build :: () -> PeriodIndex
-build = panic "Period.build"
-  where
-    _ = PeriodIndex
+-- | Index of `Period` data.
+data PeriodIndex (n :: Nat) = PeriodIndex (Vec n Period)
+  deriving (Eq, Ord, Show)
+
+build :: Vec n Period -> PeriodIndex n
+build = PeriodIndex
