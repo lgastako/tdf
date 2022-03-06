@@ -38,6 +38,7 @@ library
       Relativ.Range
       Relativ.TimeDelta
       Relativ.Types.Closedness
+      Relativ.Types.DateTime
       Relativ.Types.Flag
       Relativ.Types.Interval
       Relativ.Types.Name

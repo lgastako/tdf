@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -9,9 +10,11 @@ module Relativ.Types.Interval
   , buildE
   , buildE_
   , build_
-  , empty
     -- Combinators
   , in_
+  -- Eliminators
+  , empty
+  , overlaps
   ) where
 
 import Relativ.Prelude hiding ( empty )
@@ -87,7 +90,13 @@ in_ x Interval {..} = case closed of
 -- | Returns Just the answer when I know how to tell whether the interval is
 --   empty or not and Nothing if I don't know.  If you are unsatisfied with the
 --   coverage feel free to submit pull requests :)
-empty :: Ord a => Interval a -> Maybe Bool
+empty :: forall a. Ord a => Interval a -> Maybe Bool
 empty Interval {..}
   | left > right = Just True
   | otherwise    = Nothing
+
+overlaps :: forall a.
+            Interval a
+         -> Interval a
+         -> Bool
+overlaps _a _b = panic "Interval.overlaps"

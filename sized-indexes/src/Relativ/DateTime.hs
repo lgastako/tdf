@@ -18,14 +18,12 @@ module Relativ.DateTime
 
 import Relativ.Prelude
 
-import Relativ.Types.Flag ( Flag
-                          , fromFlag
-                          , toFlag
-                          )
-import Relativ.Types.Name ( Name )
-
-newtype DateTime = DateTime Int64
-  deriving (Eq, Ord, Show)
+import Relativ.Types.DateTime ( DateTime )
+import Relativ.Types.Flag     ( Flag
+                              , fromFlag
+                              , toFlag
+                              )
+import Relativ.Types.Name     ( Name )
 
 data Ambiguity (n :: Nat)
   = Infer
