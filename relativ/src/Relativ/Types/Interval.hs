@@ -38,7 +38,7 @@ newtype Interval (c :: Openness) a = Interval (a, a)
 --   Constructors
 -- ---------------------------------------------------------------- --
 
-build :: forall a o.
+build :: forall o a.
          ( Ord a )
       => (a, a)
       -> Interval o a

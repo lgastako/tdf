@@ -3,11 +3,13 @@ help:
 
 hlint-all:
 	hlint					\
-		tdf/src				\
-		tdf/test			\
 		ihaskell-tdf/src	\
 		ihaskell-tdf/test	\
+		relativ/src         \
+		relativ/test        \
 		tdf-tools/src		\
-		tdf-tools/test
+		tdf-tools/test      \
+		tdf/src				\
+		tdf/test
 
 hla: hlint-all

@@ -43,6 +43,15 @@ library
       Relativ.Types.Interval
       Relativ.Types.Name
       Relativ.Types.Openness
+      Relativ.Types.Period
+      Relativ.Types.Period.Day
+      Relativ.Types.Period.Frequency
+      Relativ.Types.Period.Hour
+      Relativ.Types.Period.Minute
+      Relativ.Types.Period.Month
+      Relativ.Types.Period.Second
+      Relativ.Types.Period.Year
+      Relativ.Types.Period.YearFreq
   other-modules:
       Paths_relativ
   hs-source-dirs:
@@ -60,6 +69,8 @@ test-suite relative-test
   type: exitcode-stdio-1.0
   main-is: Driver.hs
   other-modules:
+      Orphans
+      Period.TestYear
       TestInterval
       Paths_relativ
   hs-source-dirs:
