@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ViewPatterns      #-}
 
-module Relativ.Name
+module Relativ.Types.Name
   ( Name
   , Error(..)
   , fromText
@@ -23,6 +23,9 @@ data Error
 
 instance Exception Error
 
+fromText :: Text -> Maybe Name
+fromText = hush . fromTextE
+
 fromTextE :: Text -> Either Error Name
 fromTextE (T.strip -> s)
   | T.null s            = Left EmptyName
@@ -30,9 +33,6 @@ fromTextE (T.strip -> s)
   | otherwise           = Right (Name s)
   where
     maxLen = 255
-
-fromText :: Text -> Maybe Name
-fromText = hush . fromTextE
 
 unName :: Name -> Text
 unName (Name n) = n

@@ -1,5 +1,7 @@
+{-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveFunctor       #-}
 {-# LANGUAGE GADTs               #-}
+{-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RankNTypes          #-}
@@ -18,19 +20,14 @@ import Relativ.Prelude hiding ( max
                               , min
                               )
 
-import qualified Data.List.NonEmpty as NE
+import qualified Data.List     as L
+import qualified Data.Vec.Lazy as Vec
 
 -- | Index of `Categorical`s
-data CategoricalIndex a = CategoricalIndex
-  { categories  :: NonEmpty a
-  , values      :: NonEmpty a
+data CategoricalIndex (c :: Nat) (n :: Nat) a = CategoricalIndex
+  { categories  :: Vec c a
+  , values      :: Vec n a
   } deriving (Eq, Functor, Ord, Show)
-
-data Ordered a = Ordered (Ord a => CategoricalIndex a)
-
-deriving instance (Eq a, Ord a) => Eq (Ordered a)
-deriving instance Ord a => Ord (Ordered a)
-deriving instance (Ord a, Show a) => Show (Ordered a)
 
 data BuildError
   = NoCategoriesOrValues
@@ -38,52 +35,32 @@ data BuildError
 
 instance Exception BuildError
 
-build :: forall f g a.
+build :: forall c n a.
          ( Eq a
-         , Foldable f
-         , Foldable g
+         , SNatI c
+         , SNatI n
          )
-      => f a
-      -> g a
-      -> Either BuildError (CategoricalIndex a)
-build cats vals = case NE.nonEmpty catsL of
-  Nothing -> case NE.nonEmpty valsL of
+      => Maybe (Vec c a)
+      -> Vec n a
+      -> Either BuildError (CategoricalIndex c n a)
+build catsMay vals = case catsMay of
+  Just cats -> Right (CategoricalIndex cats vals)
+  Nothing -> case Vec.fromList . L.nub . toList $ vals of
+    Just cats -> Right (CategoricalIndex cats vals)
     Nothing -> Left NoCategoriesOrValues
-    Just valsN -> Right $ CategoricalIndex
-      { categories  = categoriesFromValues valsN
-      , values      = valsN
-      }
-  Just catsN -> case NE.nonEmpty valsL of
-    Nothing -> Right $ CategoricalIndex
-      { categories  = catsN
-      , values      = panic "build.values" -- valuesFromCategories catsN
-      }
-    Just valsN -> Right $ CategoricalIndex
-      { categories  = catsN
-      , values      = valsN
-      }
-  where
-    catsL :: [a]
-    catsL = toList cats
 
-    valsL :: [a]
-    valsL = toList vals
-
-build_ :: forall f g a.
+build_ :: forall c n a.
           ( Eq a
-          , Foldable f
-          , Foldable g
+          , SNatI c
+          , SNatI n
           )
-       => f a
-       -> g a
-       -> Maybe (CategoricalIndex a)
+       => Maybe (Vec c a)
+       -> Vec n a
+       -> Maybe (CategoricalIndex c n a)
 build_ = hush ... build
 
-categoriesFromValues :: Eq a => NonEmpty a -> NonEmpty a
-categoriesFromValues = NE.nub
-
-max :: Ord a => CategoricalIndex a -> a
+max :: Ord a => CategoricalIndex c n a -> a
 max = maximum . values
 
-min :: Ord a => CategoricalIndex a -> a
+min :: Ord a => CategoricalIndex c n a -> a
 min = minimum . values

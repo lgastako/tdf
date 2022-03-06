@@ -1,4 +1,3 @@
-{-# LANGUAGE InstanceSigs        #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -9,12 +8,14 @@ module Relativ.Range
   , fromList
   , fromList_
   , toList
+  , toVec
   ) where
 
 import Relativ.Prelude hiding ( toList )
 
-import Relativ.Name ( Name )
+import Relativ.Types.Name ( Name )
 
+import qualified Data.Vec.Lazy      as Vec
 import qualified Data.List.NonEmpty as NE
 
 -- | Index implementing a monotonic integer range.
@@ -25,20 +26,13 @@ data RangeIndex a = RangeIndex
   , name  :: Maybe Name
   } deriving (Eq, Ord, Show)
 
--- | Convert the `RangeIndex` to a list of indexes.
-toList :: forall a. Enum a => RangeIndex a -> [a]
-toList RangeIndex {..} =
-  [ start
-  , toEnum (fromEnum start + step)
-  , stop
-  ]
-
-toVector :: RangeIndex a => Maybe (Vector n a)
-toVector = undefined
-
 data FromListError
   = Unsequential
   deriving (Eq, Ord, Show)
+
+-- ================================================================ --
+--   Constructors
+-- ================================================================ --
 
 -- | Construct a `RangeIndex` from an optional name and an existing list.  The
 -- existing list must be sequential.
@@ -60,7 +54,6 @@ fromList name' xs
       , name  = name'
       }
 
-    start', stop' :: a
     start' = NE.head xs
     stop'  = NE.last xs
 
@@ -78,3 +71,24 @@ fromList_ :: forall a.
           => NonEmpty a
           -> Either FromListError (RangeIndex a)
 fromList_ = fromList Nothing
+
+-- ================================================================ --
+--   Eliminators
+-- ================================================================ --
+
+-- | Convert the `RangeIndex` to a list of indexes.
+toList :: forall a. Enum a => RangeIndex a -> [a]
+toList RangeIndex {..} =
+  [ start
+  , toEnum (fromEnum start + step)
+  , stop
+  ]
+
+-- | Conver the `RangeIndex` to a (Vec n) of indexes
+toVec :: forall n a.
+         ( Enum a
+         , SNatI n
+         )
+      => RangeIndex a
+      -> Maybe (Vec n a)
+toVec = Vec.fromList . toList

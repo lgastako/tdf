@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Relativ.Flag
+module Relativ.Types.Flag
   ( Flag
   , toFlag
   , fromFlag

@@ -27,17 +27,20 @@ source-repository head
 
 library
   exposed-modules:
+      Relativ
       Relativ.Categorical
       Relativ.DateTime
-      Relativ.Flag
       Relativ.Interval
       Relativ.Multi
-      Relativ.Name
       Relativ.Numeric
       Relativ.Period
       Relativ.Prelude
       Relativ.Range
       Relativ.TimeDelta
+      Relativ.Types.Closedness
+      Relativ.Types.Flag
+      Relativ.Types.Interval
+      Relativ.Types.Name
   other-modules:
       Paths_sized_indexes
   hs-source-dirs:
@@ -45,25 +48,31 @@ library
   ghc-options: -Wall
   build-depends:
       base >=4.7 && <5
+    , fin
     , protolude
     , text
-    , vector-sized
+    , vec
   default-language: Haskell2010
 
 test-suite sized-indexes-test
   type: exitcode-stdio-1.0
   main-is: Driver.hs
   other-modules:
+      TestInterval
       Paths_sized_indexes
   hs-source-dirs:
       test
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      QuickCheck
+    , base >=4.7 && <5
+    , fin
     , protolude
     , sized-indexes
     , tasty
     , tasty-discover
+    , tasty-hspec
+    , tasty-quickcheck
     , text
-    , vector-sized
+    , vec
   default-language: Haskell2010

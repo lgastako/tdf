@@ -10,11 +10,15 @@ module Relativ.Prelude
   , underEnum
   ) where
 
-import Protolude as X
+import Protolude     as X hiding ( Nat )
 
-import Data.Vector.Sized as X ( Vector )
+import Data.Vec.Lazy as X        ( Vec )
+import Data.Type.Nat as X        ( Nat
+                                 , SNatI
+                                 )
 
 import qualified Data.List.NonEmpty as NE
+
 (...) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
 (...) = (.) . (.)
 
