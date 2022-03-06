@@ -1,19 +1,20 @@
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 
 module Relativ.Types.Interval
   ( Interval
     -- Constructors
   , build
-  , buildE
-  , buildE_
-  , build_
-    -- Combinators
-  , in_
-  -- Eliminators
+    -- Eliminators
   , empty
+  , member
+  , notMember
   , overlaps
   ) where
 
@@ -24,64 +25,23 @@ import Relativ.Types.Closedness ( Closedness( Open
                                             , ClosedLeft
                                             , ClosedRight
                                             )
+                                , FromProxy
                                 )
 
-import qualified Relativ.Types.Closedness as Closedness
+import qualified Relativ.Types.Closedness  as Closedness
 
-data Interval a = Interval
-  { closed :: Closedness
-  , left   :: a
-  , right  :: a
-  } deriving (Eq, Ord, Show)
-
-data BuildError
-  = LeftNotLessThanOrEqualToRight
+newtype Interval (c :: Closedness) a = Interval (a, a)
   deriving (Eq, Ord, Show)
-
-instance Exception BuildError
 
 -- ---------------------------------------------------------------- --
 --   Constructors
 -- ---------------------------------------------------------------- --
 
-build :: forall a.
-          Ord a
-       => Closedness
-       -> (a, a)
-       -> Maybe (Interval a)
-build = hush ... buildE
-
-build_ :: forall a.
-           Ord a
-        => (a, a)
-        -> Maybe (Interval a)
-build_ = build Closedness.def
-
-buildE :: forall a.
+build :: forall a c.
          Ord a
-      => Closedness
-      -> (a, a)
-      -> Either BuildError (Interval a)
-buildE clsd (l, r)
-  | l <= r    = Right $ Interval clsd l r
-  | otherwise = Left  $ LeftNotLessThanOrEqualToRight
-
-buildE_ :: forall a.
-           Ord a
-        => (a, a)
-        -> Either BuildError (Interval a)
-buildE_ = buildE Closedness.def
-
--- ---------------------------------------------------------------- --
---   Combinators
--- ---------------------------------------------------------------- --
-
-in_ :: forall a. Ord a => a -> Interval a -> Bool
-in_ x Interval {..} = case closed of
-  Open        -> left <  x && x <  right
-  Closed      -> left <= x && x <= right
-  ClosedLeft  -> left <= x && x <  right
-  ClosedRight -> left <  x && x <= right
+      => (a, a)
+      -> Interval c a
+build = Interval
 
 -- ---------------------------------------------------------------- --
 --   Eliminators
@@ -90,13 +50,40 @@ in_ x Interval {..} = case closed of
 -- | Returns Just the answer when I know how to tell whether the interval is
 --   empty or not and Nothing if I don't know.  If you are unsatisfied with the
 --   coverage feel free to submit pull requests :)
-empty :: forall a. Ord a => Interval a -> Maybe Bool
-empty Interval {..}
+empty :: forall a c. Ord a => Interval c a -> Maybe Bool
+empty (Interval (left, right))
   | left > right = Just True
   | otherwise    = Nothing
 
-overlaps :: forall a.
-            Interval a
-         -> Interval a
+member :: forall a c.
+          ( FromProxy (Proxy c)
+          , Ord a
+          )
+       => a
+       -> Interval c a
+       -> Bool
+member x (Interval (left, right)) = case closed of
+  Open        -> left <  x && x <  right
+  Closed      -> left <= x && x <= right
+  ClosedLeft  -> left <= x && x <  right
+  ClosedRight -> left <  x && x <= right
+  where
+    closed :: Closedness
+    closed = Closedness.fromProxy (Proxy @c)
+
+-- The other interval libraries do it. Maybe their implementations are
+-- optimized.  But we are going for DX, so sounds good to me.
+notMember :: forall a c.
+             ( FromProxy (Proxy c)
+             , Ord a
+             )
+          => a
+          -> Interval c a
+          -> Bool
+notMember = not ... member
+
+overlaps :: forall c c' a.
+            Interval c a
+         -> Interval c' a
          -> Bool
 overlaps _a _b = panic "Interval.overlaps"
