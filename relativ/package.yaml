@@ -13,7 +13,7 @@ extra-source-files:
 synopsis:            "Pandas like indexes"
 category:            "Data"
 
-description:         "README at <https://github.com/lgastako/sized-indexes#readme>"
+description:         "README at <https://github.com/lgastako/tdf/relativ#readme>"
 
 ghc-options:
 - -Wall

@@ -7,7 +7,7 @@ cabal-version: 1.12
 name:           relativ
 version:        0.1.0.0
 synopsis:       Pandas like indexes
-description:    README at <https://github.com/lgastako/sized-indexes#readme>
+description:    README at <https://github.com/lgastako/tdf/relativ#readme>
 category:       Data
 homepage:       https://github.com/lgastako/tdf#readme
 bug-reports:    https://github.com/lgastako/tdf/issues

@@ -1,4 +1,4 @@
-# sized-indexes
+# relativ
 
 This is my attempt to provide a Haskellized implementation of the indexes that
 Pandas provides.
