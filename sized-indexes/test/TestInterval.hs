@@ -9,11 +9,11 @@ module TestInterval
 
 import Relativ.Prelude
 
-import Relativ.Types.Closedness ( Closedness( Open
-                                            , Closed
-                                            , ClosedLeft
-                                            , ClosedRight
-                                            )
+import Relativ.Types.Openness   ( Openness( Open
+                                          , Closed
+                                          , ClosedLeft
+                                          , ClosedRight
+                                          )
                                 )
 import Relativ.Types.Interval   ( Interval
                                 , member

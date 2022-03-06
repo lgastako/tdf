@@ -13,3 +13,5 @@ data TimeDeltaIndex = TimeDeltaIndex
 
 build :: () -> TimeDeltaIndex
 build = panic "TimeDeltaIndex.build"
+  where
+    _= TimeDeltaIndex

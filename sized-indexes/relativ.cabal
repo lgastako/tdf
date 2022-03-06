@@ -4,13 +4,13 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 
-name:           sized-indexes
+name:           relativ
 version:        0.1.0.0
 synopsis:       Pandas like indexes
 description:    README at <https://github.com/lgastako/sized-indexes#readme>
 category:       Data
-homepage:       https://github.com/lgastako/sized-indexes#readme
-bug-reports:    https://github.com/lgastako/sized-indexes/issues
+homepage:       https://github.com/lgastako/tdf#readme
+bug-reports:    https://github.com/lgastako/tdf/issues
 author:         John Evans
 maintainer:     lgastako@gmail.com
 copyright:      2022 John Evans
@@ -23,7 +23,8 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/lgastako/sized-indexes
+  location: https://github.com/lgastako/tdf
+  subdir: relativ
 
 library
   exposed-modules:
@@ -37,13 +38,13 @@ library
       Relativ.Prelude
       Relativ.Range
       Relativ.TimeDelta
-      Relativ.Types.Closedness
       Relativ.Types.DateTime
       Relativ.Types.Flag
       Relativ.Types.Interval
       Relativ.Types.Name
+      Relativ.Types.Openness
   other-modules:
-      Paths_sized_indexes
+      Paths_relativ
   hs-source-dirs:
       src
   ghc-options: -Wall
@@ -55,12 +56,12 @@ library
     , vec
   default-language: Haskell2010
 
-test-suite sized-indexes-test
+test-suite relative-test
   type: exitcode-stdio-1.0
   main-is: Driver.hs
   other-modules:
       TestInterval
-      Paths_sized_indexes
+      Paths_relativ
   hs-source-dirs:
       test
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
@@ -69,7 +70,7 @@ test-suite sized-indexes-test
     , base >=4.7 && <5
     , fin
     , protolude
-    , sized-indexes
+    , relativ
     , tasty
     , tasty-discover
     , tasty-hspec

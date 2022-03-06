@@ -1,6 +1,6 @@
-name:                "sized-indexes"
+name:                "relativ"
 version:             "0.1.0.0"
-github:              "lgastako/sized-indexes"
+github:              "lgastako/tdf/relativ"
 license:             "BSD3"
 author:              "John Evans"
 maintainer:          "lgastako@gmail.com"
@@ -29,7 +29,7 @@ library:
   source-dirs: src
 
 tests:
-  sized-indexes-test:
+  relative-test:
     main:                Driver.hs
     source-dirs:         test
     ghc-options:
@@ -38,7 +38,7 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - QuickCheck
-    - sized-indexes
+    - relativ
     - tasty
     - tasty-discover
     - tasty-hspec

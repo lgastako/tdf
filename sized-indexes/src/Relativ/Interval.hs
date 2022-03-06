@@ -1,7 +1,8 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE KindSignatures    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Relativ.Interval
   ( IntervalIndex
@@ -10,16 +11,17 @@ module Relativ.Interval
 
 import Relativ.Prelude
 
-import Relativ.Types.Closedness ( Closedness )
-import Relativ.Types.Interval   ( Interval )
+import Relativ.Types.Openness ( Openness )
+import Relativ.Types.Interval ( Interval )
 
 -- | An Index of `Interval`s.
-data IntervalIndex (c :: Closedness) = IntervalIndex
+data IntervalIndex (o :: Openness) = IntervalIndex
   {
   }
 
-build :: Vec n (Interval c a)
-      -> IntervalIndex c
+build :: forall n o a.
+         Vec n (Interval o a)
+      -> IntervalIndex o
 build = panic "Interval.build"
   where
     _x_ = IntervalIndex

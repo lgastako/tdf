@@ -1,27 +1,33 @@
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE ConstraintKinds   #-}
 {-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Relativ.Types.Closedness
-  ( Closedness(..)
+module Relativ.Types.Openness
+  ( Openness(..)
   , FromProxy(..)
+  , HasOpenness
   , def
   ) where
 
 import Relativ.Prelude
 
-data Closedness
+data Openness
   = Open
   | Closed
   | ClosedLeft
   | ClosedRight
   deriving (Eq, Ord, Show)
 
-def :: Closedness
+type HasOpenness (c :: Openness) = FromProxy (Proxy c)
+
+def :: Openness
 def = ClosedRight
 
 class FromProxy a where
-  fromProxy :: a -> Closedness
+  fromProxy :: a -> Openness
 
 instance FromProxy (Proxy 'Closed) where
   fromProxy _ = Closed

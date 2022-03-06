@@ -59,8 +59,14 @@ build_ :: forall c n a.
        -> Maybe (CategoricalIndex c n a)
 build_ = hush ... build
 
-max :: Ord a => CategoricalIndex c n a -> a
+max :: forall c n a.
+       Ord a
+    => CategoricalIndex c n a
+    -> a
 max = maximum . values
 
-min :: Ord a => CategoricalIndex c n a -> a
+min :: forall c n a.
+       Ord a
+    => CategoricalIndex c n a
+    -> a
 min = minimum . values

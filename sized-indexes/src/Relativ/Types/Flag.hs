@@ -1,5 +1,6 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Relativ.Types.Flag
   ( Flag
@@ -12,8 +13,14 @@ import Relativ.Prelude
 newtype Flag a = Flag Bool
   deriving (Eq, Ord, Show)
 
-fromFlag :: a -> Flag a -> Bool
+fromFlag :: forall a.
+            a
+         -> Flag a
+         -> Bool
 fromFlag _ (Flag x) = x
 
-toFlag :: a -> Bool -> Flag a
+toFlag :: forall a.
+          a
+       -> Bool
+       -> Flag a
 toFlag _ = Flag
