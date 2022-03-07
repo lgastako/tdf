@@ -23,6 +23,7 @@ dependencies:
 - fin
 - protolude
 - text
+- time
 - vec
 
 library:

@@ -4,6 +4,7 @@
 
 module Relativ.Types.Period.Frequency
   ( Frequency(..)
+  , def
   , description
   , min
   , ms
@@ -91,3 +92,6 @@ ms = L
 
 us :: Frequency
 us = U
+
+def :: Frequency
+def = A -- TODO: eh?

@@ -10,12 +10,15 @@ module Relativ.Prelude
   , underEnum
   ) where
 
-import Protolude     as X hiding ( Nat )
+import Protolude       as X hiding ( Nat )
 
-import Data.Vec.Lazy as X        ( Vec )
-import Data.Type.Nat as X        ( Nat
-                                 , SNatI
-                                 )
+import Data.Time.Clock as X ( UTCTime
+                            , getCurrentTime
+                            )
+import Data.Vec.Lazy   as X ( Vec )
+import Data.Type.Nat   as X ( Nat
+                            , SNatI
+                            )
 
 import qualified Data.List.NonEmpty as NE
 
