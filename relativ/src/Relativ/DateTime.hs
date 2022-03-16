@@ -25,9 +25,11 @@ import Relativ.Types.Flag     ( Flag
                               )
 import Relativ.Types.Name     ( Name )
 
+import qualified Data.Vector.Sized as S
+
 data Ambiguity (n :: Nat)
   = Infer
-  | BitVec (Vec n Bool)
+  | BitVec (S.Vector n Bool)
   | Raise
   deriving (Eq, Ord, Show)
 
@@ -35,7 +37,7 @@ data Ambiguity (n :: Nat)
 data DateTimeIndex (n :: Nat) = DateTimeIndex
   { ambiguity :: Ambiguity n
   , name      :: Maybe Name
-  , values    :: Vec n DateTime
+  , values    :: S.Vector n DateTime
   } deriving (Eq, Ord, Show)
 
 data Normalize = Normalize
@@ -56,7 +58,7 @@ def = Config
 
 build :: forall n.
          Config n
-      -> Vec n DateTime
+      -> S.Vector n DateTime
       -> DateTimeIndex n
 build Config {..} v = DateTimeIndex
   { ambiguity = ambiguity
@@ -65,19 +67,19 @@ build Config {..} v = DateTimeIndex
   }
 
 buildDef :: forall n.
-         Vec n DateTime
+         S.Vector n DateTime
       -> DateTimeIndex n
 buildDef = build def
 
 maybeNormalize :: forall n.
                   Flag Normalize
-               -> Vec n DateTime
-               -> Vec n DateTime
+               -> S.Vector n DateTime
+               -> S.Vector n DateTime
 maybeNormalize n vs
   | fromFlag Normalize n = normalizeToMidnight vs
   | otherwise            = vs
 
 normalizeToMidnight :: forall n.
-                       Vec n DateTime
-                    -> Vec n DateTime
+                       S.Vector n DateTime
+                    -> S.Vector n DateTime
 normalizeToMidnight = panic "normalizeToMidnight"

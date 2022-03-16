@@ -10,25 +10,13 @@ module Relativ.Prelude
   , underEnum
   ) where
 
-import Protolude       as X hiding ( Nat )
+import Protolude          as X hiding ( Nat )
 
-import Data.Time.Clock as X        ( UTCTime
-                                   , getCurrentTime
-                                   )
-import Data.Vec.Lazy   as X        ( Vec )
-import Data.Type.Nat   as X        ( Nat( Z
-                                        , S
-                                        )
-                                   , SNat( SZ
-                                         , SS
-                                         )
-                                   , SNatI
-                                   , reflect
-                                   , snat
-                                   , snatToNat
-                                   )
-import Data.Type.Equality as X     ( testEquality )
-import GHC.Natural        as X     ( Natural )
+import Data.Time.Clock    as X        ( UTCTime
+                                      , getCurrentTime
+                                      )
+import GHC.Natural        as X        ( Natural )
+import GHC.TypeNats       as X        ( Nat )
 
 import qualified Data.List.NonEmpty as NE
 

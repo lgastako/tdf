@@ -1,12 +1,11 @@
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeApplications    #-}
 
 module Relativ.Types.Range
   ( Range
@@ -20,9 +19,6 @@ module Relativ.Types.Range
 import Relativ.Prelude hiding ( from
                               , toList
                               )
-
-import qualified Data.Nat      as Nat
-import qualified Data.Type.Nat as TNat
 
 data Range (n :: Nat) a = Range
   { start :: a
@@ -42,50 +38,51 @@ fromTo :: forall n a.
           , Integral a
           , Num a
           , Ord a
-          , SNatI n
+          , KnownNat n
           )
        => a
        -> a
        -> Maybe (Range n a)
-fromTo x y = case testEquality nSNat rangeSize of
-  Nothing -> Nothing
-  Just Refl -> Just $ Range
-    { start = x
-    , stop  = y
-    , step  = defaultStep
-    }
-  where
-    nSNat :: SNat n
-    nSNat = snat @n
+fromTo = panic "Range.fromTo"
+-- fromTo x y = case testEquality nSNat rangeSize of
+--   Nothing -> Nothing
+--   Just Refl -> Just $ Range
+--     { start = x
+--     , stop  = y
+--     , step  = defaultStep
+--     }
+--   where
+--     --nSNat :: Natural
+--     nSNat = natVal (Proxy :: Proxy n)
 
-    rangeSize :: forall q. SNat q
-    rangeSize = undefined
-      where
-        q :: SNatI q => SNat q
-        q = snat @q
+--     rangeSize :: forall q. SNat q
+--     rangeSize = undefined
+--       where
+--         q :: SNatI q => SNat q
+--         q = snat @q
 
--- reify :: forall r. Nat -> (forall n. SNatI n => Proxy n -> r) -> r
-        jj :: SNat q
-        jj = undefined
+-- -- reify :: forall r. Nat -> (forall n. SNatI n => Proxy n -> r) -> r
+--         jj :: SNat q
+--         jj = undefined
 
-        -- jj = TNat.reify deltaNat f
-        qq :: SNatI q => SNat n
-        qq = case testEquality jj q of
-          Nothing -> undefined
+--         -- jj = TNat.reify deltaNat f
+--         qq :: SNatI q => SNat n
+--         qq = case testEquality jj q of
+--           Nothing -> undefined
 
 
-        f :: (forall gg. SNatI gg => Proxy gg -> SNat gg)
-        f (Proxy :: Proxy n) = snat @n
+--         f :: (forall gg. SNatI gg => Proxy gg -> SNat gg)
+--         f (Proxy :: Proxy n) = snat @n
 
     -- rangeSize = TNat.reify deltaNat
     --   --(undefined :: Proxy w -> SNat q)
     --   (\(Proxy :: Proxy p) -> snat @p)
 
-    deltaNat :: Nat
-    deltaNat = Nat.fromNatural delta
+    -- deltaNat :: Natural
+    -- deltaNat = Nat.fromNatural delta
 
-    delta :: Natural
-    delta = fromIntegral $ y - x
+    -- delta :: Natural
+    -- delta = fromIntegral $ y - x
 
     -- rangeSize
     --   | signum (y - x) > 0 = panic "fromTo.rangeSize.1"

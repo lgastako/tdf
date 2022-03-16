@@ -18,13 +18,13 @@ import Relativ.Prelude hiding ( max
                               , min
                               )
 
-import qualified Data.List     as L
-import qualified Data.Vec.Lazy as Vec
+import qualified Data.List         as L
+import qualified Data.Vector.Sized as S
 
 -- | Index of `Categorical`s
 data CategoricalIndex (c :: Nat) (n :: Nat) a = CategoricalIndex
-  { categories  :: Vec c a
-  , values      :: Vec n a
+  { categories  :: S.Vector c a
+  , values      :: S.Vector n a
   } deriving (Eq, Functor, Ord, Show)
 
 data BuildError
@@ -35,25 +35,25 @@ instance Exception BuildError
 
 build :: forall c n a.
          ( Eq a
-         , SNatI c
-         , SNatI n
+         , KnownNat c
+         , KnownNat n
          )
-      => Maybe (Vec c a)
-      -> Vec n a
+      => Maybe (S.Vector c a)
+      -> S.Vector n a
       -> Either BuildError (CategoricalIndex c n a)
 build catsMay vals = case catsMay of
   Just cats -> Right (CategoricalIndex cats vals)
-  Nothing -> case Vec.fromList . L.nub . toList $ vals of
+  Nothing -> case S.fromList . L.nub . toList $ vals of
     Just cats -> Right (CategoricalIndex cats vals)
     Nothing -> Left NoCategoriesOrValues
 
 build_ :: forall c n a.
           ( Eq a
-          , SNatI c
-          , SNatI n
+          , KnownNat c
+          , KnownNat n
           )
-       => Maybe (Vec c a)
-       -> Vec n a
+       => Maybe (S.Vector c a)
+       -> S.Vector n a
        -> Maybe (CategoricalIndex c n a)
 build_ = hush ... build
 

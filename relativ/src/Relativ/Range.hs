@@ -15,12 +15,16 @@ import Relativ.Prelude hiding ( toList )
 
 import Relativ.Types.Name ( Name )
 
-import qualified Data.Vec.Lazy      as Vec
+-- import qualified Data.Vec.Lazy      as Vec
 import qualified Data.List.NonEmpty as NE
+import qualified Data.Vector.Sized  as S
 
 -- | Index implementing a monotonic integer range.
 data RangeIndex a = RangeIndex
   { name  :: Maybe Name
+  , start :: a
+  , stop  :: a
+  , step  :: Int
   } deriving (Eq, Ord, Show)
 
 data FromListError
@@ -84,8 +88,8 @@ toList RangeIndex {..} =
 -- | Conver the `RangeIndex` to a (Vec n) of indexes
 toVec :: forall n a.
          ( Enum a
-         , SNatI n
+         , KnownNat n
          )
       => RangeIndex a
-      -> Maybe (Vec n a)
-toVec = Vec.fromList . toList
+      -> Maybe (S.Vector n a)
+toVec = S.fromList . toList

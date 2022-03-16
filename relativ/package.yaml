@@ -7,7 +7,7 @@ maintainer:          "lgastako@gmail.com"
 copyright:           "2022 John Evans"
 
 extra-source-files:
-- README.md
+- README.org
 - ChangeLog.md
 
 synopsis:            "Pandas like indexes"
@@ -19,12 +19,12 @@ ghc-options:
 - -Wall
 
 dependencies:
-- base >= 4.7 && < 5
-- fin
+- base               >= 4.7 && < 5
 - protolude
 - text
 - time
-- vec
+- vector
+- vector-sized
 
 library:
   source-dirs: src
