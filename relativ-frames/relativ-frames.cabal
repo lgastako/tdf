@@ -1,0 +1,58 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
+
+name:           relativ-frames
+version:        0.1.0.0
+synopsis:       Data Frames built on Relativ Indexes
+description:    README at <https://github.com/lgastako/relativ-frames#readme>
+category:       Data
+homepage:       https://github.com/lgastako/relativ-frames#readme
+bug-reports:    https://github.com/lgastako/relativ-frames/issues
+author:         John Evans
+maintainer:     lgastako@gmail.com
+copyright:      2022 John Evans
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/lgastako/relativ-frames
+
+library
+  exposed-modules:
+      Relativ.Frame
+      Relativ.Frame.Prelude
+      Relativ.Series
+  other-modules:
+      Paths_relativ_frames
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.7 && <5
+    , relativ
+    , row-types
+    , vector-sized
+  default-language: Haskell2010
+
+test-suite relativ-frames-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_relativ_frames
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , relativ
+    , relativ-frames
+    , row-types
+    , vector-sized
+  default-language: Haskell2010

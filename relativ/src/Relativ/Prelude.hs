@@ -12,6 +12,23 @@ module Relativ.Prelude
 
 import Protolude          as X hiding ( Nat )
 
+import Control.Lens       as X        ( (%~)
+                                      , (*~)
+                                      , (+~)
+                                      , (-~)
+                                      , (^.)
+                                      , (^..)
+                                      , (^?)
+                                      , Iso
+                                      , Iso'
+                                      , Lens
+                                      , Lens'
+                                      , Prism
+                                      , Prism'
+                                      , iso
+                                      , lens
+                                      , prism
+                                      )
 import Data.Time.Clock    as X        ( UTCTime
                                       , getCurrentTime
                                       )
