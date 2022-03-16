@@ -35,6 +35,7 @@ import Data.Frame.Prelude ( KnownNat
                           )
 import Data.List.NonEmpty ( NonEmpty )
 import Data.Maybe         ( fromMaybe )
+import GHC.TypeNats       ( natVal )
 
 import Data.Vector.Sized            as X
 
@@ -131,10 +132,10 @@ unsafeFromList :: forall n a.
                -> Vector n a
 unsafeFromList xs = fromMaybe boom . SV.fromList $ xs
   where
-    p :: Proxy n
-    p = Proxy
+    n = natVal $ (Proxy :: Proxy n)
 
     boom = error $ "Vector.Sized.X.unsafeFromList: expected "
-        <> show n -- TODO
+        <> show n
         <> ", got="
         <> show (Prelude.length xs)
+

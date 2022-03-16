@@ -12,13 +12,23 @@ module Relativ.Prelude
 
 import Protolude       as X hiding ( Nat )
 
-import Data.Time.Clock as X ( UTCTime
-                            , getCurrentTime
-                            )
-import Data.Vec.Lazy   as X ( Vec )
-import Data.Type.Nat   as X ( Nat
-                            , SNatI
-                            )
+import Data.Time.Clock as X        ( UTCTime
+                                   , getCurrentTime
+                                   )
+import Data.Vec.Lazy   as X        ( Vec )
+import Data.Type.Nat   as X        ( Nat( Z
+                                        , S
+                                        )
+                                   , SNat( SZ
+                                         , SS
+                                         )
+                                   , SNatI
+                                   , reflect
+                                   , snat
+                                   , snatToNat
+                                   )
+import Data.Type.Equality as X     ( testEquality )
+import GHC.Natural        as X     ( Natural )
 
 import qualified Data.List.NonEmpty as NE
 

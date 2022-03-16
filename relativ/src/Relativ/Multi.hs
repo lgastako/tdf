@@ -15,3 +15,4 @@ build :: () -> MultiIndex
 build = panic "Multi.build"
   where
     _ = MultiIndex
+-

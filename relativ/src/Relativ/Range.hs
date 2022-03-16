@@ -20,10 +20,7 @@ import qualified Data.List.NonEmpty as NE
 
 -- | Index implementing a monotonic integer range.
 data RangeIndex a = RangeIndex
-  { start :: a
-  , stop  :: a
-  , step  :: Int
-  , name  :: Maybe Name
+  { name  :: Maybe Name
   } deriving (Eq, Ord, Show)
 
 data FromListError

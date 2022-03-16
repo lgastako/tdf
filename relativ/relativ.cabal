@@ -52,6 +52,8 @@ library
       Relativ.Types.Period.Second
       Relativ.Types.Period.Year
       Relativ.Types.Period.YearFreq
+      Relativ.Types.Range
+      Relativ.VecIndex
   other-modules:
       Paths_relativ
   hs-source-dirs:
