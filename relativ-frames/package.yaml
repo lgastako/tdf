@@ -17,6 +17,7 @@ description:         "README at <https://github.com/lgastako/relativ-frames#read
 
 dependencies:
 - base               >= 4.7 && < 5
+- split
 - relativ
 - row-types
 - vector-sized

@@ -27,9 +27,12 @@ source-repository head
 
 library
   exposed-modules:
-      Relativ.Frame
       Relativ.Frame.Prelude
-      Relativ.Series
+      Relativ.Frame.Sized
+      Relativ.Frame.Unsized
+      Relativ.Locator
+      Relativ.Series.Sized
+      Relativ.Series.Unsized
   other-modules:
       Paths_relativ_frames
   hs-source-dirs:
@@ -38,6 +41,7 @@ library
       base >=4.7 && <5
     , relativ
     , row-types
+    , split
     , vector-sized
   default-language: Haskell2010
 
@@ -54,5 +58,6 @@ test-suite relativ-frames-test
     , relativ
     , relativ-frames
     , row-types
+    , split
     , vector-sized
   default-language: Haskell2010

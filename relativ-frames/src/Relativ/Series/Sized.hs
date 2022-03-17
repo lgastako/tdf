@@ -4,7 +4,7 @@
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Relativ.Series
+module Relativ.Series.Sized
   ( Series
     -- Constructors
   , fromVector
@@ -40,6 +40,15 @@ vector = lens toVector (const fromVector)
 -- ================================================================ --
 --   Combinators
 -- ================================================================ --
+
+-- loc :: Locator loc (Series
+--     => loc
+--     -> Series n a
+--     -> Series m a
+-- loc = undefined
+
+-- class Locator loc a | a -> loc where
+--   loc :: loc -> a -> b
 
 -- ================================================================ --
 --   Eliminators
