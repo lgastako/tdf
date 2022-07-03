@@ -1,0 +1,54 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
+
+name:           relativ-massiv
+version:        0.1.0.0
+synopsis:       An attempt at frames via Massiv to check out massiv.
+description:    README at <https://github.com/lgastako/relativ-massiv#readme>
+category:       Data
+homepage:       https://github.com/lgastako/relativ-massiv#readme
+bug-reports:    https://github.com/lgastako/relativ-massiv/issues
+author:         John Evans
+maintainer:     lgastako@gmail.com
+copyright:      2022 John Evans
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/lgastako/relativ-massiv
+
+library
+  exposed-modules:
+      Relativ.Massiv
+  other-modules:
+      Paths_relativ_massiv
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.7 && <5
+    , massiv
+    , relativ
+  default-language: Haskell2010
+
+test-suite relativ-massiv-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_relativ_massiv
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , massiv
+    , relativ
+    , relativ-massiv
+  default-language: Haskell2010

@@ -1,0 +1,10 @@
+resolver:
+  url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/19.yaml
+
+packages:
+- .
+# TODO eventually move to extra-deps
+- ../relativ
+
+extra-deps:
+- row-types-1.0.1.2@sha256:5c56e91d30b61f275eaee0d97b015d5332d95d7599e57582d6e62a43aa388087,2948
