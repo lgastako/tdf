@@ -102,6 +102,13 @@ packages:
       sha256: d7eae5e4a9ba6cfd3f1a6c5652590b14e5e2eed88738faecd3edf2504196a409
   original:
     hackage: hasktorch-signatures-types-0.0.1.0@sha256:6ae252a6056d616b57545f98a5b2d566115f862e4810583d2b6043c5c4d64235,1524
+- completed:
+    hackage: holmes-0.3.2.0@sha256:3d4aeb74177bafedc55a9c21be682ad45929490d1d809dec7fe248a503df0290,4597
+    pantry-tree:
+      size: 3258
+      sha256: 414f3416b14c2cd66141e755fa4d343c9ac154dc7713cf56bee09578019170cd
+  original:
+    hackage: holmes-0.3.2.0@sha256:3d4aeb74177bafedc55a9c21be682ad45929490d1d809dec7fe248a503df0290,4597
 snapshots:
 - completed:
     size: 586103
